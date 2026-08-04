@@ -87,36 +87,50 @@ main {
     transform: translateY(-3px);
 }
 
-.project-card span {
-    color: #aaa;
-    font-size: 0.9em;
-}
-
 .project-card img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-/* 画像の上に表示される黒文字タイトルのスタイル */
-.card-title {
+/* 画像の上に重ねる中央配置タイトル */
+.card-title-overlay {
     position: absolute;
-    bottom: 12px;
-    left: 12px;
-    color: #000;
-    font-size: 0.85em;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    box-sizing: border-box;
+    color: #111;
+    font-size: 1.05em;
     font-weight: 500;
-    letter-spacing: 0.05em;
-    background-color: rgba(255, 255, 255, 0.85); /* 文字の視認性を担保する半透明の白背景 */
-    padding: 4px 10px;
-    border-radius: 4px;
-    pointer-events: none;
+    letter-spacing: 0.08em;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(2px);
+    transition: background-color 0.3s;
+    z-index: 2;
+}
+
+.project-card:hover .card-title-overlay {
+    background-color: rgba(255, 255, 255, 0.6);
+}
+
+@media (max-width: 768px) {
+    .project-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
 }
 
 .detail-header {
     width: 100%;
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 80px 1fr 80px;
     align-items: center;
     margin-bottom: 30px;
 }
@@ -125,31 +139,12 @@ main {
     text-decoration: none;
     color: #999;
     font-size: 0.9em;
-    transition: color 0.3s;
+    text-align: left;
+    white-space: nowrap;
 }
 
 .back-link:hover {
     color: #333;
-}
-
-/* スマホ対応（768px以下） */
-@media (max-width: 768px) {
-    .project-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-    }
-
-    /* スマホでのヘッダー配置の最適化 */
-    .detail-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-    }
-
-    .detail-header-title {
-        width: 100%;
-        text-align: center;
-    }
 }
 
 .detail-content {
@@ -180,5 +175,29 @@ main {
 .detail-caption {
     font-size: 1em;
     color: #666;
+    line-height: 1.8;
+}
+
+.about-container {
+    width: 100%;
+    max-width: 800px;
+    text-align: left;
+}
+
+.about-section {
+    margin-bottom: 40px;
+}
+
+.about-section h2 {
+    font-size: 1.3em;
+    font-weight: 400;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+}
+
+.about-section p {
+    font-size: 1em;
+    color: #555;
     line-height: 1.8;
 }
