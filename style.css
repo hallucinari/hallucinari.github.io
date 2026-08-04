@@ -68,6 +68,7 @@ main {
 }
 
 .project-card {
+    position: relative;
     aspect-ratio: 1 / 1;
     border: 2px solid #ddd;
     background-color: #fff;
@@ -97,11 +98,19 @@ main {
     object-fit: cover;
 }
 
-@media (max-width: 768px) {
-    .project-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-    }
+/* 画像の上に表示される黒文字タイトルのスタイル */
+.card-title {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    color: #000;
+    font-size: 0.85em;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    background-color: rgba(255, 255, 255, 0.85); /* 文字の視認性を担保する半透明の白背景 */
+    padding: 4px 10px;
+    border-radius: 4px;
+    pointer-events: none;
 }
 
 .detail-header {
@@ -116,29 +125,37 @@ main {
     text-decoration: none;
     color: #999;
     font-size: 0.9em;
+    transition: color 0.3s;
 }
 
 .back-link:hover {
     color: #333;
 }
 
+/* スマホ対応（768px以下） */
+@media (max-width: 768px) {
+    .project-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    /* スマホでのヘッダー配置の最適化 */
+    .detail-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .detail-header-title {
+        width: 100%;
+        text-align: center;
+    }
+}
+
 .detail-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-}
-
-.image-placeholder {
-    width: 100%;
-    max-width: 800px;
-    aspect-ratio: 16 / 9;
-    background-color: #f0f0f0;
-    border: 2px solid #ddd;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #aaa;
-    margin-bottom: 30px;
 }
 
 .work-image {
