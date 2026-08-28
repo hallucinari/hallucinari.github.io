@@ -1,58 +1,643 @@
-<!-- --- index.html --- -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>hallucinari | ポートフォリオ</title>
-    <link rel="stylesheet" href="style.css">
+    <title>ATRAS Simulator - Standard Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* サイト全体のリセットとベーススタイル */
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background-color: #f8fafc; /* 上品なスレート背景 */
+            color: #334155; 
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* --------------------------------------
+           ATRAS専用のインタラクティブUI用CSS
+        --------------------------------------- */
+        .word-container { 
+            position: relative; 
+            display: inline-block; 
+            margin: 4px 2px; 
+        }
+        
+        /* ドロップダウンメニューの美しいスタイル */
+        .dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            z-index: 50;
+            min-width: 120px;
+            max-height: 250px;
+            overflow-y: auto;
+            white-space: nowrap;
+            margin-top: 4px;
+            transform-origin: top left;
+        }
+        
+        /* アニメーション付きのドロップダウン表示 */
+        .word-container.active .dropdown { 
+            display: block; 
+            animation: dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        @keyframes dropdownFadeIn {
+            from { opacity: 0; transform: translateY(-8px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        /* カスタムスクロールバー（Webkit） */
+        .dropdown::-webkit-scrollbar {
+            width: 6px;
+        }
+        .dropdown::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+            border-radius: 8px;
+        }
+        .dropdown::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 8px;
+        }
+        .dropdown::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        /* ドロップダウンアイテム */
+        .dropdown-item { 
+            padding: 10px 16px; 
+            cursor: pointer; 
+            border-bottom: 1px solid #f1f5f9; 
+            transition: all 0.15s ease;
+            font-size: 1.125rem;
+        }
+        
+        .dropdown-item:last-child { 
+            border-bottom: none; 
+        }
+        
+        .dropdown-item:hover { 
+            background-color: #f8fafc; 
+            padding-left: 20px; /* ホバー時に少し右へスライド */
+            color: #2563eb;
+        }
+        
+        /* 選択されている単語のハイライト */
+        .selected-word {
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s, box-shadow 0.2s;
+        }
+        
+        .selected-word:hover { 
+            background-color: #e2e8f0; 
+        }
+        
+        /* バリエーションがある単語の破線 */
+        .has-variants { 
+            border-bottom: 2px dashed #3b82f6; 
+        }
+
+        /* --------------------------------------
+           入力フォームとスライダーの装飾
+        --------------------------------------- */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        input[type=range] {
+            accent-color: #3b82f6;
+            height: 6px;
+            border-radius: 4px;
+            background: #e2e8f0;
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+    </style>
 </head>
-<body>
+<body class="min-h-screen p-4 md:p-8 flex flex-col items-center">
 
-    <header>
-        <a href="index.html">
-            <h1>hallucinari</h1>
-        </a>
-        <div class="header-links">
-            <a href="about.html" class="btn-link">about</a>
-            <a href="https://linktr.ee/hallucinari" target="_blank" class="btn-link">linktree</a>
-            <a href="問い合わせフォームのURLをここに入力" target="_blank" class="btn-link">contact</a>
+    <!-- 言語切り替えナビゲーション -->
+    <div class="w-full max-w-5xl flex justify-end gap-2 mb-6 text-sm">
+        <button class="px-4 py-2 rounded-full font-medium transition-colors bg-white shadow-sm border border-slate-200 text-blue-600 ring-2 ring-blue-100 lang-btn" data-lang="ja">日本語</button>
+        <button class="px-4 py-2 rounded-full font-medium transition-colors hover:bg-slate-100 text-slate-500 lang-btn" data-lang="en">English</button>
+        <button class="px-4 py-2 rounded-full font-medium transition-colors hover:bg-slate-100 text-slate-500 lang-btn" data-lang="de">Deutsch</button>
+    </div>
+
+    <!-- メインコンテナ -->
+    <div class="w-full max-w-5xl glass-panel p-6 md:p-10 rounded-2xl shadow-lg mb-8">
+        
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold mb-3 text-slate-800 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">ATRAS Simulator</h1>
+            <div class="flex justify-center mb-4">
+                <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-indigo-200" data-i18n="badge">Standard Edition</span>
+            </div>
+            <p class="text-slate-500 font-medium" data-i18n="subtitle">パラメータ調整機能付き ccTLD国旗置換シミュレータ (多言語対応)</p>
+        </header>
+
+        <!-- パラメータ設定エリア -->
+        <div class="bg-slate-50/50 p-6 rounded-2xl border border-slate-200 mb-10 shadow-inner">
+            <h2 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2" data-i18n="paramTitle">
+                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                最適化パラメータ設定
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- 置換量 -->
+                <div class="group">
+                    <label class="flex justify-between text-sm font-semibold text-slate-700 mb-3">
+                        <span data-i18n="paramQ">置換量</span>
+                        <span id="valQ" class="text-blue-600 bg-blue-50 px-2 py-0.5 rounded">100</span>
+                    </label>
+                    <input type="range" id="paramQ" min="0" max="100" value="100" class="w-full cursor-pointer">
+                    <p class="text-xs text-slate-500 mt-3 leading-relaxed group-hover:text-slate-700 transition-colors" data-i18n="paramQDesc">国旗への置換数を最大化する方針を優先します。</p>
+                </div>
+                <!-- 一体感 -->
+                <div class="group">
+                    <label class="flex justify-between text-sm font-semibold text-slate-700 mb-3">
+                        <span data-i18n="paramI">一体感</span>
+                        <span id="valI" class="text-blue-600 bg-blue-50 px-2 py-0.5 rounded">50</span>
+                    </label>
+                    <input type="range" id="paramI" min="0" max="100" value="50" class="w-full cursor-pointer">
+                    <p class="text-xs text-slate-500 mt-3 leading-relaxed group-hover:text-slate-700 transition-colors" data-i18n="paramIDesc">i, lや背の高い文字を残し美しさを高めます。</p>
+                </div>
+                <!-- 可読性 -->
+                <div class="group">
+                    <label class="flex justify-between text-sm font-semibold text-slate-700 mb-3">
+                        <span data-i18n="paramR">可読性</span>
+                        <span id="valR" class="text-blue-600 bg-blue-50 px-2 py-0.5 rounded">50</span>
+                    </label>
+                    <input type="range" id="paramR" min="0" max="100" value="50" class="w-full cursor-pointer">
+                    <p class="text-xs text-slate-500 mt-3 leading-relaxed group-hover:text-slate-700 transition-colors" data-i18n="paramRDesc">先頭文字や連続するアルファベットを残します。</p>
+                </div>
+            </div>
         </div>
-    </header>
 
-    <main>
-        <div class="project-grid">
-            <a href="works/work1.html" class="project-card">
-                <span class="card-title-overlay">Too Many Cooks</span>
-                <img src="images/too_many_cooks.jpg" alt="Too Many Cooks">
-            </a>
-            <a href="works/work2.html" class="project-card">
-                <span class="card-title-overlay">D🇮🇪 Le🇮🇩en 🇩🇪s ju🇳🇬en W🇪🇷🇹🇭🇪🇷</span>
-                <img src="images/atras.png" alt="ATRAS">
-            </a>
-            <a href="works/work3.html" class="project-card">
-                <span class="card-title-overlay">作品3</span>
-            </a>
-            <a href="works/work4.html" class="project-card">
-                <span class="card-title-overlay">作品4</span>
-            </a>
-            <a href="works/work5.html" class="project-card">
-                <span class="card-title-overlay">作品5</span>
-            </a>
-            <a href="works/work6.html" class="project-card">
-                <span class="card-title-overlay">作品6</span>
-            </a>
-            <a href="works/work7.html" class="project-card">
-                <span class="card-title-overlay">作品7</span>
-            </a>
-            <a href="works/work8.html" class="project-card">
-                <span class="card-title-overlay">作品8</span>
-            </a>
-            <a href="works/work9.html" class="project-card">
-                <span class="card-title-overlay">作品9</span>
-            </a>
+        <!-- 入力と処理エリア -->
+        <div class="space-y-8">
+            <div>
+                <label for="inputText" class="block text-sm font-bold text-slate-700 mb-3" data-i18n="inputLabel">入力テキスト:</label>
+                <textarea id="inputText" rows="4" class="w-full p-5 border border-slate-300 rounded-xl shadow-sm focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-lg transition-all outline-none resize-y" data-i18n-placeholder="inputPlaceholder">Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags</textarea>
+                <div class="mt-4 flex justify-end">
+                    <button id="processBtn" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 active:transform active:scale-95 transition-all font-bold shadow-md shadow-blue-500/30 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                        <span data-i18n="processBtn">置換を実行</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 結果表示エリア -->
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-3" data-i18n="resultLabel">結果 (破線の下線をクリックしてバリエーションを選択可能):</label>
+                <div id="outputArea" class="w-full p-6 min-h-[140px] border border-slate-300 rounded-xl bg-white text-2xl leading-relaxed whitespace-pre-wrap shadow-inner overflow-hidden"></div>
+            </div>
+
+            <!-- 最終出力エリア -->
+            <div>
+                <label for="finalText" class="block text-sm font-bold text-slate-700 mb-3" data-i18n="outputLabel">最終出力テキスト:</label>
+                <textarea id="finalText" rows="4" class="w-full p-5 border border-slate-300 rounded-xl shadow-inner bg-slate-50 text-2xl transition-all outline-none resize-y text-slate-800" readonly></textarea>
+                <div class="mt-4 flex justify-end">
+                    <button id="copyBtn" class="bg-emerald-500 text-white px-8 py-3 rounded-xl hover:bg-emerald-600 active:transform active:scale-95 transition-all font-bold shadow-md shadow-emerald-500/30 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                        <span data-i18n="copyBtn">テキストをコピー</span>
+                    </button>
+                </div>
+            </div>
         </div>
-    </main>
+    </div>
 
+    <script>
+        // 翻訳辞書
+        const translations = {
+            ja: {
+                badge: "Standard Edition",
+                subtitle: "パラメータ調整機能付き ccTLD国旗置換シミュレータ (多言語対応)",
+                paramTitle: "最適化パラメータ設定",
+                paramQ: "置換量",
+                paramQDesc: "国旗への置換数を最大化する方針を優先します。",
+                paramI: "一体感",
+                paramIDesc: "i, lや背の高い文字を残し美しさを高めます。",
+                paramR: "可読性",
+                paramRDesc: "先頭文字や連続するアルファベットを残します。",
+                inputLabel: "入力テキスト:",
+                inputPlaceholder: "文章を入力してください",
+                processBtn: "置換を実行",
+                resultLabel: "結果 (破線の下線をクリックしてバリエーションを選択可能):",
+                outputLabel: "最終出力テキスト:",
+                copyBtn: "テキストをコピー",
+                copiedBtn: "コピーしました！"
+            },
+            en: {
+                badge: "Standard Edition",
+                subtitle: "ccTLD Flag Emoji Replacer Simulator with Parameters",
+                paramTitle: "Optimization Parameters",
+                paramQ: "Quantity",
+                paramQDesc: "Prioritizes maximizing the number of flag replacements.",
+                paramI: "Integration",
+                paramIDesc: "Retains i, l, and tall letters to enhance visual harmony.",
+                paramR: "Readability",
+                paramRDesc: "Retains initial letters or consecutive alphabets for easier reading.",
+                inputLabel: "Input Text:",
+                inputPlaceholder: "Enter text here",
+                processBtn: "Generate Replacements",
+                resultLabel: "Result (Click dashed underlines to select variations):",
+                outputLabel: "Final Output Text:",
+                copyBtn: "Copy Text",
+                copiedBtn: "Copied!"
+            },
+            de: {
+                badge: "Standard Edition",
+                subtitle: "ccTLD-Flaggen-Emoji-Simulator mit Parametern",
+                paramTitle: "Optimierungsparameter",
+                paramQ: "Quantität",
+                paramQDesc: "Priorisiert die Maximierung der Anzahl der Flaggenersetzungen.",
+                paramI: "Integration",
+                paramIDesc: "Behält i, l und hohe Buchstaben bei, um die visuelle Harmonie zu verbessern.",
+                paramR: "Lesbarkeit",
+                paramRDesc: "Behält Anfangsbuchstaben oder aufeinanderfolgende Alphabete zum leichteren Lesen bei.",
+                inputLabel: "Eingabetext:",
+                inputPlaceholder: "Geben Sie hier Text ein",
+                processBtn: "Ersetzungen ausführen",
+                resultLabel: "Ergebnis (Klicken Sie auf Unterstreichungen für Varianten):",
+                outputLabel: "Endgültiger Ausgabetext:",
+                copyBtn: "Text kopieren",
+                copiedBtn: "Kopiert!"
+            }
+        };
+
+        let currentLang = 'ja';
+
+        function applyLanguage(lang) {
+            currentLang = lang;
+            
+            // ボタンのスタイル更新
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                if (btn.dataset.lang === lang) {
+                    btn.classList.add('bg-white', 'shadow-sm', 'border-slate-200', 'text-blue-600', 'ring-2', 'ring-blue-100');
+                    btn.classList.remove('hover:bg-slate-100', 'text-slate-500', 'border-transparent');
+                } else {
+                    btn.classList.remove('bg-white', 'shadow-sm', 'border-slate-200', 'text-blue-600', 'ring-2', 'ring-blue-100');
+                    btn.classList.add('hover:bg-slate-100', 'text-slate-500', 'border-transparent');
+                }
+            });
+
+            // テキストの流し込み
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.dataset.i18n;
+                if (translations[lang][key]) {
+                    if (el.tagName.toLowerCase() === 'span' && el.querySelector('svg')) {
+                        // アイコンを保持しつつテキストを更新（※今回はシンプルなspanなので直接書き換え可能）
+                        el.innerHTML = translations[lang][key];
+                    } else {
+                        el.textContent = translations[lang][key];
+                    }
+                }
+            });
+
+            // プレースホルダーの更新
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.dataset.i18nPlaceholder;
+                if (translations[lang][key]) {
+                    el.placeholder = translations[lang][key];
+                }
+            });
+        }
+
+        // 不要なドメイン(bl, bq, bv, eh, gb, mf, sj, su, um)を排除した完全なa-zリスト
+        const cctldFlags = {
+            "ac": "🇦🇨", "ad": "🇦🇩", "ae": "🇦🇪", "af": "🇦🇫", "ag": "🇦🇬", "ai": "🇦🇮", "al": "🇦🇱", "am": "🇦🇲", "ao": "🇦🇴", "aq": "🇦🇶", "ar": "🇦🇷", "as": "🇦🇸", "at": "🇦🇹", "au": "🇦🇺", "aw": "🇦🇼", "ax": "🇦🇽", "az": "🇦🇿",
+            "ba": "🇧🇦", "bb": "🇧🇧", "bd": "🇧🇩", "be": "🇧🇪", "bf": "🇧🇫", "bg": "🇧🇬", "bh": "🇧🇭", "bi": "🇧🇮", "bj": "🇧🇯", "bm": "🇧🇲", "bn": "🇧🇳", "bo": "🇧🇴", "br": "🇧🇷", "bs": "🇧🇸", "bt": "🇧🇹", "bw": "🇧🇼", "by": "🇧🇾", "bz": "🇧🇿",
+            "ca": "🇨🇦", "cc": "🇨🇨", "cd": "🇨🇩", "cf": "🇨🇫", "cg": "🇨🇬", "ch": "🇨🇭", "ci": "🇨🇮", "ck": "🇨🇰", "cl": "🇨🇱", "cm": "🇨🇲", "cn": "🇨🇳", "co": "🇨🇴", "cr": "🇨🇷", "cu": "🇨🇺", "cv": "🇨🇻", "cw": "🇨🇼", "cx": "🇨🇽", "cy": "🇨🇾", "cz": "🇨🇿",
+            "de": "🇩🇪", "dj": "🇩🇯", "dk": "🇩🇰", "dm": "🇩🇲", "do": "🇩🇴", "dz": "🇩🇿",
+            "ec": "🇪🇨", "ee": "🇪🇪", "eg": "🇪🇬", "er": "🇪🇷", "es": "🇪🇸", "et": "🇪🇹", "eu": "🇪🇺",
+            "fi": "🇫🇮", "fj": "🇫🇯", "fk": "🇫🇰", "fm": "🇫🇲", "fo": "🇫🇴", "fr": "🇫🇷",
+            "ga": "🇬🇦", "gd": "🇬🇩", "ge": "🇬🇪", "gf": "🇬🇫", "gg": "🇬🇬", "gh": "🇬🇭", "gi": "🇬🇮", "gl": "🇬🇱", "gm": "🇬🇲", "gn": "🇬🇳", "gp": "🇬🇵", "gq": "🇬🇶", "gr": "🇬🇷", "gs": "🇬🇸", "gt": "🇬🇹", "gu": "🇬🇺", "gw": "🇬🇼", "gy": "🇬🇾",
+            "hk": "🇭🇰", "hm": "🇭🇲", "hn": "🇭🇳", "hr": "🇭🇷", "ht": "🇭🇹", "hu": "🇭🇺",
+            "id": "🇮🇩", "ie": "🇮🇪", "il": "🇮🇱", "im": "🇮🇲", "in": "🇮🇳", "io": "🇮🇴", "iq": "🇮🇶", "ir": "🇮🇷", "is": "🇮🇸", "it": "🇮🇹",
+            "je": "🇯🇪", "jm": "🇯🇲", "jo": "🇯🇴", "jp": "🇯🇵",
+            "ke": "🇰🇪", "kg": "🇰🇬", "kh": "🇰🇭", "ki": "🇰🇮", "km": "🇰🇲", "kn": "🇰🇳", "kp": "🇰🇵", "kr": "🇰🇷", "kw": "🇰🇼", "ky": "🇰🇾", "kz": "🇰🇿",
+            "la": "🇱🇦", "lb": "🇱🇧", "lc": "🇱🇨", "li": "🇱🇮", "lk": "🇱🇰", "lr": "🇱🇷", "ls": "🇱🇸", "lt": "🇱🇹", "lu": "🇱🇺", "lv": "🇱🇻", "ly": "🇱🇾",
+            "ma": "🇲🇦", "mc": "🇲🇨", "md": "🇲🇩", "me": "🇲🇪", "mg": "🇲🇬", "mh": "🇲🇭", "mk": "🇲🇰", "ml": "🇲🇱", "mm": "🇲🇲", "mn": "🇲🇳", "mo": "🇲🇴", "mp": "🇲🇵", "mq": "🇲🇶", "mr": "🇲🇷", "ms": "🇲🇸", "mt": "🇲🇹", "mu": "🇲🇺", "mv": "🇲🇻", "mw": "🇲🇼", "mx": "🇲🇽", "my": "🇲🇾", "mz": "🇲🇿",
+            "na": "🇳🇦", "nc": "🇳🇨", "ne": "🇳🇪", "nf": "🇳🇫", "ng": "🇳🇬", "ni": "🇳🇮", "nl": "🇳🇱", "no": "🇳🇴", "np": "🇳🇵", "nr": "🇳🇷", "nu": "🇳🇺", "nz": "🇳🇿",
+            "om": "🇴🇲",
+            "pa": "🇵🇦", "pe": "🇵🇪", "pf": "🇵🇫", "pg": "🇵🇬", "ph": "🇵🇭", "pk": "🇵🇰", "pl": "🇵🇱", "pm": "🇵🇲", "pn": "🇵🇳", "pr": "🇵🇷", "ps": "🇵🇸", "pt": "🇵🇹", "pw": "🇵🇼", "py": "🇵🇾",
+            "qa": "🇶🇦",
+            "re": "🇷🇪", "ro": "🇷🇴", "rs": "🇷🇸", "ru": "🇷🇺", "rw": "🇷🇼",
+            "sa": "🇸🇦", "sb": "🇸🇧", "sc": "🇸🇨", "sd": "🇸🇩", "se": "🇸🇪", "sg": "🇸🇬", "sh": "🇸🇭", "si": "🇸🇮", "sk": "🇸🇰", "sl": "🇸🇱", "sm": "🇸🇲", "sn": "🇸🇳", "so": "🇸🇴", "sr": "🇸🇷", "ss": "🇸🇸", "st": "🇸🇹", "sv": "🇸🇻", "sx": "🇸🇽", "sy": "🇸🇾", "sz": "🇸🇿",
+            "tc": "🇹🇨", "td": "🇹🇩", "tf": "🇹🇫", "tg": "🇹🇬", "th": "🇹🇭", "tj": "🇹🇯", "tk": "🇹🇰", "tl": "🇹🇱", "tm": "🇹🇲", "tn": "🇹🇳", "to": "🇹🇴", "tr": "🇹🇷", "tt": "🇹🇹", "tv": "🇹🇻", "tw": "🇹🇼", "tz": "🇹🇿",
+            "ua": "🇺🇦", "ug": "🇺🇬", "uk": "🇬🇧", "us": "🇺🇸", "uy": "🇺🇾", "uz": "🇺🇿",
+            "va": "🇻🇦", "vc": "🇻🇨", "ve": "🇻🇪", "vg": "🇻🇬", "vi": "🇻🇮", "vn": "🇻🇳", "vu": "🇻🇺",
+            "wf": "🇼🇫", "ws": "🇼🇸",
+            "ye": "🇾🇪", "yt": "🇾🇹",
+            "za": "🇿🇦", "zm": "🇿🇲", "zw": "🇿🇼"
+        };
+
+        const flagRegex = /[\uD83C][\uDDE6-\uDDFF][\uD83C][\uDDE6-\uDDFF]/g;
+
+        // 絶対置換ルール: 置換可能なccTLDペアが残っていないか厳密にチェック
+        function hasMissedReplacement(variant) {
+            const alphaOnlyStr = variant.replace(flagRegex, ' '); 
+            const chunks = alphaOnlyStr.split(/\s+/).filter(c => c.length >= 2);
+            
+            for (let chunk of chunks) {
+                for (let i = 0; i < chunk.length - 1; i++) {
+                    const c1 = chunk[i];
+                    const c2 = chunk[i+1];
+                    // ダイアクリティカルマークを含む文字は変換されないためそのまま評価
+                    const pair = c1.toLowerCase() + c2.toLowerCase();
+                    // 正規のa-zペアが残っている場合のみ置換漏れとする
+                    if (cctldFlags[pair] && /^[a-z]{2}$/.test(pair)) {
+                        return true; 
+                    }
+                }
+            }
+            return false;
+        }
+
+        // 最適化スコアの計算
+        function calcScore(variant, originalWord, weightQ, weightI, weightR) {
+            if (variant === originalWord) return -1000; 
+
+            const flags = variant.match(flagRegex) || [];
+            const flagCount = flags.length;
+            const maxFlags = Math.floor(originalWord.length / 2);
+            
+            // 1. 置換量
+            const scoreQ = maxFlags > 0 ? (flagCount / maxFlags) : 0;
+            
+            // 2. 一体感
+            let scoreI = 0;
+            const alphas = variant.replace(flagRegex, '');
+            if (alphas.length > 0) {
+                let goodCharCount = 0;
+                for (let char of alphas) {
+                    let baseChar = char.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                    if (/[iljtILJfbdhk]/.test(baseChar)) {
+                        goodCharCount += 1;
+                    } else if (/[mwgqp]/.test(baseChar)) {
+                        goodCharCount -= 0.5;
+                    }
+                    if (char.toUpperCase() === char && char.toLowerCase() !== char) {
+                        goodCharCount += 0.5;
+                    }
+                }
+                scoreI = Math.max(0, goodCharCount / alphas.length);
+            } else if (flagCount > 0 && maxFlags > 0) {
+                scoreI = 0.8; // 完全に国旗の場合は高評価
+            }
+            
+            // サンドイッチ構造ボーナス
+            if (/^\p{L}+(?:[\uD83C][\uDDE6-\uDDFF]){2,}\p{L}+$/u.test(variant)) {
+                scoreI = Math.min(1.0, scoreI + 0.3);
+            }
+
+            // 3. 可読性
+            let scoreR = 0;
+            if (/^\p{L}/u.test(variant)) {
+                scoreR += 0.4;
+            }
+            
+            const chunks = variant.replace(flagRegex, ' ').split(/\s+/).filter(c => c.length > 0);
+            let maxChunkLen = 0;
+            for (let c of chunks) {
+                if (c.length > maxChunkLen) maxChunkLen = c.length;
+            }
+            if (originalWord.length > 0) {
+                scoreR += (maxChunkLen / originalWord.length) * 0.6;
+            }
+            
+            return (weightQ * scoreQ) + (weightI * scoreI) + (weightR * scoreR);
+        }
+
+        // 有効なすべてのバリエーションを検索
+        function findVariations(word, wQ, wI, wR) {
+            const results = [];
+            const processChars = Array.from(word); // Unicodeセーフな文字配列
+
+            function search(currentPrefix, charIndex) {
+                if (charIndex >= processChars.length) {
+                    if (currentPrefix !== word) {
+                        results.push(currentPrefix);
+                    }
+                    return;
+                }
+
+                // そのまま残す
+                const charObj = processChars[charIndex];
+                search(currentPrefix + charObj, charIndex + 1);
+
+                // 2文字で置換可能かチェック
+                if (charIndex + 1 < processChars.length) {
+                    const charObj2 = processChars[charIndex + 1];
+                    const potentialCcTLD = charObj.toLowerCase() + charObj2.toLowerCase();
+                    
+                    // a-zのペアのみ置換対象とする（ダイアクリティカルマークを保護）
+                    if (cctldFlags[potentialCcTLD] && /^[a-z]{2}$/.test(potentialCcTLD)) {
+                        search(currentPrefix + cctldFlags[potentialCcTLD], charIndex + 2);
+                    }
+                }
+            }
+
+            search("", 0);
+            
+            let uniqueResults = [...new Set(results)];
+            
+            // 絶対置換ルール（漏れがあるものは除外）
+            uniqueResults = uniqueResults.filter(variant => !hasMissedReplacement(variant));
+
+            // 全て弾かれた場合は元の文字を返す
+            if (uniqueResults.length === 0) {
+                uniqueResults.push(word);
+            } else if (!uniqueResults.includes(word)) {
+                uniqueResults.push(word);
+            }
+
+            // スコアが高い順にソート
+            uniqueResults.sort((a, b) => {
+                const scoreA = calcScore(a, word, wQ, wI, wR);
+                const scoreB = calcScore(b, word, wQ, wI, wR);
+                return scoreB - scoreA;
+            });
+
+            return uniqueResults;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // 言語切替リスナー
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    applyLanguage(e.target.dataset.lang);
+                });
+            });
+            applyLanguage('ja'); // 初期ロード
+
+            const inputText = document.getElementById('inputText');
+            const processBtn = document.getElementById('processBtn');
+            const outputArea = document.getElementById('outputArea');
+            const finalText = document.getElementById('finalText');
+            const copyBtn = document.getElementById('copyBtn');
+            
+            const paramQ = document.getElementById('paramQ');
+            const paramI = document.getElementById('paramI');
+            const paramR = document.getElementById('paramR');
+            const valQ = document.getElementById('valQ');
+            const valI = document.getElementById('valI');
+            const valR = document.getElementById('valR');
+
+            let currentSelections = [];
+
+            // スライダー連動
+            function updateSliderValues() {
+                valQ.textContent = paramQ.value;
+                valI.textContent = paramI.value;
+                valR.textContent = paramR.value;
+            }
+
+            [paramQ, paramI, paramR].forEach(slider => {
+                slider.addEventListener('input', () => {
+                    updateSliderValues();
+                    if (inputText.value.trim() !== '') {
+                        processText(); // リアルタイム反映
+                    }
+                });
+            });
+
+            function updateFinalText() {
+                finalText.value = currentSelections.join('');
+            }
+
+            // メイン処理
+            function processText() {
+                const text = inputText.value;
+                outputArea.innerHTML = '';
+                currentSelections = [];
+                
+                const wQ = parseInt(paramQ.value, 10);
+                const wI = parseInt(paramI.value, 10);
+                const wR = parseInt(paramR.value, 10);
+
+                // 単語と記号を分離 (\p{L}を利用してダイアクリティカルマーク付きの文字も1つの単語として扱う)
+                const tokens = text.match(/\p{L}+|[^\p{L}]+/gu) || [];
+
+                tokens.forEach((token, index) => {
+                    // 単語以外はそのまま流し込む
+                    if (!/^\p{L}+$/u.test(token)) {
+                        outputArea.appendChild(document.createTextNode(token));
+                        currentSelections.push(token);
+                        return;
+                    }
+
+                    // バリエーションを検索
+                    const variations = findVariations(token, wQ, wI, wR);
+                    
+                    if (variations.length > 1) {
+                        const container = document.createElement('div');
+                        container.className = 'word-container';
+                        
+                        const displaySpan = document.createElement('span');
+                        displaySpan.className = 'selected-word has-variants';
+                        
+                        const initialChoice = variations[0];
+                        displaySpan.textContent = initialChoice;
+                        currentSelections.push(initialChoice);
+                        const selectionIndex = currentSelections.length - 1;
+
+                        const dropdown = document.createElement('div');
+                        dropdown.className = 'dropdown';
+
+                        variations.forEach(variant => {
+                            const item = document.createElement('div');
+                            item.className = 'dropdown-item';
+                            item.textContent = variant;
+                            item.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                displaySpan.textContent = variant;
+                                currentSelections[selectionIndex] = variant;
+                                updateFinalText();
+                                container.classList.remove('active');
+                            });
+                            dropdown.appendChild(item);
+                        });
+
+                        displaySpan.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            document.querySelectorAll('.word-container.active').forEach(c => {
+                                if (c !== container) c.classList.remove('active');
+                            });
+                            container.classList.toggle('active');
+                        });
+
+                        container.appendChild(displaySpan);
+                        container.appendChild(dropdown);
+                        outputArea.appendChild(container);
+
+                    } else {
+                        // 置換できなかった単語
+                        const span = document.createElement('span');
+                        span.textContent = token;
+                        outputArea.appendChild(span);
+                        currentSelections.push(token);
+                    }
+                });
+
+                updateFinalText();
+            }
+
+            processBtn.addEventListener('click', processText);
+
+            // 画面外クリックでドロップダウンを閉じる
+            document.addEventListener('click', () => {
+                document.querySelectorAll('.word-container.active').forEach(c => {
+                    c.classList.remove('active');
+                });
+            });
+
+            // コピー機能
+            copyBtn.addEventListener('click', () => {
+                finalText.select();
+                document.execCommand('copy');
+                
+                const originalContent = copyBtn.innerHTML;
+                const copiedText = currentLang === 'ja' ? 'コピーしました！' : (currentLang === 'de' ? 'Kopiert!' : 'Copied!');
+                
+                copyBtn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> <span>${copiedText}</span>`;
+                copyBtn.classList.replace('bg-emerald-500', 'bg-teal-600');
+                
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalContent;
+                    copyBtn.classList.replace('bg-teal-600', 'bg-emerald-500');
+                }, 2000);
+            });
+            
+            // 初回ロード時にデフォルトテキストを処理
+            if(inputText.value.trim() !== '') {
+                processText();
+            }
+        });
+    </script>
 </body>
 </html>
