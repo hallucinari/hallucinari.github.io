@@ -3,261 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATRAS Simulator</title>
+    <title>ATRAS Simulator v4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --bg-color: #f8fafc;
-            --panel-bg: #ffffff;
-            --border-color: #e2e8f0;
-            --text-main: #1e293b;
-            --text-sub: #64748b;
-        }
-
-        body { 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background-color: var(--bg-color); 
-            color: var(--text-main);
-            line-height: 1.6;
-        }
-
-        /* カスタムスクロールバー */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        .container-box {
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-        }
-
-        /* 言語切り替えボタン */
-        .lang-btn {
-            padding: 4px 12px;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            color: var(--text-sub);
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-        .lang-btn:hover { background-color: #f1f5f9; }
-        .lang-btn.active {
-            background-color: #eff6ff;
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        /* トグルスイッチのCSS */
-        .toggle-checkbox:checked {
-            right: 0;
-            border-color: #2563eb;
-        }
-        .toggle-checkbox:checked + .toggle-label {
-            background-color: #2563eb;
-        }
-        .toggle-checkbox {
-            right: 0;
-            z-index: 1;
-            border-color: #e2e8f0;
-            transition: all 0.3s;
-        }
-        .toggle-label {
-            width: 3rem;
-            height: 1.5rem;
-            background-color: #cbd5e1;
-            border-radius: 9999px;
-            transition: all 0.3s;
-        }
-        .toggle-dot {
-            top: 0.125rem;
-            left: 0.125rem;
-            width: 1.25rem;
-            height: 1.25rem;
-            background-color: white;
-            border-radius: 50%;
-            transition: transform 0.3s;
-        }
-        .toggle-checkbox:checked ~ .toggle-dot {
-            transform: translateX(100%);
-        }
-
-        /* 置換単語のインタラクション */
-        .word-container { position: relative; display: inline-block; margin: 2px; }
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .word-container { position: relative; display: inline-block; margin: 4px; }
         .dropdown {
             display: none;
             position: absolute;
             top: 100%;
             left: 0;
             background-color: white;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
-            z-index: 50;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            z-index: 10;
             min-width: 100%;
-            max-height: 200px;
+            max-height: 250px;
             overflow-y: auto;
             white-space: nowrap;
         }
-        .word-container.active .dropdown { display: block; animation: fadeIn 0.2s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .dropdown-item { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f8fafc; font-size: 1.1rem; }
+        .word-container.active .dropdown { display: block; }
+        .dropdown-item { padding: 6px 10px; cursor: pointer; border-bottom: 1px solid #f3f4f6; }
         .dropdown-item:last-child { border-bottom: none; }
-        .dropdown-item:hover { background-color: #f1f5f9; color: var(--primary); }
-        
+        .dropdown-item:hover { background-color: #e5e7eb; }
         .selected-word {
             cursor: pointer;
-            padding: 2px 4px;
+            padding: 2px 6px;
             border-radius: 4px;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
         }
-        .selected-word:hover { background-color: #e2e8f0; }
-        .has-variants { border-bottom: 2px dashed var(--primary); }
-
-        #outputArea { white-space: pre-wrap; word-break: break-word; }
+        .selected-word:hover { background-color: #e5e7eb; }
+        .has-variants { border-bottom: 2px dashed #3b82f6; }
         
-        /* A-Z テーブルスタイル */
-        .tld-table-container {
-            column-count: 1;
-            column-gap: 2rem;
+        .lang-btn {
+            opacity: 0.5;
+            transition: opacity 0.2s;
         }
-        @media (min-width: 640px) { .tld-table-container { column-count: 2; } }
-        @media (min-width: 1024px) { .tld-table-container { column-count: 4; } }
-        
-        .tld-group {
-            break-inside: avoid;
-            margin-bottom: 1.5rem;
-            background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
+        .lang-btn.active {
+            opacity: 1;
+            font-weight: bold;
+            border-bottom: 2px solid #2563eb;
         }
-        .tld-letter {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--primary);
-            border-bottom: 2px solid #eff6ff;
-            margin-bottom: 0.75rem;
-            padding-bottom: 0.25rem;
-        }
-        .tld-item {
-            display: flex;
-            align-items: center;
-            padding: 0.25rem 0;
-            font-size: 1.1rem;
-        }
-        .tld-flag { margin-right: 0.75rem; font-size: 1.25em; }
-        .tld-code { font-family: monospace; color: #475569; font-weight: 500; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="min-h-screen p-4 md:p-8 text-gray-800 flex flex-col items-center">
 
-    <div class="max-w-5xl mx-auto">
-        <!-- ヘッダーと言語切り替え -->
-        <div class="flex flex-col md:flex-row justify-between items-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-blue-700 tracking-tight">ATRAS Simulator</h1>
-            <div class="flex space-x-2 mt-4 md:mt-0 bg-white p-1 rounded-full border border-gray-200 shadow-sm">
-                <button class="lang-btn active" data-lang="ja">日本語</button>
-                <button class="lang-btn" data-lang="en">English</button>
-                <button class="lang-btn" data-lang="de">Deutsch</button>
-            </div>
-        </div>
+    <div class="w-full max-w-5xl flex justify-end gap-4 mb-4 text-sm">
+        <button class="lang-btn active" data-lang="ja">日本語</button>
+        <button class="lang-btn" data-lang="en">English</button>
+        <button class="lang-btn" data-lang="de">Deutsch</button>
+    </div>
 
-        <div class="container-box p-6 md:p-8 mb-8">
-            <!-- パラメータ設定 -->
-            <div class="bg-gray-50 p-5 rounded-xl border border-gray-200 mb-8">
-                <h2 class="text-lg font-bold text-gray-800 mb-5 pb-2 border-b border-gray-200" data-i18n="paramTitle">最適化パラメータ設定</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- 置換量 -->
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <span class="block text-sm font-bold text-gray-700" data-i18n="paramQ">置換量</span>
-                            <span class="block text-xs text-gray-500 mt-1" data-i18n="descQ">国旗への置換数を最大化します。</span>
-                        </div>
-                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" name="toggleQ" id="paramQ" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/>
-                            <label for="paramQ" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                            <div class="toggle-dot absolute pointer-events-none"></div>
-                        </div>
+    <div class="w-full max-w-5xl bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8">
+        <h1 class="text-3xl font-bold mb-2 text-center text-blue-600">ATRAS Simulator v4</h1>
+        <p class="text-center text-gray-500 mb-6" data-i18n="subtitle">パラメータ調整機能付き ccTLD国旗置換シミュレータ (多言語対応)</p>
+
+        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+            <h2 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2" data-i18n="paramTitle">最適化パラメータ設定</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- 置換量 ON/OFF -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-gray-700" data-i18n="paramQ">置換量</span>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="paramQ" class="sr-only peer" checked>
+                            <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
                     </div>
-                    <!-- 一体感 -->
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <span class="block text-sm font-bold text-gray-700" data-i18n="paramI">一体感</span>
-                            <span class="block text-xs text-gray-500 mt-1" data-i18n="descI">i, lや背の高い文字を残し美しさを高めます。</span>
-                        </div>
-                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" name="toggleI" id="paramI" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/>
-                            <label for="paramI" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                            <div class="toggle-dot absolute pointer-events-none"></div>
-                        </div>
+                    <p class="text-xs text-gray-500 mt-1" data-i18n="paramQDesc">国旗への置換数を最大化する方針を優先します。</p>
+                </div>
+                <!-- 一体感 ON/OFF -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-gray-700" data-i18n="paramI">一体感</span>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="paramI" class="sr-only peer" checked>
+                            <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
                     </div>
-                    <!-- 可読性 -->
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <span class="block text-sm font-bold text-gray-700" data-i18n="paramR">可読性</span>
-                            <span class="block text-xs text-gray-500 mt-1" data-i18n="descR">先頭文字や連続するアルファベットを残します。</span>
-                        </div>
-                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" name="toggleR" id="paramR" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/>
-                            <label for="paramR" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                            <div class="toggle-dot absolute pointer-events-none"></div>
-                        </div>
+                    <p class="text-xs text-gray-500 mt-1" data-i18n="paramIDesc">i, lや背の高い文字を残し美しさを高めます。</p>
+                </div>
+                <!-- 可読性 ON/OFF -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-gray-700" data-i18n="paramR">可読性</span>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="paramR" class="sr-only peer" checked>
+                            <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
                     </div>
-                </div>
-            </div>
-
-            <!-- 入力エリア -->
-            <div class="mb-6">
-                <label for="inputText" class="block text-sm font-bold text-gray-700 mb-2" data-i18n="inputLabel">入力テキスト:</label>
-                <textarea id="inputText" rows="4" class="w-full p-4 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg transition-shadow" placeholder="Arbitrary Textual Replacement with Assigned ccTLD and Emoji-Flags"></textarea>
-                <div class="mt-3 flex justify-end">
-                    <button id="processBtn" class="bg-blue-600 text-white px-8 py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-bold shadow-md" data-i18n="processBtn">置換を実行</button>
-                </div>
-            </div>
-
-            <!-- 結果エリア -->
-            <div class="mb-6">
-                <label class="block text-sm font-bold text-gray-700 mb-2" data-i18n="resultLabel">結果 (破線の下線をクリックしてバリエーションを選択可能):</label>
-                <div id="outputArea" class="w-full p-5 min-h-[120px] border border-gray-300 rounded-lg bg-gray-50 text-2xl leading-loose shadow-inner">
-                    <!-- 結果表示 -->
-                </div>
-            </div>
-
-            <!-- 最終出力エリア -->
-            <div class="mb-2">
-                <label for="finalText" class="block text-sm font-bold text-gray-700 mb-2" data-i18n="finalLabel">最終出力テキスト:</label>
-                <textarea id="finalText" rows="4" class="w-full p-4 border border-gray-300 rounded-lg shadow-sm bg-gray-100 text-xl text-gray-800 focus:outline-none" readonly></textarea>
-                <div class="mt-4 flex justify-end">
-                    <button id="copyBtn" class="bg-green-600 text-white px-8 py-2.5 rounded-lg hover:bg-green-700 transition-colors font-bold shadow-md flex items-center" data-i18n="copyBtn">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                        テキストをコピー
-                    </button>
+                    <p class="text-xs text-gray-500 mt-1" data-i18n="paramRDesc">先頭文字や連続するアルファベットを残します。</p>
                 </div>
             </div>
         </div>
 
-        <!-- ATRASとは？解説セクション -->
-        <div class="container-box p-6 md:p-8 mb-8 bg-white">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2" data-i18n="aboutTitle">ATRASとは？</h2>
-            <div class="prose max-w-none text-gray-600 leading-relaxed space-y-4">
-                <p data-i18n="aboutText1">ATRASとは英語「Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags」のアクロニムで、ラテン文字アルファベットの文章中に含まれる国別トップレベルドメイン(country code top-level domainのこと。以下ccTLDと呼ぶ)のバイナリを、その国と地域ごとに合致させた絵文字国旗(emoji-flags)で置換する方法である。</p>
+        <div class="mb-6">
+            <label for="inputText" class="block text-sm font-medium text-gray-700 mb-2" data-i18n="inputLabel">入力テキスト:</label>
+            <textarea id="inputText" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-lg" placeholder="文章を入力してください (例: Fromage is good)" data-i18n-placeholder="inputPlaceholder"></textarea>
+            <div class="mt-3 flex justify-end">
+                <button id="processBtn" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition font-semibold shadow-sm" data-i18n="processBtn">置換を実行</button>
             </div>
-            
-            <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4 border-b pb-2" data-i18n="tableTitle">有効なccTLD・国旗対応表</h3>
-            <div id="cctldTable" class="tld-table-container mt-6">
-                <!-- JavaScriptで動的生成 -->
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2" data-i18n="resultLabel">結果 (破線の下線をクリックしてバリエーションを選択可能):</label>
+            <div id="outputArea" class="w-full p-4 min-h-[100px] border border-gray-300 rounded-md bg-gray-50 text-xl leading-relaxed whitespace-pre-wrap"></div>
+        </div>
+
+        <div class="mb-6">
+            <label for="finalText" class="block text-sm font-medium text-gray-700 mb-2" data-i18n="outputLabel">最終出力テキスト:</label>
+            <textarea id="finalText" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-lg" readonly></textarea>
+            <div class="mt-3 flex justify-end">
+                <button id="copyBtn" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition font-semibold shadow-sm" data-i18n="copyBtn">テキストをコピー</button>
             </div>
         </div>
     </div>
 
+    <!-- ATRASとはセクション -->
+    <div class="w-full max-w-5xl bg-white p-6 md:p-8 rounded-xl shadow border border-gray-100 mb-8">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800" data-i18n="aboutTitle">ATRASとは？</h2>
+        <p class="text-gray-600 leading-relaxed space-y-4" data-i18n="aboutText1">
+            ATRASとは英語「Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags 」のアクロニムで、ラテン文字アルファベットの文章中に含まれる国別トップレベルドメイン(country code top-level domainのこと。以下ccTLDと呼ぶ)のバイナリを、その国と地域ごとに合致させた絵文字国旗(emoji-flags)で置換する方法である。
+        </p>
+    </div>
+
     <script>
-        // 辞書データ (su, bl, bq, bv, eh, gb, mf, sj, um 等を除外し、ac, uk を追加した完全クリーン版)
+        // --- 辞書と多言語設定 ---
+        const translations = {
+            ja: {
+                subtitle: "パラメータ調整機能付き ccTLD国旗置換シミュレータ (多言語対応)",
+                paramTitle: "最適化パラメータ設定",
+                paramQ: "置換量",
+                paramQDesc: "国旗への置換数を最大化する方針を優先します。",
+                paramI: "一体感",
+                paramIDesc: "i, lや背の高い文字を残し美しさを高めます。",
+                paramR: "可読性",
+                paramRDesc: "先頭文字や連続するアルファベットを残します。",
+                inputLabel: "入力テキスト:",
+                inputPlaceholder: "文章を入力してください (例: Fromage is good)",
+                processBtn: "置換を実行",
+                resultLabel: "結果 (破線の下線をクリックしてバリエーションを選択可能):",
+                outputLabel: "最終出力テキスト:",
+                copyBtn: "テキストをコピー",
+                copiedBtn: "コピーしました！",
+                aboutTitle: "ATRASとは？",
+                aboutText1: "ATRASとは英語「Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags 」のアクロニムで、ラテン文字アルファベットの文章中に含まれる国別トップレベルドメイン(country code top-level domainのこと。以下ccTLDと呼ぶ)のバイナリを、その国と地域ごとに合致させた絵文字国旗(emoji-flags)で置換する方法である。"
+            },
+            en: {
+                subtitle: "ccTLD Flag Emoji Replacer Simulator with Parameters (Multilingual)",
+                paramTitle: "Optimization Parameters",
+                paramQ: "Quantity",
+                paramQDesc: "Prioritizes maximizing the number of flag replacements.",
+                paramI: "Integration",
+                paramIDesc: "Retains i, l, and tall letters to enhance visual harmony.",
+                paramR: "Readability",
+                paramRDesc: "Retains initial letters or consecutive alphabets for easier reading.",
+                inputLabel: "Input Text:",
+                inputPlaceholder: "Enter text here (e.g., Fromage is good)",
+                processBtn: "Generate Replacements",
+                resultLabel: "Result (Click dashed underlines to select variations):",
+                outputLabel: "Final Output Text:",
+                copyBtn: "Copy Text",
+                copiedBtn: "Copied!",
+                aboutTitle: "What is ATRAS?",
+                aboutText1: "ATRAS is an acronym for 'Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags', a method of replacing the binaries of country code top-level domains (ccTLDs) contained in Latin alphabet text with emoji-flags assigned to each country and region."
+            },
+            de: {
+                subtitle: "ccTLD-Flaggen-Emoji-Ersetzungs-Simulator mit Parametern (Mehrsprachig)",
+                paramTitle: "Optimierungsparameter",
+                paramQ: "Quantität",
+                paramQDesc: "Priorisiert die Maximierung der Anzahl der Flaggenersetzungen.",
+                paramI: "Integration",
+                paramIDesc: "Behält i, l und hohe Buchstaben bei, um die visuelle Harmonie zu verbessern.",
+                paramR: "Lesbarkeit",
+                paramRDesc: "Behält Anfangsbuchstaben oder aufeinanderfolgende Alphabete zum leichteren Lesen bei.",
+                inputLabel: "Eingabetext:",
+                inputPlaceholder: "Geben Sie hier Text ein (z. B. Fromage ist gut)",
+                processBtn: "Ersetzungen ausführen",
+                resultLabel: "Ergebnis (Klicken Sie auf gestrichelte Unterstreichungen, um Varianten auszuwählen):",
+                outputLabel: "Endgültiger Ausgabetext:",
+                copyBtn: "Text kopieren",
+                copiedBtn: "Kopiert!",
+                aboutTitle: "Was ist ATRAS?",
+                aboutText1: "ATRAS ist ein Akronym für 'Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags', eine Methode, bei der die Binärdaten von länderspezifischen Top-Level-Domains (ccTLDs), die in lateinischen Alphabettexten enthalten sind, durch die den jeweiligen Ländern und Regionen zugeordneten Emoji-Flaggen ersetzt werden."
+            }
+        };
+
+        let currentLang = 'ja';
+
+        function applyLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.dataset.i18n;
+                if (translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
+
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.dataset.i18nPlaceholder;
+                if (translations[lang][key]) {
+                    el.placeholder = translations[lang][key];
+                }
+            });
+        }
+
+        // --- シミュレーターのコアロジック ---
+        // 厳密なccTLDリストに基づくマッピング
         const cctldFlags = {
             "ac": "🇦🇨", "ad": "🇦🇩", "ae": "🇦🇪", "af": "🇦🇫", "ag": "🇦🇬", "ai": "🇦🇮", "al": "🇦🇱", "am": "🇦🇲", "ao": "🇦🇴", "aq": "🇦🇶", "ar": "🇦🇷", "as": "🇦🇸", "at": "🇦🇹", "au": "🇦🇺", "aw": "🇦🇼", "ax": "🇦🇽", "az": "🇦🇿",
             "ba": "🇧🇦", "bb": "🇧🇧", "bd": "🇧🇩", "be": "🇧🇪", "bf": "🇧🇫", "bg": "🇧🇬", "bh": "🇧🇭", "bi": "🇧🇮", "bj": "🇧🇯", "bm": "🇧🇲", "bn": "🇧🇳", "bo": "🇧🇴", "br": "🇧🇷", "bs": "🇧🇸", "bt": "🇧🇹", "bw": "🇧🇼", "by": "🇧🇾", "bz": "🇧🇿",
@@ -288,85 +245,15 @@
 
         const flagRegex = /[\uD83C][\uDDE6-\uDDFF][\uD83C][\uDDE6-\uDDFF]/g;
 
-        const i18n = {
-            ja: {
-                paramTitle: "最適化パラメータ設定",
-                paramQ: "置換量", descQ: "国旗への置換数を最大化します。",
-                paramI: "一体感", descI: "i, lや背の高い文字を残し美しさを高めます。",
-                paramR: "可読性", descR: "先頭文字や連続するアルファベットを残します。",
-                inputLabel: "入力テキスト:",
-                processBtn: "置換を実行",
-                resultLabel: "結果 (破線の下線をクリックしてバリエーションを選択可能):",
-                finalLabel: "最終出力テキスト:",
-                copyBtn: "テキストをコピー",
-                copied: "コピーしました！",
-                aboutTitle: "ATRASとは？",
-                aboutText1: "ATRASとは英語「Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags」のアクロニムで、ラテン文字アルファベットの文章中に含まれる国別トップレベルドメイン(country code top-level domainのこと。以下ccTLDと呼ぶ)のバイナリを、その国と地域ごとに合致させた絵文字国旗(emoji-flags)で置換する方法である。",
-                tableTitle: "有効なccTLD・国旗対応表"
-            },
-            en: {
-                paramTitle: "Optimization Parameters",
-                paramQ: "Quantity", descQ: "Maximizes the number of flag replacements.",
-                paramI: "Integration", descI: "Preserves 'i', 'l', and tall letters for visual beauty.",
-                paramR: "Readability", descR: "Preserves starting and consecutive alphabets.",
-                inputLabel: "Input Text:",
-                processBtn: "Execute Replacement",
-                resultLabel: "Result (Click dashed underlines to select variations):",
-                finalLabel: "Final Output Text:",
-                copyBtn: "Copy Text",
-                copied: "Copied!",
-                aboutTitle: "What is ATRAS?",
-                aboutText1: "ATRAS is an acronym for \"Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags\". It is a method of replacing the binary of country code top-level domains (ccTLDs) contained in Latin alphabet texts with the emoji-flags corresponding to each country and region.",
-                tableTitle: "Valid ccTLD / Flag Emoji Table"
-            },
-            de: {
-                paramTitle: "Optimierungsparameter",
-                paramQ: "Menge", descQ: "Maximiert die Anzahl der Flaggenersetzungen.",
-                paramI: "Integration", descI: "Erweitert die Ästhetik durch Beibehaltung von 'i', 'l' und hohen Buchstaben.",
-                paramR: "Lesbarkeit", descR: "Behält Anfangs- und fortlaufende Buchstaben bei.",
-                inputLabel: "Eingabetext:",
-                processBtn: "Ersetzung ausführen",
-                resultLabel: "Ergebnis (Klicken Sie auf gestrichelte Unterstreichungen):",
-                finalLabel: "Endgültiger Ausgabetext:",
-                copyBtn: "Text kopieren",
-                copied: "Kopiert!",
-                aboutTitle: "Was ist ATRAS?",
-                aboutText1: "ATRAS ist ein Akronym für „Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags“. Es handelt sich um eine Methode, bei der die Binärdaten von länderspezifischen Top-Level-Domains (ccTLDs) in lateinischen Alphabettexten durch die entsprechenden Emoji-Flaggen des jeweiligen Landes und der Region ersetzt werden.",
-                tableTitle: "Gültige ccTLD- / Flaggen-Tabelle"
-            }
-        };
-
-        let currentLang = 'ja';
-
-        function updateLanguage(lang) {
-            currentLang = lang;
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (i18n[lang][key]) {
-                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                        el.placeholder = i18n[lang][key];
-                    } else {
-                        // コピーボタンのSVGアイコンを保持
-                        if (key === 'copyBtn') {
-                            el.innerHTML = `<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>${i18n[lang][key]}`;
-                        } else {
-                            el.textContent = i18n[lang][key];
-                        }
-                    }
-                }
-            });
-            document.querySelectorAll('.lang-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
-            });
-        }
-
         function hasMissedReplacement(variant) {
             const alphaOnlyStr = variant.replace(flagRegex, ' '); 
             const chunks = alphaOnlyStr.split(/\s+/).filter(c => c.length >= 2);
             for (let chunk of chunks) {
                 for (let i = 0; i < chunk.length - 1; i++) {
                     const pair = chunk.substring(i, i + 2).toLowerCase();
-                    if (cctldFlags[pair]) return true; 
+                    if (cctldFlags[pair]) {
+                        return true; 
+                    }
                 }
             }
             return false;
@@ -374,6 +261,7 @@
 
         function calcScore(variant, originalWord, weightQ, weightI, weightR) {
             if (variant === originalWord) return -1000; 
+
             const flags = variant.match(flagRegex) || [];
             const flagCount = flags.length;
             const maxFlags = Math.floor(originalWord.length / 2);
@@ -385,25 +273,35 @@
             if (alphas.length > 0) {
                 let goodCharCount = 0;
                 for (let char of alphas) {
-                    if (/[iljtILJfbdhkA-Z]/.test(char)) goodCharCount += 1;
-                    else if (/[mwgqp]/.test(char)) goodCharCount -= 0.5;
+                    let baseChar = char.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    if (/[iljtILJfbdhkA-Z]/.test(baseChar)) {
+                        goodCharCount += 1;
+                    } else if (/[mwgqp]/.test(baseChar)) {
+                        goodCharCount -= 0.5;
+                    }
                 }
                 scoreI = Math.max(0, goodCharCount / alphas.length);
             } else if (flagCount > 0 && maxFlags > 0) {
                 scoreI = 0.8;
             }
-            if (/^[a-zA-Z]+(?:[\uD83C][\uDDE6-\uDDFF]){2,}[a-zA-Z]+$/.test(variant)) {
+            
+            if (/^\p{L}+(?:[\uD83C][\uDDE6-\uDDFF]){2,}\p{L}+$/u.test(variant)) {
                 scoreI = Math.min(1.0, scoreI + 0.3);
             }
 
             let scoreR = 0;
-            if (/^[a-zA-Z]/.test(variant)) scoreR += 0.4;
+            if (/^\p{L}/u.test(variant)) {
+                scoreR += 0.4;
+            }
+            
             const chunks = variant.replace(flagRegex, ' ').split(/\s+/).filter(c => c.length > 0);
             let maxChunkLen = 0;
             for (let c of chunks) {
                 if (c.length > maxChunkLen) maxChunkLen = c.length;
             }
-            if (originalWord.length > 0) scoreR += (maxChunkLen / originalWord.length) * 0.6;
+            if (originalWord.length > 0) {
+                scoreR += (maxChunkLen / originalWord.length) * 0.6;
+            }
             
             return (weightQ * scoreQ) + (weightI * scoreI) + (weightR * scoreR);
         }
@@ -412,77 +310,71 @@
             const results = [];
             const lowerWord = word.toLowerCase();
 
-            function search(currentPrefix, remainingString, originalRemaining) {
+            function search(currentPrefix, remainingString) {
                 if (remainingString.length === 0) {
-                    if (currentPrefix !== word) results.push(currentPrefix);
+                    if (currentPrefix !== word) {
+                        results.push(currentPrefix);
+                    }
                     return;
                 }
-                const origChar = originalRemaining[0];
-                search(currentPrefix + origChar, remainingString.substring(1), originalRemaining.substring(1));
+
+                const origChar = word[word.length - remainingString.length];
+                search(currentPrefix + origChar, remainingString.substring(1));
 
                 if (remainingString.length >= 2) {
-                    const potentialCcTLD = remainingString.substring(0, 2);
+                    const potentialCcTLD = remainingString.substring(0, 2).toLowerCase();
                     if (cctldFlags[potentialCcTLD]) {
-                        search(currentPrefix + cctldFlags[potentialCcTLD], remainingString.substring(2), originalRemaining.substring(2));
+                        search(currentPrefix + cctldFlags[potentialCcTLD], remainingString.substring(2));
                     }
                 }
             }
 
-            search("", lowerWord, word);
-            let uniqueResults = [...new Set(results)].filter(variant => !hasMissedReplacement(variant));
-            if (uniqueResults.length === 0) uniqueResults.push(word);
+            search("", lowerWord);
+            
+            let uniqueResults = [...new Set(results)];
+            uniqueResults = uniqueResults.filter(variant => !hasMissedReplacement(variant));
 
-            uniqueResults.sort((a, b) => calcScore(b, word, wQ, wI, wR) - calcScore(a, word, wQ, wI, wR));
+            if (uniqueResults.length === 0) {
+                uniqueResults.push(word);
+            } else if (!uniqueResults.includes(word)) {
+                uniqueResults.push(word);
+            }
+
+            uniqueResults.sort((a, b) => {
+                const scoreA = calcScore(a, word, wQ, wI, wR);
+                const scoreB = calcScore(b, word, wQ, wI, wR);
+                return scoreB - scoreA;
+            });
+
             return uniqueResults;
         }
 
-        function buildAtoZTable() {
-            const container = document.getElementById('cctldTable');
-            container.innerHTML = '';
-            
-            const grouped = {};
-            for (const [code, flag] of Object.entries(cctldFlags)) {
-                const firstLetter = code.charAt(0).toUpperCase();
-                if (!grouped[firstLetter]) grouped[firstLetter] = [];
-                grouped[firstLetter].push({ code, flag });
-            }
-
-            const sortedLetters = Object.keys(grouped).sort();
-            
-            sortedLetters.forEach(letter => {
-                const groupDiv = document.createElement('div');
-                groupDiv.className = 'tld-group';
-                
-                const header = document.createElement('div');
-                header.className = 'tld-letter';
-                header.textContent = letter;
-                groupDiv.appendChild(header);
-
-                grouped[letter].sort((a, b) => a.code.localeCompare(b.code)).forEach(item => {
-                    const row = document.createElement('div');
-                    row.className = 'tld-item';
-                    row.innerHTML = `<span class="tld-flag">${item.flag}</span> <span class="tld-code">.${item.code}</span>`;
-                    groupDiv.appendChild(row);
-                });
-
-                container.appendChild(groupDiv);
-            });
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
+            
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    applyLanguage(e.target.dataset.lang);
+                });
+            });
+
             const inputText = document.getElementById('inputText');
             const processBtn = document.getElementById('processBtn');
             const outputArea = document.getElementById('outputArea');
             const finalText = document.getElementById('finalText');
             const copyBtn = document.getElementById('copyBtn');
             
+            const paramQ = document.getElementById('paramQ');
+            const paramI = document.getElementById('paramI');
+            const paramR = document.getElementById('paramR');
+
             let currentSelections = [];
 
-            // A-Zテーブル生成
-            buildAtoZTable();
-
-            document.querySelectorAll('.lang-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => updateLanguage(e.target.getAttribute('data-lang')));
+            [paramQ, paramI, paramR].forEach(toggle => {
+                toggle.addEventListener('change', () => {
+                    if (inputText.value.trim() !== '') {
+                        processText();
+                    }
+                });
             });
 
             function updateFinalText() {
@@ -490,21 +382,18 @@
             }
 
             function processText() {
-                // デフォルトのサンプルテキスト
-                let text = inputText.value;
-                if(text.trim() === '') text = inputText.placeholder;
-
+                const text = inputText.value;
                 outputArea.innerHTML = '';
                 currentSelections = [];
                 
-                const wQ = document.getElementById('paramQ').checked ? 100 : 0;
-                const wI = document.getElementById('paramI').checked ? 100 : 0;
-                const wR = document.getElementById('paramR').checked ? 100 : 0;
+                const wQ = paramQ.checked ? 100 : 0;
+                const wI = paramI.checked ? 100 : 0;
+                const wR = paramR.checked ? 100 : 0;
 
-                const tokens = text.match(/[\p{L}]+|[^\p{L}]+/gu) || [];
+                const tokens = text.match(/\p{L}+|[^\p{L}]+/gu) || [];
 
                 tokens.forEach((token, index) => {
-                    if (!/^[\p{L}]+$/u.test(token)) {
+                    if (!/^\p{L}+$/u.test(token)) {
                         outputArea.appendChild(document.createTextNode(token));
                         currentSelections.push(token);
                         return;
@@ -560,31 +449,31 @@
                         currentSelections.push(token);
                     }
                 });
+
                 updateFinalText();
             }
 
             processBtn.addEventListener('click', processText);
 
             document.addEventListener('click', () => {
-                document.querySelectorAll('.word-container.active').forEach(c => c.classList.remove('active'));
+                document.querySelectorAll('.word-container.active').forEach(c => {
+                    c.classList.remove('active');
+                });
             });
 
             copyBtn.addEventListener('click', () => {
                 finalText.select();
                 document.execCommand('copy');
                 
-                const originalHTML = copyBtn.innerHTML;
-                copyBtn.innerHTML = `<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>${i18n[currentLang].copied}`;
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = translations[currentLang].copiedBtn;
                 copyBtn.classList.replace('bg-green-600', 'bg-teal-600');
                 
                 setTimeout(() => {
-                    copyBtn.innerHTML = originalHTML;
+                    copyBtn.textContent = originalText;
                     copyBtn.classList.replace('bg-teal-600', 'bg-green-600');
                 }, 2000);
             });
-            
-            // 初回ダミー実行
-            processText();
         });
     </script>
 </body>
