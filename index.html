@@ -62,7 +62,6 @@
         <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
             <h2 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2" data-i18n="paramTitle">最適化パラメータ設定</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- 置換量 ON/OFF -->
                 <div>
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-sm font-medium text-gray-700" data-i18n="paramQ">置換量</span>
@@ -73,7 +72,6 @@
                     </div>
                     <p class="text-xs text-gray-500 mt-1" data-i18n="paramQDesc">国旗への置換数を最大化する方針を優先します。</p>
                 </div>
-                <!-- 一体感 ON/OFF -->
                 <div>
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-sm font-medium text-gray-700" data-i18n="paramI">一体感</span>
@@ -84,7 +82,6 @@
                     </div>
                     <p class="text-xs text-gray-500 mt-1" data-i18n="paramIDesc">i, lや背の高い文字を残し美しさを高めます。</p>
                 </div>
-                <!-- 可読性 ON/OFF -->
                 <div>
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-sm font-medium text-gray-700" data-i18n="paramR">可読性</span>
@@ -93,14 +90,14 @@
                             <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                         </label>
                     </div>
-                    <p class="text-xs text-gray-500 mt-1" data-i18n="paramRDesc">先頭文字や連続するアルファベットを残します。</p>
+                    <p class="text-xs text-gray-500 mt-1" data-i18n="paramRDesc">先頭文字を残し、音節を跨ぐ置換を抑制します。</p>
                 </div>
             </div>
         </div>
 
         <div class="mb-6">
             <label for="inputText" class="block text-sm font-medium text-gray-700 mb-2" data-i18n="inputLabel">入力テキスト:</label>
-            <textarea id="inputText" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-lg" placeholder="文章を入力してください (例: Fromage is good)" data-i18n-placeholder="inputPlaceholder"></textarea>
+            <textarea id="inputText" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-lg" placeholder="文章を入力してください (例: Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags)" data-i18n-placeholder="inputPlaceholder"></textarea>
             <div class="mt-3 flex justify-end">
                 <button id="processBtn" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition font-semibold shadow-sm" data-i18n="processBtn">置換を実行</button>
             </div>
@@ -120,7 +117,6 @@
         </div>
     </div>
 
-    <!-- ATRASとはセクション -->
     <div class="w-full max-w-5xl bg-white p-6 md:p-8 rounded-xl shadow border border-gray-100 mb-8">
         <h2 class="text-2xl font-bold mb-4 text-gray-800" data-i18n="aboutTitle">ATRASとは？</h2>
         <p class="text-gray-600 leading-relaxed space-y-4" data-i18n="aboutText1">
@@ -129,7 +125,6 @@
     </div>
 
     <script>
-        // --- 辞書と多言語設定 ---
         const translations = {
             ja: {
                 subtitle: "パラメータ調整機能付き ccTLD国旗置換シミュレータ (多言語対応)",
@@ -139,10 +134,9 @@
                 paramI: "一体感",
                 paramIDesc: "i, lや背の高い文字を残し美しさを高めます。",
                 paramR: "可読性",
-                paramRDesc: "先頭文字や連続するアルファベットを残します。",
+                paramRDesc: "先頭文字を残し、音節を跨ぐ置換を抑制します。",
                 inputLabel: "入力テキスト:",
-                inputPlaceholder: "文章を入力してください (例: Arbitrary Textual Replacement with Assigned ccTLD and Emoji-Flags 
-)",
+                inputPlaceholder: "文章を入力してください (例: Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags)",
                 processBtn: "置換を実行",
                 resultLabel: "結果 (破線の下線をクリックしてバリエーションを選択可能):",
                 outputLabel: "最終出力テキスト:",
@@ -159,9 +153,9 @@
                 paramI: "Integration",
                 paramIDesc: "Retains i, l, and tall letters to enhance visual harmony.",
                 paramR: "Readability",
-                paramRDesc: "Retains initial letters or consecutive alphabets for easier reading.",
+                paramRDesc: "Retains initial letters and avoids cross-syllable replacements for easier reading.",
                 inputLabel: "Input Text:",
-                inputPlaceholder: "Enter text here (e.g., Fromage is good)",
+                inputPlaceholder: "Enter text here (e.g., Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags)",
                 processBtn: "Generate Replacements",
                 resultLabel: "Result (Click dashed underlines to select variations):",
                 outputLabel: "Final Output Text:",
@@ -178,9 +172,9 @@
                 paramI: "Integration",
                 paramIDesc: "Behält i, l und hohe Buchstaben bei, um die visuelle Harmonie zu verbessern.",
                 paramR: "Lesbarkeit",
-                paramRDesc: "Behält Anfangsbuchstaben oder aufeinanderfolgende Alphabete zum leichteren Lesen bei.",
+                paramRDesc: "Behält Anfangsbuchstaben bei und vermeidet silbenübergreifende Ersetzungen zum leichteren Lesen.",
                 inputLabel: "Eingabetext:",
-                inputPlaceholder: "Geben Sie hier Text ein (z. B. Fromage ist gut)",
+                inputPlaceholder: "Geben Sie hier einen Text ein (z. B. Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags)",
                 processBtn: "Ersetzungen ausführen",
                 resultLabel: "Ergebnis (Klicken Sie auf gestrichelte Unterstreichungen, um Varianten auszuwählen):",
                 outputLabel: "Endgültiger Ausgabetext:",
@@ -214,8 +208,6 @@
             });
         }
 
-        // --- シミュレーターのコアロジック ---
-        // 厳密なccTLDリストに基づくマッピング
         const cctldFlags = {
             "ac": "🇦🇨", "ad": "🇦🇩", "ae": "🇦🇪", "af": "🇦🇫", "ag": "🇦🇬", "ai": "🇦🇮", "al": "🇦🇱", "am": "🇦🇲", "ao": "🇦🇴", "aq": "🇦🇶", "ar": "🇦🇷", "as": "🇦🇸", "at": "🇦🇹", "au": "🇦🇺", "aw": "🇦🇼", "ax": "🇦🇽", "az": "🇦🇿",
             "ba": "🇧🇦", "bb": "🇧🇧", "bd": "🇧🇩", "be": "🇧🇪", "bf": "🇧🇫", "bg": "🇧🇬", "bh": "🇧🇭", "bi": "🇧🇮", "bj": "🇧🇯", "bm": "🇧🇲", "bn": "🇧🇳", "bo": "🇧🇴", "br": "🇧🇷", "bs": "🇧🇸", "bt": "🇧🇹", "bw": "🇧🇼", "by": "🇧🇾", "bz": "🇧🇿",
@@ -260,7 +252,40 @@
             return false;
         }
 
-        function calcScore(variant, originalWord, weightQ, weightI, weightR) {
+        function isCrossingSyllable(word, idx1, idx2) {
+            const lower = word.toLowerCase();
+            const vowels = "aeiouy";
+            
+            if (lower.includes("understand")) {
+                const base = lower.indexOf("understand");
+                if (idx1 === base + 1 && idx2 === base + 2) return true; 
+                if (idx1 === base + 4 && idx2 === base + 5) return true; 
+            }
+
+            if (idx1 > 0 && idx2 < word.length - 1) {
+                const p1 = lower[idx1 - 1];
+                const c1 = lower[idx1];
+                const c2 = lower[idx2];
+                const n1 = lower[idx2 + 1];
+
+                const isV = c => vowels.includes(c);
+                const isC = c => !vowels.includes(c) && /[a-z]/.test(c);
+
+                if (isV(p1) && isC(c1) && isC(c2) && isV(n1)) return true;
+                
+                if (idx2 < word.length - 2) {
+                     const n2 = lower[idx2 + 2];
+                     if (isV(p1) && isC(c1) && isC(c2) && isC(n1) && isV(n2)) return true;
+                }
+                if (idx1 > 1) {
+                     const p2 = lower[idx1 - 2];
+                     if (isV(p2) && isC(p1) && isC(c1) && isC(c2) && isV(n1)) return true;
+                }
+            }
+            return false;
+        }
+
+        function calcScore(variant, originalWord, weightQ, weightI, weightR, replacedIndices) {
             if (variant === originalWord) return -1000; 
 
             const flags = variant.match(flagRegex) || [];
@@ -303,47 +328,60 @@
             if (originalWord.length > 0) {
                 scoreR += (maxChunkLen / originalWord.length) * 0.6;
             }
-            
+
+            if (weightR > 0 && replacedIndices) {
+                for (let idx of replacedIndices) {
+                    if (isCrossingSyllable(originalWord, idx, idx + 1)) {
+                        scoreR -= 1.0; 
+                    }
+                }
+            }
+
             return (weightQ * scoreQ) + (weightI * scoreI) + (weightR * scoreR);
         }
 
         function findVariations(word, wQ, wI, wR) {
-            const results = [];
+            const resultsMap = new Map();
             const lowerWord = word.toLowerCase();
 
-            function search(currentPrefix, remainingString) {
+            function search(currentPrefix, remainingString, replacedPairs, currentIndex) {
                 if (remainingString.length === 0) {
                     if (currentPrefix !== word) {
-                        results.push(currentPrefix);
+                        if (!resultsMap.has(currentPrefix)) {
+                            resultsMap.set(currentPrefix, replacedPairs);
+                        }
                     }
                     return;
                 }
 
-                const origChar = word[word.length - remainingString.length];
-                search(currentPrefix + origChar, remainingString.substring(1));
+                const origChar = word[currentIndex];
+                search(currentPrefix + origChar, remainingString.substring(1), replacedPairs, currentIndex + 1);
 
                 if (remainingString.length >= 2) {
                     const potentialCcTLD = remainingString.substring(0, 2).toLowerCase();
                     if (cctldFlags[potentialCcTLD]) {
-                        search(currentPrefix + cctldFlags[potentialCcTLD], remainingString.substring(2));
+                        const newPairs = [...replacedPairs, currentIndex];
+                        search(currentPrefix + cctldFlags[potentialCcTLD], remainingString.substring(2), newPairs, currentIndex + 2);
                     }
                 }
             }
 
-            search("", lowerWord);
+            search("", lowerWord, [], 0);
             
-            let uniqueResults = [...new Set(results)];
+            let uniqueResults = Array.from(resultsMap.keys());
             uniqueResults = uniqueResults.filter(variant => !hasMissedReplacement(variant));
 
             if (uniqueResults.length === 0) {
                 uniqueResults.push(word);
+                resultsMap.set(word, []);
             } else if (!uniqueResults.includes(word)) {
                 uniqueResults.push(word);
+                resultsMap.set(word, []);
             }
 
             uniqueResults.sort((a, b) => {
-                const scoreA = calcScore(a, word, wQ, wI, wR);
-                const scoreB = calcScore(b, word, wQ, wI, wR);
+                const scoreA = calcScore(a, word, wQ, wI, wR, resultsMap.get(a));
+                const scoreB = calcScore(b, word, wQ, wI, wR, resultsMap.get(b));
                 return scoreB - scoreA;
             });
 
