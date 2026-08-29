@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATRAS Simulator v4</title>
+    <title>ATRAS Simulator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
@@ -56,7 +56,7 @@
     </div>
 
     <div class="w-full max-w-5xl bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8">
-        <h1 class="text-3xl font-bold mb-2 text-center text-blue-600">ATRAS Simulator v4</h1>
+        <h1 class="text-3xl font-bold mb-2 text-center text-blue-600">ATRAS Simulator</h1>
         <p class="text-center text-gray-500 mb-6" data-i18n="subtitle">パラメータ調整機能付き ccTLD国旗置換シミュレータ (多言語対応)</p>
 
         <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
@@ -70,7 +70,7 @@
                             <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                         </label>
                     </div>
-                    <p class="text-xs text-gray-500 mt-1" data-i18n="paramQDesc">国旗への置換数を最大化する方針を優先します。</p>
+                    <p class="text-xs text-gray-500 mt-1" data-i18n="paramQDesc">国旗への置換数を最大化しつつ、単語の先頭文字はアルファベットとして保持します。</p>
                 </div>
                 <div>
                     <div class="flex justify-between items-center mb-2">
@@ -80,7 +80,7 @@
                             <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                         </label>
                     </div>
-                    <p class="text-xs text-gray-500 mt-1" data-i18n="paramIDesc">i, lや背の高い文字を残し美しさを高めます。</p>
+                    <p class="text-xs text-gray-500 mt-1" data-i18n="paramIDesc">背の高い文字を残して美しさを高め、文頭文字を保持し、ダイアクリティカルマーク周辺の置換を優先します。</p>
                 </div>
                 <div>
                     <div class="flex justify-between items-center mb-2">
@@ -90,7 +90,7 @@
                             <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                         </label>
                     </div>
-                    <p class="text-xs text-gray-500 mt-1" data-i18n="paramRDesc">先頭文字を残し、音節を跨ぐ置換を抑制します。</p>
+                    <p class="text-xs text-gray-500 mt-1" data-i18n="paramRDesc">音節を跨ぐ置換を抑制し、テキスト内で共通するスペル表記の置換を統一し、マーク付き文字周辺を優先処理します。</p>
                 </div>
             </div>
         </div>
@@ -130,11 +130,11 @@
                 subtitle: "パラメータ調整機能付き ccTLD国旗置換シミュレータ (多言語対応)",
                 paramTitle: "最適化パラメータ設定",
                 paramQ: "置換量",
-                paramQDesc: "国旗への置換数を最大化する方針を優先します。",
+                paramQDesc: "国旗への置換数を最大化しつつ、単語の先頭文字はアルファベットとして保持します。",
                 paramI: "一体感",
-                paramIDesc: "i, lや背の高い文字を残し美しさを高めます。",
+                paramIDesc: "背の高い文字を残して美しさを高め、文頭文字を保持し、ダイアクリティカルマーク周辺の置換を優先します。",
                 paramR: "可読性",
-                paramRDesc: "先頭文字を残し、音節を跨ぐ置換を抑制します。",
+                paramRDesc: "音節を跨ぐ置換を抑制し、テキスト内で共通するスペル表記の置換を統一し、マーク付き文字周辺を優先処理します。",
                 inputLabel: "入力テキスト:",
                 inputPlaceholder: "文章を入力してください (例: Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags)",
                 processBtn: "置換を実行",
@@ -149,11 +149,11 @@
                 subtitle: "ccTLD Flag Emoji Replacer Simulator with Parameters (Multilingual)",
                 paramTitle: "Optimization Parameters",
                 paramQ: "Quantity",
-                paramQDesc: "Prioritizes maximizing the number of flag replacements.",
+                paramQDesc: "Prioritizes maximizing flag replacements while keeping the initial letter of words intact.",
                 paramI: "Integration",
-                paramIDesc: "Retains i, l, and tall letters to enhance visual harmony.",
+                paramIDesc: "Retains tall letters, keeps initial letters intact, and prioritizes replacements around diacritical marks.",
                 paramR: "Readability",
-                paramRDesc: "Retains initial letters and avoids cross-syllable replacements for easier reading.",
+                paramRDesc: "Avoids cross-syllable replacements, unifies frequent spellings, and prioritizes replacements around marks.",
                 inputLabel: "Input Text:",
                 inputPlaceholder: "Enter text here (e.g., Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags)",
                 processBtn: "Generate Replacements",
@@ -168,11 +168,11 @@
                 subtitle: "ccTLD-Flaggen-Emoji-Ersetzungs-Simulator mit Parametern (Mehrsprachig)",
                 paramTitle: "Optimierungsparameter",
                 paramQ: "Quantität",
-                paramQDesc: "Priorisiert die Maximierung der Anzahl der Flaggenersetzungen.",
+                paramQDesc: "Priorisiert die Maximierung von Flaggenersetzungen, wobei der Anfangsbuchstabe von Wörtern erhalten bleibt.",
                 paramI: "Integration",
-                paramIDesc: "Behält i, l und hohe Buchstaben bei, um die visuelle Harmonie zu verbessern.",
+                paramIDesc: "Behält hohe Buchstaben und Anfangsbuchstaben bei und priorisiert Ersetzungen um diakritische Zeichen.",
                 paramR: "Lesbarkeit",
-                paramRDesc: "Behält Anfangsbuchstaben bei und vermeidet silbenübergreifende Ersetzungen zum leichteren Lesen.",
+                paramRDesc: "Vermeidet silbenübergreifende Ersetzungen, vereinheitlicht häufige Schreibweisen und priorisiert markierte Zeichen.",
                 inputLabel: "Eingabetext:",
                 inputPlaceholder: "Geben Sie hier einen Text ein (z. B. Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags)",
                 processBtn: "Ersetzungen ausführen",
@@ -285,16 +285,22 @@
             return false;
         }
 
-        function calcScore(variant, originalWord, weightQ, weightI, weightR, replacedIndices) {
+        function calcScore(variant, originalWord, weightQ, weightI, weightR, replacedIndices, repeatedPairs) {
             if (variant === originalWord) return -1000; 
 
             const flags = variant.match(flagRegex) || [];
             const flagCount = flags.length;
             const maxFlags = Math.floor(originalWord.length / 2);
             
-            const scoreQ = maxFlags > 0 ? (flagCount / maxFlags) : 0;
-            
+            let scoreQ = maxFlags > 0 ? (flagCount / maxFlags) : 0;
             let scoreI = 0;
+            let scoreR = 0;
+
+            if (variant.length > 0 && /^\p{L}/u.test(variant)) {
+                scoreQ += 0.5;
+                scoreI += 0.5;
+            }
+
             const alphas = variant.replace(flagRegex, '');
             if (alphas.length > 0) {
                 let goodCharCount = 0;
@@ -306,16 +312,32 @@
                         goodCharCount -= 0.5;
                     }
                 }
-                scoreI = Math.max(0, goodCharCount / alphas.length);
+                scoreI += Math.max(0, goodCharCount / alphas.length);
             } else if (flagCount > 0 && maxFlags > 0) {
-                scoreI = 0.8;
+                scoreI += 0.8;
             }
             
             if (/^\p{L}+(?:[\uD83C][\uDDE6-\uDDFF]){2,}\p{L}+$/u.test(variant)) {
                 scoreI = Math.min(1.0, scoreI + 0.3);
             }
 
-            let scoreR = 0;
+            let diacriticBonus = 0;
+            for (let i = 0; i < originalWord.length; i++) {
+                const char = originalWord[i];
+                if (/[^\x00-\x7F]/.test(char)) { 
+                    const hasPrevFlag = replacedIndices && replacedIndices.includes(i - 2);
+                    const hasNextFlag = replacedIndices && replacedIndices.includes(i + 1);
+                    if (hasPrevFlag || hasNextFlag) {
+                        diacriticBonus += 0.5;
+                    }
+                    if (hasPrevFlag && hasNextFlag) {
+                        diacriticBonus += 1.0; 
+                    }
+                }
+            }
+            scoreI += diacriticBonus * (weightI > 0 ? 1 : 0);
+            scoreR += diacriticBonus * (weightR > 0 ? 1 : 0);
+
             if (/^\p{L}/u.test(variant)) {
                 scoreR += 0.4;
             }
@@ -335,12 +357,21 @@
                         scoreR -= 1.0; 
                     }
                 }
+                
+                let repeatBonus = 0;
+                for (let idx of replacedIndices) {
+                    const pair = originalWord.substring(idx, idx + 2).toLowerCase();
+                    if (repeatedPairs && repeatedPairs.has(pair)) {
+                        repeatBonus += 0.8; 
+                    }
+                }
+                scoreR += repeatBonus;
             }
 
             return (weightQ * scoreQ) + (weightI * scoreI) + (weightR * scoreR);
         }
 
-        function findVariations(word, wQ, wI, wR) {
+        function findVariations(word, wQ, wI, wR, repeatedPairs) {
             const resultsMap = new Map();
             const lowerWord = word.toLowerCase();
 
@@ -380,8 +411,8 @@
             }
 
             uniqueResults.sort((a, b) => {
-                const scoreA = calcScore(a, word, wQ, wI, wR, resultsMap.get(a));
-                const scoreB = calcScore(b, word, wQ, wI, wR, resultsMap.get(b));
+                const scoreA = calcScore(a, word, wQ, wI, wR, resultsMap.get(a), repeatedPairs);
+                const scoreB = calcScore(b, word, wQ, wI, wR, resultsMap.get(b), repeatedPairs);
                 return scoreB - scoreA;
             });
 
@@ -429,6 +460,19 @@
                 const wI = paramI.checked ? 100 : 0;
                 const wR = paramR.checked ? 100 : 0;
 
+                const globalPairCounts = {};
+                const alphaTokens = text.match(/\p{L}+/gu) || [];
+                alphaTokens.forEach(token => {
+                    const lower = token.toLowerCase();
+                    for(let i = 0; i < lower.length - 1; i++) {
+                        const pair = lower.substring(i, i + 2);
+                        if(cctldFlags[pair]) {
+                            globalPairCounts[pair] = (globalPairCounts[pair] || 0) + 1;
+                        }
+                    }
+                });
+                const repeatedPairs = new Set(Object.keys(globalPairCounts).filter(p => globalPairCounts[p] > 1));
+
                 const tokens = text.match(/\p{L}+|[^\p{L}]+/gu) || [];
 
                 tokens.forEach((token, index) => {
@@ -438,7 +482,7 @@
                         return;
                     }
 
-                    const variations = findVariations(token, wQ, wI, wR);
+                    const variations = findVariations(token, wQ, wI, wR, repeatedPairs);
                     
                     if (variations.length > 1) {
                         const container = document.createElement('div');
