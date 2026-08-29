@@ -49,10 +49,12 @@
 </head>
 <body class="min-h-screen p-4 md:p-8 text-gray-800 flex flex-col items-center">
 
-    <div class="w-full max-w-5xl flex justify-end gap-4 mb-4 text-sm">
+    <div class="w-full max-w-5xl flex justify-end gap-3 mb-4 text-sm flex-wrap">
         <button class="lang-btn active" data-lang="ja">日本語</button>
         <button class="lang-btn" data-lang="en">English</button>
+        <button class="lang-btn" data-lang="atras_en">E🇳🇬🇱🇮🇸🇭</button>
         <button class="lang-btn" data-lang="de">Deutsch</button>
+        <button class="lang-btn" data-lang="atras_de">D🇪🇺ts🇨🇭</button>
     </div>
 
     <div class="w-full max-w-5xl bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8">
@@ -96,7 +98,7 @@
         </div>
 
         <div class="mb-6">
-            <label for="inputText" class="block text-sm font-medium text-gray-700 mb-2" data-i18n="inputLabel">入力テキスト</label>
+            <label for="inputText" class="block text-sm font-medium text-gray-700 mb-2" data-i18n="inputLabel">入力テキスト:</label>
             <textarea id="inputText" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-lg" placeholder="文章を入力してください (例: Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags)" data-i18n-placeholder="inputPlaceholder"></textarea>
             <div class="mt-3 flex justify-end">
                 <button id="processBtn" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition font-semibold shadow-sm" data-i18n="processBtn">置換を実行</button>
@@ -104,7 +106,7 @@
         </div>
 
         <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2" data-i18n="resultLabel">結果 (破線の下線をクリックしてバリエーションを選択可能)</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2" data-i18n="resultLabel">結果 (破線の下線をクリックしてバリエーションを選択可能):</label>
             <div id="outputArea" class="w-full p-4 min-h-[100px] border border-gray-300 rounded-md bg-gray-50 text-xl leading-relaxed whitespace-pre-wrap"></div>
         </div>
 
@@ -130,11 +132,11 @@
                 subtitle: "パラメータ調整機能付き ccTLD国旗置換シミュレータ (多言語対応)",
                 paramTitle: "最適化パラメータ設定",
                 paramQ: "置換量",
-                paramQDesc: "国旗への置換数を最大化します。",
+                paramQDesc: "国旗への置換数を最大化しつつ、単語の先頭文字はアルファベットとして保持します。",
                 paramI: "一体感",
-                paramIDesc: "lとiを残して美しさを高め、文頭文字を保持し、ダイアクリティカルマーク周辺の置換を優先します",
+                paramIDesc: "背の高い文字を残して美しさを高め、文頭文字を保持し、ダイアクリティカルマーク周辺の置換を優先します。",
                 paramR: "可読性",
-                paramRDesc: "音節を跨ぐ置換を抑制し、テキスト内で共通するスペル表記の置換を統一します。",
+                paramRDesc: "音節を跨ぐ置換を抑制し、テキスト内で共通するスペル表記の置換を統一し、マーク付き文字周辺を優先処理します。",
                 inputLabel: "入力テキスト:",
                 inputPlaceholder: "文章を入力してください (例: Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags)",
                 processBtn: "置換を実行",
@@ -164,6 +166,25 @@
                 aboutTitle: "What is ATRAS?",
                 aboutText1: "ATRAS is an acronym for 'Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags', a method of replacing the binaries of country code top-level domains (ccTLDs) contained in Latin alphabet text with emoji-flags assigned to each country and region."
             },
+            atras_en: {
+                subtitle: "🇨🇨🇹🇱D Fl🇦🇬 E🇲🇴ji 🇷🇪🇵🇱🇦🇨🇪🇷 S🇮🇲u🇱🇦🇹🇴r wi🇹🇭 P🇦🇷🇦🇲🇪🇹e🇷🇸 (🇲🇺🇱🇹🇮🇱🇮🇳🇬🇺🇦🇱)",
+                paramTitle: "O🇵🇹🇮🇲iz🇦🇹🇮🇴n P🇦🇷🇦🇲🇪🇹e🇷🇸",
+                paramQ: "Q🇺🇦nt🇮🇹y",
+                paramQDesc: "🇵🇷🇮🇴r🇮🇹iz🇪🇸 m🇦🇽🇮🇲izi🇳🇬 fl🇦🇬 🇷🇪🇵🇱🇦🇨e🇲🇪nts wh🇮🇱e k🇪🇪pi🇳🇬 🇹🇭e i🇳🇮ti🇦🇱 l🇪🇹t🇪🇷 of words 🇮🇳t🇦🇨t.",
+                paramI: "🇮🇳t🇪🇬r🇦🇹🇮🇴n",
+                paramIDesc: "R🇪🇹🇦🇮ns t🇦🇱l l🇪🇹te🇷🇸, k🇪🇪🇵🇸 i🇳🇮ti🇦🇱 l🇪🇹te🇷🇸 🇮🇳t🇦🇨t, and 🇵🇷🇮🇴r🇮🇹iz🇪🇸 🇷🇪🇵🇱🇦🇨e🇲🇪nts a🇷🇴und di🇦🇨r🇮🇹ic🇦🇱 m🇦🇷ks.",
+                paramR: "🇷🇪🇦🇩ab🇮🇱🇮🇹y",
+                paramRDesc: "Avo🇮🇩s c🇷🇴🇸🇸-🇸🇾l🇱🇦ble 🇷🇪🇵🇱🇦🇨e🇲🇪nts, u🇳🇮🇫🇮🇪🇸 f🇷🇪quent s🇵🇪ll🇮🇳🇬🇸, and 🇵🇷🇮🇴r🇮🇹iz🇪🇸 🇷🇪🇵🇱🇦🇨e🇲🇪nts a🇷🇴und m🇦🇷ks.",
+                inputLabel: "🇮🇳put Text:",
+                inputPlaceholder: "Ent🇪🇷 text he🇷🇪 (e.g., 🇦🇷b🇮🇹r🇦🇷y Text🇺🇦l 🇷🇪🇵🇱🇦🇨e🇲🇪nt wi🇹🇭 🇦🇸🇸🇮g🇳🇪d 🇨🇨🇹🇱D and e🇲🇴ji-F🇱🇦🇬🇸)",
+                processBtn: "🇬🇪n🇪🇷🇦🇹e 🇷🇪🇵🇱🇦🇨e🇲🇪nts",
+                resultLabel: "R🇪🇸u🇱🇹 (C🇱🇮🇨🇰 d🇦🇸hed und🇪🇷l🇮🇳🇪🇸 🇹🇴 🇸🇪l🇪🇨t v🇦🇷i🇦🇹🇮🇴ns):",
+                outputLabel: "F🇮🇳🇦🇱 Output Text:",
+                copyBtn: "🇨🇴🇵🇾 Text",
+                copiedBtn: "🇨🇴🇵🇮🇪🇩!",
+                aboutTitle: "Wh🇦🇹 🇮🇸 A🇹🇷🇦🇸?",
+                aboutText1: "A🇹🇷🇦🇸 🇮🇸 an 🇦🇨🇷🇴nym 🇫🇴r '🇦🇷b🇮🇹r🇦🇷y Text🇺🇦l 🇷🇪🇵🇱🇦🇨e🇲🇪nt wi🇹🇭 🇦🇸🇸🇮g🇳🇪d 🇨🇨🇹🇱D and e🇲🇴ji-F🇱🇦🇬🇸', a m🇪🇹hod of 🇷🇪🇵🇱🇦🇨i🇳🇬 🇹🇭e b🇮🇳🇦🇷i🇪🇸 of 🇨🇴un🇹🇷y 🇨🇴🇩🇪 🇹🇴p-le🇻🇪l d🇴🇲🇦🇮ns (🇨🇨🇹🇱Ds) 🇨🇴nt🇦🇮🇳🇪d 🇮🇳 L🇦🇹🇮🇳 🇦🇱🇵🇭ab🇪🇹 text wi🇹🇭 e🇲🇴ji-f🇱🇦🇬🇸 🇦🇸🇸🇮g🇳🇪d 🇹🇴 e🇦🇨h 🇨🇴un🇹🇷y and r🇪🇬🇮🇴n."
+            },
             de: {
                 subtitle: "ccTLD-Flaggen-Emoji-Ersetzungs-Simulator mit Parametern (Mehrsprachig)",
                 paramTitle: "Optimierungsparameter",
@@ -182,6 +203,25 @@
                 copiedBtn: "Kopiert!",
                 aboutTitle: "Was ist ATRAS?",
                 aboutText1: "ATRAS ist ein Akronym für 'Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags', eine Methode, bei der die Binärdaten von länderspezifischen Top-Level-Domains (ccTLDs), die in lateinischen Alphabettexten enthalten sind, durch die den jeweiligen Ländern und Regionen zugeordneten Emoji-Flaggen ersetzt werden."
+            },
+            atras_de: {
+                subtitle: "🇨🇨🇹🇱D-Fl🇦🇬🇬🇪n-E🇲🇴ji-E🇷🇸🇪🇹zun🇬🇸-S🇮🇲u🇱🇦🇹🇴r m🇮🇹 P🇦🇷🇦🇲🇪🇹🇪🇷n (🇲🇪h🇷🇸🇵🇷🇦🇨hig)",
+                paramTitle: "O🇵🇹🇮🇲🇮🇪🇷🇺n🇬🇸🇵🇦r🇦🇲🇪🇹🇪🇷",
+                paramQ: "Q🇺🇦nt🇮🇹ät",
+                paramQDesc: "🇵🇷🇮🇴ri🇸🇮🇪🇷t d🇮🇪 M🇦🇽🇮🇲🇮🇪🇷🇺🇳🇬 von Fl🇦🇬🇬🇪n🇪🇷s🇪🇹zun🇬🇪n, wo🇧🇪i d🇪🇷 A🇳🇫a🇳🇬🇸🇧u🇨🇭🇸🇹a🇧🇪 von Wört🇪🇷n 🇪🇷h🇦🇱ten blei🇧🇹.",
+                paramI: "🇮🇳t🇪🇬r🇦🇹🇮🇴n",
+                paramIDesc: "🇧🇪hä🇱🇹 hohe Bu🇨🇭🇸🇹a🇧🇪n und A🇳🇫a🇳🇬🇸🇧u🇨🇭🇸🇹a🇧🇪n 🇧🇪i und 🇵🇷🇮🇴ri🇸🇮🇪🇷t E🇷🇸🇪🇹zun🇬🇪n um dia🇰🇷🇮🇹🇮🇸🇨🇭e Zei🇨🇭en.",
+                paramR: "L🇪🇸b🇦🇷🇰🇪🇮🇹",
+                paramRDesc: "V🇪🇷🇲🇪🇮🇩🇪🇹 s🇮🇱🇧🇪nü🇧🇪rg🇷🇪ifen🇩🇪 E🇷🇸🇪🇹zun🇬🇪n, v🇪🇷e🇮🇳he🇮🇹🇱🇮🇨🇭t häu🇫🇮🇬🇪 S🇨🇭🇷🇪i🇧🇼ei🇸🇪n und 🇵🇷🇮🇴ri🇸🇮🇪🇷t m🇦🇷🇰🇮🇪🇷te Zei🇨🇭en.",
+                inputLabel: "E🇮🇳🇬🇦🇧🇪text:",
+                inputPlaceholder: "🇬🇪🇧🇪n S🇮🇪 hi🇪🇷 ei🇳🇪n Text e🇮🇳 (z. B. 🇦🇷b🇮🇹r🇦🇷y Text🇺🇦l 🇷🇪🇵🇱🇦🇨e🇲🇪nt wi🇹🇭 🇦🇸🇸🇮g🇳🇪d 🇨🇨🇹🇱D and e🇲🇴ji-F🇱🇦🇬🇸)",
+                processBtn: "E🇷🇸🇪🇹zun🇬🇪n a🇺🇸fü🇭🇷en",
+                resultLabel: "🇪🇷🇬🇪b🇳🇮s (K🇱🇮c🇰🇪n S🇮🇪 🇦🇺f g🇪🇸🇹🇷i🇨🇭e🇱🇹e Unt🇪🇷🇸🇹🇷🇪ic🇭🇺n🇬🇪n, um V🇦🇷ianten a🇺🇸zuwählen):",
+                outputLabel: "Endgü🇱🇹i🇬🇪r A🇺🇸🇬🇦🇧🇪text:",
+                copyBtn: "Text kop🇮🇪🇷🇪n",
+                copiedBtn: "Kop🇮🇪rt!",
+                aboutTitle: "W🇦🇸 i🇸🇹 A🇹🇷🇦🇸?",
+                aboutText1: "A🇹🇷🇦🇸 i🇸🇹 e🇮🇳 Ak🇷🇴nym für '🇦🇷b🇮🇹r🇦🇷y Text🇺🇦l 🇷🇪🇵🇱🇦🇨e🇲🇪nt wi🇹🇭 🇦🇸🇸🇮g🇳🇪d 🇨🇨🇹🇱D and e🇲🇴ji-F🇱🇦🇬🇸', ei🇳🇪 M🇪🇹ho🇩🇪, 🇧🇪i d🇪🇷 d🇮🇪 B🇮🇳ärd🇦🇹en von länd🇪🇷s🇵🇪zif🇮🇸🇨🇭en 🇹🇴p-Le🇻🇪l-D🇴🇲a🇮🇳s (🇨🇨🇹🇱Ds), d🇮🇪 🇮🇳 l🇦🇹e🇮🇳🇮🇸🇨🇭en 🇦🇱🇵🇭ab🇪🇹texten en🇹🇭🇦🇱ten s🇮🇳d, dur🇨🇭 d🇮🇪 🇩🇪n 🇯🇪wei🇱🇮🇬🇪n Länd🇪🇷n und R🇪🇬🇮🇴🇳🇪n zu🇬🇪ord🇳🇪ten E🇲🇴ji-Fl🇦🇬🇬🇪n 🇪🇷🇸🇪🇹🇿t w🇪🇷🇩🇪n."
             }
         };
 
