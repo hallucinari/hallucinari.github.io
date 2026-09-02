@@ -102,7 +102,15 @@
 </head>
 <body class="min-h-screen p-4 md:p-8 text-gray-800 flex flex-col items-center">
 
-    <div class="w-full max-w-5xl flex justify-end items-center mb-4">
+    <div class="w-full max-w-5xl flex justify-between items-center mb-4">
+        <!-- ブラウザバックボタン -->
+        <a href="https://hallucinari.github.io/" class="flex items-center gap-1 text-gray-500 hover:text-blue-600 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span class="font-medium text-sm" data-i18n="backBtn">戻る</span>
+        </a>
+
         <!-- 言語選択ドロップダウンUI -->
         <div class="lang-selector-container" id="langSelector">
             <button class="lang-selector-btn" id="langSelectorBtn">
@@ -197,6 +205,7 @@
     <script>
         const translations = {
             ja: {
+                backBtn: "戻る",
                 subtitle: "パラメータ調整機能付き ccTLD国旗置換シミュレータ (多言語対応)",
                 paramTitle: "最適化パラメータ設定",
                 paramQ: "置換量",
@@ -216,6 +225,7 @@
                 aboutText1: "ATRASとは英語「Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags 」のアクロニムで、ラテン文字アルファベットの文章中に含まれる国別トップレベルドメイン(country code top-level domainのこと。以下ccTLDと呼ぶ)のバイナリを、その国と地域ごとに合致させた絵文字国旗(emoji-flags)で置換する方法である。"
             },
             en: {
+                backBtn: "Back",
                 subtitle: "ccTLD Flag Emoji Replacer Simulator with Parameters (Multilingual)",
                 paramTitle: "Optimization Parameters",
                 paramQ: "Quantity",
@@ -235,6 +245,7 @@
                 aboutText1: "ATRAS is an acronym for 'Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags', a method of replacing the binaries of country code top-level domains (ccTLDs) contained in Latin alphabet text with emoji-flags assigned to each country and region."
             },
             de: {
+                backBtn: "Zurück",
                 subtitle: "ccTLD-Flaggen-Emoji-Ersetzungs-Simulator mit Parametern (Mehrsprachig)",
                 paramTitle: "Optimierungsparameter",
                 paramQ: "Quantität",
@@ -254,6 +265,7 @@
                 aboutText1: "ATRAS ist ein Akronym für 'Arbitrary Textual Replacement with Assigned ccTLD and emoji-Flags', eine Methode, bei der die Binärdaten von länderspezifischen Top-Level-Domains (ccTLDs), die in lateinischen Alphabettexten enthalten sind, durch die den jeweiligen Ländern und Regionen zugeordneten Emoji-Flaggen ersetzt werden."
             },
             atras_ja: {
+                backBtn: "戻🇷🇺",
                 subtitle: "🇵🇦ラ🇲🇪ータ調整機能付🇰🇮 🇨🇨🇹🇱D国旗置換🇸🇮🇲🇾ウ🇷🇪ータ (多言語対応)",
                 paramTitle: "最適化🇵🇦ラ🇲🇪ータ設定",
                 paramQ: "置換量",
@@ -273,6 +285,7 @@
                 aboutText1: "A🇹🇷🇦🇸🇹🇴は英語「🇦🇷b🇮🇹r🇦🇷y Text🇺🇦l 🇷🇪🇵🇱🇦🇨e🇲🇪nt wi🇹🇭 🇦🇸🇸🇮g🇳🇪d 🇨🇨🇹🇱D and e🇲🇴ji-F🇱🇦🇬🇸 」のアク🇷🇴🇳🇮🇲🇺🇩🇪、ラテン文字ア🇷🇺ファ🇧🇪🇹🇹オ🇳🇴文章中🇳🇮含🇲🇦🇷🇪🇷🇺国別🇹🇴ップ🇷🇪🇧🇪🇷🇺🇩🇴🇲🇪イン(🇨🇴un🇹🇷y 🇨🇴🇩🇪 🇹🇴p-le🇻🇪l d🇴🇲a🇮🇳🇳🇴こ🇹🇴。以下🇨🇨🇹🇱D🇹🇴呼ぶ)🇳🇴🇧🇦イ🇳🇦リを、🇸🇴🇳🇴国🇹🇴地域ご🇹🇴🇳🇮合致🇸🇦🇸🇪た絵文字国旗(e🇲🇴ji-f🇱🇦🇬🇸)🇩🇪置換す🇷🇺方法🇩🇪あ🇷🇺。"
             },
             atras_en: {
+                backBtn: "B🇦🇨k",
                 subtitle: "🇨🇨🇹🇱D Fl🇦🇬 E🇲🇴ji 🇷🇪🇵🇱🇦🇨🇪🇷 S🇮🇲u🇱🇦🇹🇴r wi🇹🇭 P🇦🇷🇦🇲🇪🇹e🇷🇸 (🇲🇺🇱🇹🇮🇱🇮🇳🇬🇺🇦🇱)",
                 paramTitle: "O🇵🇹🇮🇲iz🇦🇹🇮🇴n P🇦🇷🇦🇲🇪🇹e🇷🇸",
                 paramQ: "Q🇺🇦nt🇮🇹y",
@@ -292,6 +305,7 @@
                 aboutText1: "A🇹🇷🇦🇸 🇮🇸 an 🇦🇨🇷🇴nym 🇫🇴r '🇦🇷b🇮🇹r🇦🇷y Text🇺🇦l 🇷🇪🇵🇱🇦🇨e🇲🇪nt wi🇹🇭 🇦🇸🇸🇮g🇳🇪d 🇨🇨🇹🇱D and e🇲🇴ji-F🇱🇦🇬🇸', a m🇪🇹hod of 🇷🇪🇵🇱🇦🇨i🇳🇬 🇹🇭e b🇮🇳🇦🇷i🇪🇸 of 🇨🇴un🇹🇷y 🇨🇴🇩🇪 🇹🇴p-le🇻🇪l d🇴🇲🇦🇮ns (🇨🇨🇹🇱Ds) 🇨🇴nt🇦🇮🇳🇪d 🇮🇳 L🇦🇹🇮🇳 🇦🇱🇵🇭ab🇪🇹 text wi🇹🇭 e🇲🇴ji-f🇱🇦🇬🇸 🇦🇸🇸🇮g🇳🇪d 🇹🇴 e🇦🇨h 🇨🇴un🇹🇷y and r🇪🇬🇮🇴n."
             },
             atras_de: {
+                backBtn: "Zu🇷🇺c🇰",
                 subtitle: "🇨🇨🇹🇱D-Fl🇦🇬🇬🇪n-E🇲🇴ji-E🇷🇸🇪🇹zun🇬🇸-S🇮🇲u🇱🇦🇹🇴r m🇮🇹 P🇦🇷🇦🇲🇪🇹🇪🇷n (🇲🇪h🇷🇸🇵🇷🇦🇨hig)",
                 paramTitle: "O🇵🇹🇮🇲🇮🇪🇷🇺n🇬🇸🇵🇦r🇦🇲🇪🇹🇪🇷",
                 paramQ: "Q🇺🇦nt🇮🇹ät",
