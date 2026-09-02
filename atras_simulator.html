@@ -36,27 +36,93 @@
         .selected-word:hover { background-color: #e5e7eb; }
         .has-variants { border-bottom: 2px dashed #3b82f6; }
         
-        .lang-btn {
-            opacity: 0.5;
-            transition: opacity 0.2s;
+        /* 言語選択ドロップダウン用スタイル */
+        .lang-selector-container {
+            position: relative;
+            display: inline-block;
         }
-        .lang-btn.active {
-            opacity: 1;
-            font-weight: bold;
-            border-bottom: 2px solid #2563eb;
+        .lang-selector-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: white;
+            border: 1px solid #d1d5db;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            color: #374151;
+            cursor: pointer;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+        }
+        .lang-selector-btn:hover {
+            background-color: #f9fafb;
+            border-color: #9ca3af;
+        }
+        .lang-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 110%;
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            min-width: 180px;
+            overflow: hidden;
+        }
+        .lang-selector-container.active .lang-menu {
+            display: block;
+        }
+        .lang-option {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            color: #4b5563;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        .lang-option:last-child {
+            border-bottom: none;
+        }
+        .lang-option:hover {
+            background-color: #f3f4f6;
+            color: #111827;
+        }
+        .lang-option.selected {
+            background-color: #eff6ff;
+            color: #1d4ed8;
+            font-weight: 600;
         }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8 text-gray-800 flex flex-col items-center">
 
-    <div class="w-full max-w-5xl flex justify-end items-center gap-3 mb-4 text-sm flex-wrap">
-        <button class="lang-btn active" data-lang="ja">日本語</button>
-        <button class="lang-btn" data-lang="en">English</button>
-        <button class="lang-btn" data-lang="de">Deutsch</button>
-        <span class="text-gray-400 font-light text-lg mx-1">｜</span>
-        <button class="lang-btn" data-lang="atras_ja">日本語</button>
-        <button class="lang-btn" data-lang="atras_en">E🇳🇬🇱🇮🇸🇭</button>
-        <button class="lang-btn" data-lang="atras_de">D🇪🇺ts🇨🇭</button>
+    <div class="w-full max-w-5xl flex justify-end items-center mb-4">
+        <!-- 言語選択ドロップダウンUI -->
+        <div class="lang-selector-container" id="langSelector">
+            <button class="lang-selector-btn" id="langSelectorBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                </svg>
+                <span id="currentLangLabel">言語</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <div class="lang-menu" id="langMenu">
+                <button class="lang-option selected" data-lang="ja" data-label="言語">言語 (日本語)</button>
+                <button class="lang-option" data-lang="en" data-label="Language">Language (English)</button>
+                <button class="lang-option" data-lang="de" data-label="Sprache">Sprache (Deutsch)</button>
+                <button class="lang-option" data-lang="atras_ja" data-label="言語">言語 (ATRAS JP)</button>
+                <button class="lang-option" data-lang="atras_en" data-label="🇱🇦🇳🇬🇺🇦🇬🇪">🇱🇦🇳🇬🇺🇦🇬🇪 (ATRAS EN)</button>
+                <button class="lang-option" data-lang="atras_de" data-label="S🇵🇷🇦🇨h">S🇵🇷🇦🇨h (ATRAS DE)</button>
+            </div>
+        </div>
     </div>
 
     <div class="w-full max-w-5xl bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8">
@@ -248,12 +314,22 @@
 
         let currentLang = 'ja';
 
-        function applyLanguage(lang) {
+        function applyLanguage(lang, label) {
             currentLang = lang;
-            document.querySelectorAll('.lang-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.lang === lang);
+            
+            // ドロップダウンのラベルを更新
+            document.getElementById('currentLangLabel').textContent = label;
+
+            // 選択状態のスタイルを更新
+            document.querySelectorAll('.lang-option').forEach(btn => {
+                if(btn.dataset.lang === lang) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
             });
 
+            // テキストの翻訳を適用
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.dataset.i18n;
                 if (translations[lang][key]) {
@@ -268,6 +344,29 @@
                 }
             });
         }
+
+        // 言語セレクターの開閉ロジック
+        const langSelectorBtn = document.getElementById('langSelectorBtn');
+        const langSelectorContainer = document.getElementById('langSelector');
+
+        langSelectorBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            langSelectorContainer.classList.toggle('active');
+        });
+
+        // 外側をクリックしたら閉じる
+        document.addEventListener('click', () => {
+            langSelectorContainer.classList.remove('active');
+        });
+
+        // 言語オプションのクリック処理
+        document.querySelectorAll('.lang-option').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                applyLanguage(btn.dataset.lang, btn.dataset.label);
+                langSelectorContainer.classList.remove('active');
+            });
+        });
 
         const cctldFlags = {
             "ac": "🇦🇨", "ad": "🇦🇩", "ae": "🇦🇪", "af": "🇦🇫", "ag": "🇦🇬", "ai": "🇦🇮", "al": "🇦🇱", "am": "🇦🇲", "ao": "🇦🇴", "aq": "🇦🇶", "ar": "🇦🇷", "as": "🇦🇸", "at": "🇦🇹", "au": "🇦🇺", "aw": "🇦🇼", "ax": "🇦🇽", "az": "🇦🇿",
@@ -481,12 +580,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            
-            document.querySelectorAll('.lang-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    applyLanguage(e.target.dataset.lang);
-                });
-            });
 
             const inputText = document.getElementById('inputText');
             const processBtn = document.getElementById('processBtn');
@@ -598,12 +691,6 @@
             }
 
             processBtn.addEventListener('click', processText);
-
-            document.addEventListener('click', () => {
-                document.querySelectorAll('.word-container.active').forEach(c => {
-                    c.classList.remove('active');
-                });
-            });
 
             copyBtn.addEventListener('click', () => {
                 finalText.select();
