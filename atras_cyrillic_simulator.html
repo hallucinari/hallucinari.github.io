@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Cyrillic ATRAS Engine</title>
+    <title>Dynamic Cyrillic ATRAS Engine (Multilingual & ATRAS-ified)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f3f4f6; }
@@ -26,7 +26,7 @@
         .word-container { 
             position: relative; 
             display: inline-block; 
-            margin: 0;
+            margin: 0; 
         }
         
         .dropdown {
@@ -139,22 +139,25 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
                 </svg>
-                <span id="currentLangLabel">言語</span>
+                <span id="currentLangLabel">日本語</span>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
             <div class="lang-menu" id="langMenu">
-                <button class="lang-option selected" data-lang="ja" data-label="言語">日本語</button>
-                <button class="lang-option" data-lang="en" data-label="Language">English</button>
-                <button class="lang-option" data-lang="de" data-label="Sprache">Deutsch</button>
-                <button class="lang-option" data-lang="ru" data-label="Язык">ру́сский</button>
+                <button class="lang-option selected" data-lang="ja" data-label="日本語">日本語</button>
+                <button class="lang-option" data-lang="en" data-label="English">English</button>
+                <button class="lang-option" data-lang="de" data-label="Deutsch">Deutsch</button>
+                <button class="lang-option" data-lang="ru" data-label="ру́сский">ру́сский</button>
+                <button class="lang-option" data-lang="atras_en" data-label="E🇳🇬🇱🇮🇸🇭">E🇳🇬🇱🇮🇸🇭</button>
+                <button class="lang-option" data-lang="atras_de" data-label="D🇪🇺ts🇨🇭">D🇪🇺ts🇨🇭</button>
+                <button class="lang-option" data-lang="atras_ru" data-label="🇷🇺🇸🇸🇰🇮й">🇷🇺🇸🇸🇰🇮й</button>
             </div>
         </div>
     </div>
 
     <div class="w-full max-w-6xl bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8">
-        <h1 class="text-3xl font-bold mb-2 text-center text-blue-600">ATRAS Cyrillic Simulator</h1>
+        <h1 class="text-3xl font-bold mb-2 text-center text-blue-600" data-i18n="appTitle">ATRAS Cyrillic Simulator</h1>
         <p class="text-center text-gray-500 mb-8" data-i18n="subtitle">キリル文字に翻字したccTLDで文章を置換します</p>
 
         <div class="bg-indigo-50 border border-indigo-100 p-5 rounded-lg mb-6">
@@ -176,7 +179,7 @@
             <h2 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2" data-i18n="paramTitle">独自キリル文字のラテン文字翻字パターン設定</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4" id="settings-container">
                 <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700">Щ (shch)</label>
+                    <label class="text-sm font-medium text-gray-700" data-i18n="labelShch">Щ (shch)</label>
                     <select id="opt-shch" class="rule-select" data-char="щ">
                         <option value="shch" data-i18n-opt="shch1">shch (ALA-LC/英米式: 4文字)</option>
                         <option value="sc" data-i18n-opt="shch2">sc (ISO 9 拡張式: 2文字)</option>
@@ -185,7 +188,7 @@
                     </select>
                 </div>
                 <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700">Ч (ch)</label>
+                    <label class="text-sm font-medium text-gray-700" data-i18n="labelCh">Ч (ch)</label>
                     <select id="opt-ch" class="rule-select" data-char="ч">
                         <option value="ch" data-i18n-opt="ch1">ch (ALA-LC/英米式: 2文字)</option>
                         <option value="cz" data-i18n-opt="ch2">cz (ポーランド風翻字: 2文字)</option>
@@ -193,14 +196,14 @@
                     </select>
                 </div>
                 <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700">Ш (sh)</label>
+                    <label class="text-sm font-medium text-gray-700" data-i18n="labelSh">Ш (sh)</label>
                     <select id="opt-sh" class="rule-select" data-char="ш">
                         <option value="sh" data-i18n-opt="sh1">sh (ALA-LC/英米式: 2文字)</option>
                         <option value="s" data-i18n-opt="sh2">s (ISO 9/学術ベース: 1文字)</option>
                     </select>
                 </div>
                 <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700">Х (kh)</label>
+                    <label class="text-sm font-medium text-gray-700" data-i18n="labelKh">Х (kh)</label>
                     <select id="opt-kh" class="rule-select" data-char="х">
                         <option value="kh" data-i18n-opt="kh1">kh (ALA-LC/英米式: 2文字)</option>
                         <option value="h" data-i18n-opt="kh2">h (ISO 9/学術ベース: 1文字)</option>
@@ -208,7 +211,7 @@
                     </select>
                 </div>
                 <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700">Ц (ts)</label>
+                    <label class="text-sm font-medium text-gray-700" data-i18n="labelTs">Ц (ts)</label>
                     <select id="opt-ts" class="rule-select" data-char="ц">
                         <option value="ts" data-i18n-opt="ts1">ts (ALA-LC/英米式: 2文字)</option>
                         <option value="c" data-i18n-opt="ts2">c (ISO 9/学術ベース: 1文字)</option>
@@ -216,7 +219,7 @@
                     </select>
                 </div>
                 <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700">Ж (zh)</label>
+                    <label class="text-sm font-medium text-gray-700" data-i18n="labelZh">Ж (zh)</label>
                     <select id="opt-zh" class="rule-select" data-char="ж">
                         <option value="zh" data-i18n-opt="zh1">zh (ALA-LC/英米式: 2文字)</option>
                         <option value="z" data-i18n-opt="zh2">z (ISO 9/学術ベース: 1文字)</option>
@@ -224,7 +227,7 @@
                     </select>
                 </div>
                 <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700">Ю (yu)</label>
+                    <label class="text-sm font-medium text-gray-700" data-i18n="labelYu">Ю (yu)</label>
                     <select id="opt-yu" class="rule-select" data-char="ю">
                         <option value="yu" data-i18n-opt="yu1">yu (ALA-LC/英米式: 2文字)</option>
                         <option value="ju" data-i18n-opt="yu2">ju (ISO 9/学術ベース: 2文字)</option>
@@ -232,7 +235,7 @@
                     </select>
                 </div>
                 <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700">Я (ya)</label>
+                    <label class="text-sm font-medium text-gray-700" data-i18n="labelYa">Я (ya)</label>
                     <select id="opt-ya" class="rule-select" data-char="я">
                         <option value="ya" data-i18n-opt="ya1">ya (ALA-LC/英米式: 2文字)</option>
                         <option value="ja" data-i18n-opt="ya2">ja (ISO 9/学術ベース: 2文字)</option>
@@ -240,7 +243,7 @@
                     </select>
                 </div>
                 <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700">Ё (yo)</label>
+                    <label class="text-sm font-medium text-gray-700" data-i18n="labelYo">Ё (yo)</label>
                     <select id="opt-yo" class="rule-select" data-char="ё">
                         <option value="yo" data-i18n-opt="yo1">yo (ALA-LC/英米式: 2文字)</option>
                         <option value="jo" data-i18n-opt="yo2">jo (ISO 9/学術ベース: 2文字)</option>
@@ -248,7 +251,7 @@
                     </select>
                 </div>
                 <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700">Е (ye)</label>
+                    <label class="text-sm font-medium text-gray-700" data-i18n="labelYe">Е (ye)</label>
                     <select id="opt-ye" class="rule-select" data-char="е">
                         <option value="ye" data-i18n-opt="ye1">ye (ALA-LC/英米式: 2文字)</option>
                         <option value="je" data-i18n-opt="ye2">je (ISO 9/学術ベース: 2文字)</option>
@@ -302,6 +305,7 @@
     <script>
         const translations = {
             ja: {
+                appTitle: "ATRAS Cyrillic Simulator",
                 backBtn: "戻る",
                 subtitle: "キリル文字に翻字したccTLDで文章を置換します",
                 presetTitle: "一括設定",
@@ -309,6 +313,7 @@
                 preset2: "学術式 / ISO 9 拡張 (j系・c系の統一)",
                 preset3: "単音化 / 結合優先 (1文字化による連鎖の最大化)",
                 paramTitle: "独自キリル文字のラテン文字翻字パターン設定",
+                labelShch: "Щ (shch)", labelCh: "Ч (ch)", labelSh: "Ш (sh)", labelKh: "Х (kh)", labelTs: "Ц (ts)", labelZh: "Ж (zh)", labelYu: "Ю (yu)", labelYa: "Я (ya)", labelYo: "Ё (yo)", labelYe: "Е (ye)",
                 shch1: "shch (ALA-LC/英米式: 4文字)", shch2: "sc (ISO 9 拡張式: 2文字)", shch3: "ss (純粋音韻/長子音: 2文字)", shch4: "st (ブルガリア音韻: 2文字)",
                 ch1: "ch (ALA-LC/英米式: 2文字)", ch2: "cz (ポーランド風翻字: 2文字)", ch3: "c (ISO 9/学術ベース: 1文字)",
                 sh1: "sh (ALA-LC/英米式: 2文字)", sh2: "s (ISO 9/学術ベース: 1文字)",
@@ -334,6 +339,7 @@
                 none: "なし", chars: "文字"
             },
             en: {
+                appTitle: "ATRAS Cyrillic Simulator",
                 backBtn: "Back",
                 subtitle: "Replaces text with ccTLDs transliterated to Cyrillic",
                 presetTitle: "Quick Presets",
@@ -341,6 +347,7 @@
                 preset2: "ISO 9 Extended (Unifies j-series and c-series)",
                 preset3: "Single Phoneme (Maximizes Chaining)",
                 paramTitle: "Transliteration Pattern Settings",
+                labelShch: "Щ (shch)", labelCh: "Ч (ch)", labelSh: "Ш (sh)", labelKh: "Х (kh)", labelTs: "Ц (ts)", labelZh: "Ж (zh)", labelYu: "Ю (yu)", labelYa: "Я (ya)", labelYo: "Ё (yo)", labelYe: "Е (ye)",
                 shch1: "shch (ALA-LC: 4 chars)", shch2: "sc (ISO 9 Ext: 2 chars)", shch3: "ss (Phonetic: 2 chars)", shch4: "st (Bulgarian: 2 chars)",
                 ch1: "ch (ALA-LC: 2 chars)", ch2: "cz (Polish style: 2 chars)", ch3: "c (ISO 9: 1 char)",
                 sh1: "sh (ALA-LC: 2 chars)", sh2: "s (ISO 9: 1 char)",
@@ -366,6 +373,7 @@
                 none: "None", chars: "chars"
             },
             de: {
+                appTitle: "ATRAS Cyrillic Simulator",
                 backBtn: "Zurück",
                 subtitle: "Ersetzt Text durch in Kyrillisch transliterierte ccTLDs",
                 presetTitle: "Schnell-Voreinstellungen",
@@ -373,6 +381,7 @@
                 preset2: "ISO 9 Erweitert (Vereinheitlicht j- und c-Reihen)",
                 preset3: "Einzelphonem (Maximiert Verkettungen)",
                 paramTitle: "Einstellungen für Transliterationsmuster",
+                labelShch: "Щ (shch)", labelCh: "Ч (ch)", labelSh: "Ш (sh)", labelKh: "Х (kh)", labelTs: "Ц (ts)", labelZh: "Ж (zh)", labelYu: "Ю (yu)", labelYa: "Я (ya)", labelYo: "Ё (yo)", labelYe: "Е (ye)",
                 shch1: "shch (ALA-LC: 4 Zchn)", shch2: "sc (ISO 9 Ext: 2 Zchn)", shch3: "ss (Phonetisch: 2 Zchn)", shch4: "st (Bulgarisch: 2 Zchn)",
                 ch1: "ch (ALA-LC: 2 Zchn)", ch2: "cz (Polnisch: 2 Zchn)", ch3: "c (ISO 9: 1 Zchn)",
                 sh1: "sh (ALA-LC: 2 Zchn)", sh2: "s (ISO 9: 1 Zchn)",
@@ -398,6 +407,7 @@
                 none: "Keine", chars: "Zchn"
             },
             ru: {
+                appTitle: "ATRAS Cyrillic Simulator",
                 backBtn: "Назад",
                 subtitle: "Заменяет текст на ccTLD, транслитерированные на кириллицу",
                 presetTitle: "Быстрые настройки",
@@ -405,6 +415,7 @@
                 preset2: "ISO 9 (Объединение рядов j и c)",
                 preset3: "Одиночные фонемы (Максимизация цепочек)",
                 paramTitle: "Настройки шаблонов транслитерации",
+                labelShch: "Щ (shch)", labelCh: "Ч (ch)", labelSh: "Ш (sh)", labelKh: "Х (kh)", labelTs: "Ц (ts)", labelZh: "Ж (zh)", labelYu: "Ю (yu)", labelYa: "Я (ya)", labelYo: "Ё (yo)", labelYe: "Е (ye)",
                 shch1: "shch (ALA-LC: 4 симв)", shch2: "sc (ISO 9 Ext: 2 симв)", shch3: "ss (Фонетич: 2 симв)", shch4: "st (Болгарский: 2 симв)",
                 ch1: "ch (ALA-LC: 2 симв)", ch2: "cz (Польский стиль: 2 симв)", ch3: "c (ISO 9: 1 симв)",
                 sh1: "sh (ALA-LC: 2 симв)", sh2: "s (ISO 9: 1 симв)",
@@ -428,6 +439,108 @@
                 tbResKept: "Оставлено (Изолировано для пред. ошибок в цепочках)",
                 tbResChain: "Готово к сцеплению с соседними символами",
                 none: "Нет", chars: "симв"
+            },
+            atras_en: {
+                appTitle: "A🇹🇷🇦🇸 🇨🇾r🇮🇱🇱🇮c S🇮🇲u🇱🇦🇹🇴r",
+                backBtn: "B🇦🇨k",
+                subtitle: "🇷🇪🇵🇱🇦🇨🇪🇸 text wi🇹🇭 🇨🇨🇹🇱Ds 🇹🇷ans🇱🇮t🇪🇷🇦🇹ed 🇹🇴 🇨🇾r🇮🇱🇱🇮c",
+                presetTitle: "Qui🇨🇰 P🇷🇪🇸🇪ts",
+                preset1: "A🇱🇦-🇱🇨 (🇵🇷🇮🇴r🇮🇹iz🇪🇸 V🇮🇸🇺🇦l I🇸🇴l🇦🇹🇮🇴n)",
+                preset2: "I🇸🇴 9 Exten🇩🇪d (U🇳🇮🇫🇮🇪🇸 j-s🇪🇷i🇪🇸 and c-s🇪🇷i🇪🇸)",
+                preset3: "S🇮🇳🇬🇱e 🇵🇭o🇳🇪🇲🇪 (M🇦🇽🇮🇲iz🇪🇸 🇨🇭🇦🇮🇳🇮🇳🇬)",
+                paramTitle: "🇹🇷ans🇱🇮t🇪🇷🇦🇹🇮🇴n P🇦🇹t🇪🇷n S🇪🇹t🇮🇳🇬🇸",
+                labelShch: "Щ (🇸🇭🇨🇭)", labelCh: "Ч (🇨🇭)", labelSh: "Ш (🇸🇭)", labelKh: "Х (🇰🇭)", labelTs: "Ц (ts)", labelZh: "Ж (zh)", labelYu: "Ю (yu)", labelYa: "Я (ya)", labelYo: "Ё (yo)", labelYe: "Е (🇾🇪)",
+                shch1: "🇸🇭🇨🇭 (A🇱🇦-🇱🇨: 4 🇨🇭a🇷🇸)", shch2: "🇸🇨 (I🇸🇴 9 Ext: 2 🇨🇭a🇷🇸)", shch3: "🇸🇸 (P🇭o🇳🇪tic: 2 🇨🇭a🇷🇸)", shch4: "st (🇧🇺l🇬🇦r🇮🇦n: 2 🇨🇭a🇷🇸)",
+                ch1: "🇨🇭 (A🇱🇦-🇱🇨: 2 🇨🇭a🇷🇸)", ch2: "cz (P🇴🇱i🇸🇭: 2 🇨🇭a🇷🇸)", ch3: "c (I🇸🇴 9: 1 🇨🇭a🇷🇸)",
+                sh1: "🇸🇭 (A🇱🇦-🇱🇨: 2 🇨🇭a🇷🇸)", sh2: "s (I🇸🇴 9: 1 🇨🇭a🇷🇸)",
+                kh1: "🇰🇭 (A🇱🇦-🇱🇨: 2 🇨🇭a🇷🇸)", kh2: "h (I🇸🇴 9: 1 🇨🇭a🇷🇸)", kh3: "x (I🇵🇦: 1 🇨🇭a🇷🇸)",
+                ts1: "ts (A🇱🇦-🇱🇨: 2 🇨🇭a🇷🇸)", ts2: "c (I🇸🇴 9: 1 🇨🇭a🇷🇸)", ts3: "z (G🇪🇷m🇦🇳: 1 🇨🇭a🇷🇸)",
+                zh1: "zh (A🇱🇦-🇱🇨: 2 🇨🇭a🇷🇸)", zh2: "z (I🇸🇴 9: 1 🇨🇭a🇷🇸)", zh3: "j (F🇷🇪n🇨🇭: 1 🇨🇭a🇷🇸)",
+                yu1: "yu (A🇱🇦-🇱🇨: 2 🇨🇭a🇷🇸)", yu2: "ju (I🇸🇴 9: 2 🇨🇭a🇷🇸)", yu3: "u (V🇴w🇪🇱: 1 🇨🇭a🇷🇸)",
+                ya1: "ya (A🇱🇦-🇱🇨: 2 🇨🇭a🇷🇸)", ya2: "ja (I🇸🇴 9: 2 🇨🇭a🇷🇸)", ya3: "a (V🇴w🇪🇱: 1 🇨🇭a🇷🇸)",
+                yo1: "yo (A🇱🇦-🇱🇨: 2 🇨🇭a🇷🇸)", yo2: "🇯🇴 (I🇸🇴 9: 2 🇨🇭a🇷🇸)", yo3: "e (S🇮🇲pl🇪: 1 🇨🇭a🇷🇸)",
+                ye1: "🇾🇪 (A🇱🇦-🇱🇨: 2 🇨🇭a🇷🇸)", ye2: "🇯🇪 (I🇸🇴 9: 2 🇨🇭a🇷🇸)", ye3: "e (V🇴w🇪🇱: 1 🇨🇭a🇷🇸)",
+                tableTitle: "🇷🇪🇦🇱-ti🇲🇪 🇨🇴nv🇪🇷s🇮🇴n M🇦🇹rix",
+                tableH1: "🇨🇾r🇮🇱🇱🇮c", tableH2: "🇹🇷ans🇱🇮t🇪🇷🇦🇹🇮🇴n", tableH3: "Le🇳🇬🇹🇭", tableH4: "🇨🇨🇹🇱D", tableH5: "F🇮🇳🇦🇱 🇧🇪hav🇮🇴r",
+                inputLabel: "🇮🇳put Text (🇨🇾r🇮🇱🇱🇮c):",
+                inputPlaceholder: "Ent🇪🇷 text he🇷🇪 (e.g., Все люди рождаются свободными и равными)",
+                processBtn: "🇬🇪n🇪🇷🇦🇹e F🇱🇦🇬🇸 (🇨🇨🇹🇱D)",
+                resultLabel: "R🇪🇸u🇱🇹 (C🇱🇮🇨🇰 d🇦🇸hed und🇪🇷l🇮🇳🇪🇸 🇹🇴 🇸🇪l🇪🇨t v🇦🇷i🇦🇹🇮🇴ns):",
+                outputLabel: "F🇮🇳🇦🇱 Output Text:",
+                copyBtn: "🇨🇴🇵🇾 Text",
+                copiedBtn: "🇨🇴p🇮🇪d!",
+                tbResSingle: "(I🇸🇴🇱🇦ted Fl🇦🇬 🇷🇪🇵🇱🇦🇨e🇲🇪nt)",
+                tbResKept: "🇰🇪🇵🇹 🇦🇸 🇮🇸 (I🇸🇴🇱🇦ted 🇹🇴 p🇷🇪🇻🇪nt 🇨🇭a🇮🇳 🇦🇨🇨🇨🇮🇩🇪nts)",
+                tbResChain: "🇷🇪🇦🇩y 🇹🇴 🇨🇭a🇮🇳 wi🇹🇭 a🇩🇯🇦🇨ent 🇨🇭🇦🇷🇦🇨te🇷🇸",
+                none: "🇳🇴🇳🇪", chars: "🇨🇭a🇷🇸"
+            },
+            atras_de: {
+                appTitle: "A🇹🇷🇦🇸 🇨🇾r🇮🇱🇱🇮c S🇮🇲u🇱🇦🇹🇴r",
+                backBtn: "Zu🇷🇺c🇰",
+                subtitle: "🇪🇷🇸🇪🇹🇿t Text dur🇨🇭 🇮🇳 🇰🇾r🇮🇱l🇮🇸🇨🇭 🇹🇷ans🇱🇮t🇪🇷i🇪🇷te 🇨🇨🇹🇱Ds",
+                presetTitle: "S🇨🇭🇳🇪ll-Vo🇷🇪🇮🇳🇸🇹el🇱🇺n🇬🇪n",
+                preset1: "A🇱🇦-🇱🇨 (🇵🇷🇮🇴ri🇸🇮🇪🇷t v🇮🇸uelle I🇸🇴l🇮🇪🇷🇺🇳🇬)",
+                preset2: "I🇸🇴 9 E🇷🇼e🇮🇹🇪🇷t (V🇪🇷e🇮🇳he🇮🇹🇱🇮🇨🇭t j- und c-🇷🇪ihen)",
+                preset3: "E🇮🇳zel🇵🇭o🇳🇪m (M🇦🇽🇮🇲i🇪🇷t V🇪🇷k🇪🇹tun🇬🇪n)",
+                paramTitle: "E🇮🇳🇸🇹el🇱🇺n🇬🇪n für 🇹🇷ans🇱🇮t🇪🇷🇦🇹🇮🇴n🇸🇲🇺🇸t🇪🇷",
+                labelShch: "Щ (🇸🇭🇨🇭)", labelCh: "Ч (🇨🇭)", labelSh: "Ш (🇸🇭)", labelKh: "Х (🇰🇭)", labelTs: "Ц (ts)", labelZh: "Ж (zh)", labelYu: "Ю (yu)", labelYa: "Я (ya)", labelYo: "Ё (yo)", labelYe: "Е (🇾🇪)",
+                shch1: "shch (A🇱🇦-🇱🇨: 4 Zc🇭🇳)", shch2: "🇸🇨 (I🇸🇴 9 Ext: 2 Zc🇭🇳)", shch3: "ss (P🇭o🇳🇪t🇮🇸🇨🇭: 2 Zc🇭🇳)", shch4: "st (🇧🇺l🇬🇦r🇮🇸🇨🇭: 2 Zc🇭🇳)",
+                ch1: "🇨🇭 (A🇱🇦-🇱🇨: 2 Zc🇭🇳)", ch2: "cz (P🇴🇱n🇮🇸🇨🇭: 2 Zc🇭🇳)", ch3: "c (I🇸🇴 9: 1 Zc🇭🇳)",
+                sh1: "🇸🇭 (A🇱🇦-🇱🇨: 2 Zc🇭🇳)", sh2: "s (I🇸🇴 9: 1 Zc🇭🇳)",
+                kh1: "🇰🇭 (A🇱🇦-🇱🇨: 2 Zc🇭🇳)", kh2: "h (I🇸🇴 9: 1 Zc🇭🇳)", kh3: "x (I🇵🇦: 1 Zc🇭🇳)",
+                ts1: "ts (A🇱🇦-🇱🇨: 2 Zc🇭🇳)", ts2: "c (I🇸🇴 9: 1 Zc🇭🇳)", ts3: "z (D🇪🇺ts🇨🇭: 1 Zc🇭🇳)",
+                zh1: "zh (A🇱🇦-🇱🇨: 2 Zc🇭🇳)", zh2: "z (I🇸🇴 9: 1 Zc🇭🇳)", zh3: "j (F🇷🇦nzö🇸🇮s🇨🇭: 1 Zc🇭🇳)",
+                yu1: "yu (A🇱🇦-🇱🇨: 2 Zc🇭🇳)", yu2: "ju (I🇸🇴 9: 2 Zc🇭🇳)", yu3: "u (V🇴k🇦🇱: 1 Zc🇭🇳)",
+                ya1: "ya (A🇱🇦-🇱🇨: 2 Zc🇭🇳)", ya2: "ja (I🇸🇴 9: 2 Zc🇭🇳)", ya3: "a (V🇴k🇦🇱: 1 Zc🇭🇳)",
+                yo1: "yo (A🇱🇦-🇱🇨: 2 Zc🇭🇳)", yo2: "🇯🇴 (I🇸🇴 9: 2 Zc🇭🇳)", yo3: "e (E🇮🇳f🇦🇨h: 1 Zc🇭🇳)",
+                ye1: "🇾🇪 (A🇱🇦-🇱🇨: 2 Zc🇭🇳)", ye2: "🇯🇪 (I🇸🇴 9: 2 Zc🇭🇳)", ye3: "e (V🇴k🇦🇱: 1 Zc🇭🇳)",
+                tableTitle: "E🇨🇭🇹🇿e🇮🇹-Konv🇪🇷t🇮🇪🇷🇺🇳🇬🇸🇲🇦🇹rix",
+                tableH1: "🇰🇾r🇮🇱l🇮🇸🇨🇭", tableH2: "🇹🇷ans🇱🇮t🇪🇷🇦🇹🇮🇴n", tableH3: "Lä🇳🇬e", tableH4: "🇨🇨🇹🇱D", tableH5: "L🇪🇹zt🇪🇸 V🇪🇷h🇦🇱ten",
+                inputLabel: "E🇮🇳🇬🇦🇧🇪text (🇰🇾r🇮🇱l🇮🇸🇨🇭):",
+                inputPlaceholder: "Text e🇮🇳🇬🇪🇧🇪n (z.B. Все люди рождаются свободными и равными)",
+                processBtn: "Fl🇦🇬🇬🇪n (🇨🇨🇹🇱D) 🇬🇪n🇪🇷🇮🇪🇷🇪n",
+                resultLabel: "🇪🇷🇬🇪🇧🇳🇮🇸 (K🇱🇮c🇰🇪n für V🇦🇷ianten):",
+                outputLabel: "Endgü🇱🇹i🇬🇪r A🇺🇸🇬🇦🇧🇪text:",
+                copyBtn: "Text kop🇮🇪🇷🇪n",
+                copiedBtn: "Kop🇮🇪rt!",
+                tbResSingle: "(I🇸🇴🇱🇮🇪🇷te Fl🇦🇬🇬🇪n🇪🇷🇸🇪🇹🇿u🇳🇬)",
+                tbResKept: "🇧🇪i🇧🇪h🇦🇱ten (I🇸🇴🇱🇮🇪🇷t um K🇪🇹te🇳🇺🇳🇫älle zu v🇪🇷🇲🇪i🇩🇪n)",
+                tbResChain: "B🇪🇷e🇮🇹 zur V🇪🇷k🇪🇹tu🇳🇬 m🇮🇹 N🇦🇨hb🇦🇷zei🇨🇭en",
+                none: "🇰🇪i🇳🇪", chars: "Zc🇭🇳"
+            },
+            atras_ru: {
+                appTitle: "A🇹🇷🇦🇸 🇨🇾r🇮🇱🇱🇮c S🇮🇲u🇱🇦🇹🇴r",
+                backBtn: "🇳🇦з🇦🇩",
+                subtitle: "З🇦🇲🇾🇪ня🇾🇪т т🇾🇪к🇸🇹 🇳🇦 ccTLD, 🇹🇷ан🇸🇱🇮🇹🇾🇪ри🇷🇴🇻🇦нны🇾🇪 🇳🇦 к🇮🇷🇮🇱🇱🇮цу",
+                presetTitle: "🇧🇾с🇹🇷ы🇾🇪 🇳🇦🇸🇹🇷🇴й🇰🇮",
+                preset1: "ALA-LC (🇵🇷🇮🇴р🇮🇹🇾🇪т 🇻🇮зу🇦🇱ь🇳🇴й изоляции)",
+                preset2: "ISO 9 (Объ🇾🇪д🇮🇳🇾🇪🇳🇮🇾🇪 ря🇩🇴в j и c)",
+                preset3: "Оди🇳🇴🇨🇭ны🇾🇪 🇫🇴н🇾🇪🇲🇾 (🇲🇦кс🇮🇲изация ц🇾🇪по🇨🇭🇾🇪к)",
+                paramTitle: "🇳🇦🇸🇹🇷🇴й🇰🇮 🇸🇭абло🇳🇴в 🇹🇷ан🇸🇱🇮🇹🇾🇪рации",
+                labelShch: "Щ (shch)", labelCh: "🇨🇭 (ch)", labelSh: "🇸🇭 (sh)", labelKh: "🇰🇭 (kh)", labelTs: "Ц (ts)", labelZh: "Ж (zh)", labelYu: "Ю (yu)", labelYa: "Я (ya)", labelYo: "Ё (yo)", labelYe: "🇾🇪 (ye)",
+                shch1: "shch (ALA-LC: 4 🇸🇮🇲🇻)", shch2: "sc (ISO 9 Ext: 2 🇸🇮🇲🇻)", shch3: "ss (Фонетич: 2 🇸🇮🇲🇻)", shch4: "st (Болгарский: 2 🇸🇮🇲🇻)",
+                ch1: "ch (ALA-LC: 2 🇸🇮🇲🇻)", ch2: "cz (Польский стиль: 2 🇸🇮🇲🇻)", ch3: "c (ISO 9: 1 🇸🇮🇲🇻)",
+                sh1: "sh (ALA-LC: 2 🇸🇮🇲🇻)", sh2: "s (ISO 9: 1 🇸🇮🇲🇻)",
+                kh1: "kh (ALA-LC: 2 🇸🇮🇲🇻)", kh2: "h (ISO 9: 1 🇸🇮🇲🇻)", kh3: "x (IPA: 1 🇸🇮🇲🇻)",
+                ts1: "ts (ALA-LC: 2 🇸🇮🇲🇻)", ts2: "c (ISO 9: 1 🇸🇮🇲🇻)", ts3: "z (Немецкий стиль: 1 🇸🇮🇲🇻)",
+                zh1: "zh (ALA-LC: 2 🇸🇮🇲🇻)", zh2: "z (ISO 9: 1 🇸🇮🇲🇻)", zh3: "j (Фр. стиль: 1 🇸🇮🇲🇻)",
+                yu1: "yu (ALA-LC: 2 🇸🇮🇲🇻)", yu2: "ju (ISO 9: 2 🇸🇮🇲🇻)", yu3: "u (Один гласный: 1 🇸🇮🇲🇻)",
+                ya1: "ya (ALA-LC: 2 🇸🇮🇲🇻)", ya2: "ja (ISO 9: 2 🇸🇮🇲🇻)", ya3: "a (Один гласный: 1 🇸🇮🇲🇻)",
+                yo1: "yo (ALA-LC: 2 🇸🇮🇲🇻)", yo2: "jo (ISO 9: 2 🇸🇮🇲🇻)", yo3: "e (Упрощено: 1 🇸🇮🇲🇻)",
+                ye1: "ye (ALA-LC: 2 🇸🇮🇲🇻)", ye2: "je (ISO 9: 2 🇸🇮🇲🇻)", ye3: "e (Чистый гласный: 1 🇸🇮🇲🇻)",
+                tableTitle: "🇲🇦🇹🇷ица конв🇾🇪ртации в р🇾🇪🇦🇱ьн🇴🇲 вр🇾🇪м🇾🇪🇳🇮",
+                tableH1: "К🇮🇷🇮🇱🇱🇮ца", tableH2: "🇹🇷ан🇸🇱🇮🇹🇾🇪рация", tableH3: "Д🇱🇮🇳🇦", tableH4: "ccTLD", tableH5: "Кон🇾🇪🇨🇭🇳🇴🇾🇪 пов🇾🇪д🇾🇪🇳🇮🇾🇪",
+                inputLabel: "Ввод т🇾🇪к🇸🇹а (К🇮🇷🇮🇱🇱🇮ца):",
+                inputPlaceholder: "Вв🇾🇪д🇮🇹🇾🇪 т🇾🇪к🇸🇹 (🇳🇦🇵🇷🇮🇲🇾🇪р, Вс🇾🇪 люди 🇷🇴ждаются 🇸🇻о🇧🇴дными и ра🇻🇳ыми)",
+                processBtn: "Г🇾🇪н🇾🇪ри🇷🇴в🇦🇹ь ф🇱🇦🇬🇮 (ccTLD)",
+                resultLabel: "Р🇾🇪зульт🇦🇹 (🇳🇦жм🇮🇹🇾🇪 для вы🇧🇴ра в🇦🇷иан🇹🇴в):",
+                outputLabel: "И🇹🇴говый т🇾🇪к🇸🇹:",
+                copyBtn: "Копи🇷🇴в🇦🇹ь т🇾🇪к🇸🇹",
+                copiedBtn: "С🇨🇴пи🇷🇴в🇦🇳🇴!",
+                tbResSingle: "(Изо🇱🇮🇷🇴🇻🇦н🇳🇦я з🇦🇲🇾🇪🇳🇦 🇳🇦 фл🇦🇬)",
+                tbResKept: "О🇸🇹авл🇾🇪🇳🇴 (Изо🇱🇮🇷🇴🇻🇦🇳🇴 для 🇵🇷🇾🇪д. о🇸🇭и🇧🇴к в ц🇾🇪по🇨🇭ка🇰🇭)",
+                tbResChain: "Г🇴🇹🇴🇻🇴 к сц🇾🇪п🇱🇪🇳🇮ю с с🇴🇸🇪🇩🇳🇮🇲🇮 🇸🇮🇲🇻🇴🇱🇦🇲🇮",
+                none: "Н🇾🇪т", chars: "🇸🇮🇲🇻"
             }
         };
 
@@ -448,7 +561,7 @@
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.dataset.i18n;
                 if (translations[lang][key]) {
-                    el.textContent = translations[lang][key];
+                    el.innerHTML = translations[lang][key];
                 }
             });
 
@@ -558,7 +671,7 @@
                 const tdResult = document.createElement('td');
                 if (len >= 2) {
                     if (flag) {
-                        tdResult.innerHTML = `<span class="flag-converted">${flag}</span> (${t.tbResSingle})`;
+                        tdResult.innerHTML = `<span class="flag-converted">${flag}</span> ${t.tbResSingle}`;
                     } else {
                         tdResult.innerHTML = `<span class="cyrillic-kept">${char}</span> ${t.tbResKept}`;
                     }
@@ -811,7 +924,8 @@
             
             const btn = document.getElementById('copyBtn');
             const originalText = btn.textContent;
-            btn.textContent = translations[currentLang].copiedBtn;
+            const t = translations[currentLang] || translations['ja'];
+            btn.textContent = t.copiedBtn;
             btn.classList.replace('bg-green-600', 'bg-teal-600');
             
             setTimeout(() => {
