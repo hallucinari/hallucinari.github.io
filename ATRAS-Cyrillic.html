@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Cyrillic ATRAS Engine (Optimized UX)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f3f4f6; }
+        .setting-group { display: flex; flex-direction: column; gap: 0.25rem; }
+        select { background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.5rem; font-size: 0.875rem; cursor: pointer; }
+        select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 1px #3b82f6; }
+        table { border-collapse: collapse; width: 100%; font-size: 0.875rem; }
+        th, td { border: 1px solid #e5e7eb; padding: 0.75rem; text-align: left; }
+        th { background-color: #f9fafb; font-weight: 600; color: #374151; }
+        td.cyrillic-kept { color: #dc2626; font-weight: 500; }
+        td.flag-converted { color: #059669; font-size: 1.25rem; }
+        td.chain-ready { color: #2563eb; font-weight: 500; }
+
+        /* 文字間隔（カーニング）とレイアウトの最適化 */
+        #outputArea, #finalText {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            letter-spacing: normal;
+            word-spacing: normal;
+        }
+        
+        .word-container { 
+            position: relative; 
+            display: inline-block; 
+            margin: 0; /* 余計なマージンを排除 */
+        }
+        
+        .dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            z-index: 10;
+            min-width: 100%;
+            max-height: 250px;
+            overflow-y: auto;
+            white-space: nowrap;
+        }
+        .word-container.active .dropdown { display: block; }
+        .dropdown-item { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f3f4f6; font-size: 1.25rem; letter-spacing: normal; }
+        .dropdown-item:last-child { border-bottom: none; }
+        .dropdown-item:hover { background-color: #e5e7eb; }
+        
+        .selected-word {
+            cursor: pointer;
+            padding: 0; /* 横方向のパディングを削除して自然なカーニングを維持 */
+            border-radius: 2px;
+            transition: all 0.2s;
+        }
+        .selected-word:hover { background-color: #e5e7eb; }
+        .has-variants { 
+            border-bottom: 2px dashed #3b82f6; 
+            padding-bottom: 2px; /* 下線との距離を微調整 */
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8 text-gray-800 flex flex-col items-center">
+
+    <div class="w-full max-w-6xl bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8">
+        <h1 class="text-3xl font-bold mb-2 text-center text-blue-600">Dynamic Cyrillic ATRAS</h1>
+        <p class="text-center text-gray-500 mb-8">非置換文字の隔離・自然なカーニング・最適化バリエーションUI</p>
+
+        <div class="bg-indigo-50 border border-indigo-100 p-5 rounded-lg mb-6">
+            <h2 class="text-base font-bold text-indigo-900 mb-3">一括設定プロファイル (Quick Presets)</h2>
+            <div class="flex flex-wrap gap-3">
+                <button id="preset-alalc" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition shadow-sm">
+                    英米式 / ALA-LC 準拠 (視覚的隔離を優先)
+                </button>
+                <button id="preset-iso9" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition shadow-sm">
+                    学術式 / ISO 9 拡張 (j系・c系の統一)
+                </button>
+                <button id="preset-chain" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition shadow-sm">
+                    単音化 / 結合優先 (1文字化による連鎖の最大化)
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-gray-50 p-5 rounded-lg border border-gray-200 mb-6">
+            <h2 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">独自文字のラテン翻字展開パターン設定</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4" id="settings-container">
+                <div class="setting-group">
+                    <label class="text-sm font-medium text-gray-700">Щ (shch)</label>
+                    <select id="opt-shch" class="rule-select" data-char="щ">
+                        <option value="shch">shch (ALA-LC/英米式: 4文字)</option>
+                        <option value="sc">sc (ISO 9 拡張式: 2文字)</option>
+                        <option value="ss">ss (純粋音韻/長子音: 2文字)</option>
+                        <option value="st">st (ブルガリア音韻: 2文字)</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="text-sm font-medium text-gray-700">Ч (ch)</label>
+                    <select id="opt-ch" class="rule-select" data-char="ч">
+                        <option value="ch">ch (ALA-LC/英米式: 2文字)</option>
+                        <option value="cz">cz (ポーランド風翻字: 2文字)</option>
+                        <option value="c">c (ISO 9/学術ベース: 1文字)</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="text-sm font-medium text-gray-700">Ш (sh)</label>
+                    <select id="opt-sh" class="rule-select" data-char="ш">
+                        <option value="sh">sh (ALA-LC/英米式: 2文字)</option>
+                        <option value="s">s (ISO 9/学術ベース: 1文字)</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="text-sm font-medium text-gray-700">Х (kh)</label>
+                    <select id="opt-kh" class="rule-select" data-char="х">
+                        <option value="kh">kh (ALA-LC/英米式: 2文字)</option>
+                        <option value="h">h (ISO 9/学術ベース: 1文字)</option>
+                        <option value="x">x (字形/IPAベース: 1文字)</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="text-sm font-medium text-gray-700">Ц (ts)</label>
+                    <select id="opt-ts" class="rule-select" data-char="ц">
+                        <option value="ts">ts (ALA-LC/英米式: 2文字)</option>
+                        <option value="c">c (ISO 9/学術ベース: 1文字)</option>
+                        <option value="z">z (ドイツ語式翻字: 1文字)</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="text-sm font-medium text-gray-700">Ж (zh)</label>
+                    <select id="opt-zh" class="rule-select" data-char="ж">
+                        <option value="zh">zh (ALA-LC/英米式: 2文字)</option>
+                        <option value="z">z (ISO 9/学術ベース: 1文字)</option>
+                        <option value="j">j (フランス式/IPA: 1文字)</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="text-sm font-medium text-gray-700">Ю (yu)</label>
+                    <select id="opt-yu" class="rule-select" data-char="ю">
+                        <option value="yu">yu (ALA-LC/英米式: 2文字)</option>
+                        <option value="ju">ju (ISO 9/学術ベース: 2文字)</option>
+                        <option value="u">u (単一母音化: 1文字)</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="text-sm font-medium text-gray-700">Я (ya)</label>
+                    <select id="opt-ya" class="rule-select" data-char="я">
+                        <option value="ya">ya (ALA-LC/英米式: 2文字)</option>
+                        <option value="ja">ja (ISO 9/学術ベース: 2文字)</option>
+                        <option value="a">a (単一母音化: 1文字)</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="text-sm font-medium text-gray-700">Ё (yo)</label>
+                    <select id="opt-yo" class="rule-select" data-char="ё">
+                        <option value="yo">yo (ALA-LC/英米式: 2文字)</option>
+                        <option value="jo">jo (ISO 9/学術ベース: 2文字)</option>
+                        <option value="e">e (正書法簡略化: 1文字)</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="text-sm font-medium text-gray-700">Е (ye)</label>
+                    <select id="opt-ye" class="rule-select" data-char="е">
+                        <option value="ye">ye (ALA-LC/英米式: 2文字)</option>
+                        <option value="je">je (ISO 9/学術ベース: 2文字)</option>
+                        <option value="e">e (純粋母音化: 1文字)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <h2 class="text-lg font-semibold text-gray-700 mb-2">リアルタイム変換マトリクス</h2>
+            <div class="overflow-x-auto">
+                <table id="status-table">
+                    <thead>
+                        <tr>
+                            <th>キリル文字</th>
+                            <th>現在のラテン翻字設定</th>
+                            <th>文字数</th>
+                            <th>対応ccTLD</th>
+                            <th>最終的な処理結果 (挙動)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <label for="inputText" class="block text-sm font-medium text-gray-700 mb-2">入力テキスト (キリル文字):</label>
+            <textarea id="inputText" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-lg" placeholder="文章を入力してください (例: Все люди рождаются свободными и равными)"></textarea>
+            <div class="mt-3 flex justify-end">
+                <button id="processBtn" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition font-semibold shadow-sm">国旗(ccTLD)へ置換を実行</button>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">結果 (破線の下線をクリックしてバリエーションを選択可能):</label>
+            <div id="outputArea" class="w-full p-4 min-h-[100px] border border-gray-300 rounded-md bg-gray-50 text-2xl leading-relaxed whitespace-pre-wrap"></div>
+        </div>
+
+        <div class="mb-6">
+            <label for="finalText" class="block text-sm font-medium text-gray-700 mb-2">最終 ATRAS 出力 (純粋キリル文字・国旗のみ):</label>
+            <textarea id="finalText" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-xl" readonly></textarea>
+            <div class="mt-3 flex justify-end">
+                <button id="copyBtn" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition font-semibold shadow-sm">テキストをコピー</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const cctldFlags = {
+            "ac": "🇦🇨", "ad": "🇦🇩", "ae": "🇦🇪", "af": "🇦🇫", "ag": "🇦🇬", "ai": "🇦🇮", "al": "🇦🇱", "am": "🇦🇲", "ao": "🇦🇴", "aq": "🇦🇶", "ar": "🇦🇷", "as": "🇦🇸", "at": "🇦🇹", "au": "🇦🇺", "aw": "🇦🇼", "ax": "🇦🇽", "az": "🇦🇿",
+            "ba": "🇧🇦", "bb": "🇧🇧", "bd": "🇧🇩", "be": "🇧🇪", "bf": "🇧🇫", "bg": "🇧🇬", "bh": "🇧🇭", "bi": "🇧🇮", "bj": "🇧🇯", "bm": "🇧🇲", "bn": "🇧🇳", "bo": "🇧🇴", "br": "🇧🇷", "bs": "🇧🇸", "bt": "🇧🇹", "bv": "🇧🇻", "bw": "🇧🇼", "by": "🇧🇾", "bz": "🇧🇿",
+            "ca": "🇨🇦", "cc": "🇨🇨", "cd": "🇨🇩", "cf": "🇨🇫", "cg": "🇨🇬", "ch": "🇨🇭", "ci": "🇨🇮", "ck": "🇨🇰", "cl": "🇨🇱", "cm": "🇨🇲", "cn": "🇨🇳", "co": "🇨🇴", "cr": "🇨🇷", "cu": "🇨🇺", "cv": "🇨🇻", "cw": "🇨🇼", "cx": "🇨🇽", "cy": "🇨🇾", "cz": "🇨🇿",
+            "de": "🇩🇪", "dj": "🇩🇯", "dk": "🇩🇰", "dm": "🇩🇲", "do": "🇩🇴", "dz": "🇩🇿",
+            "ec": "🇪🇨", "ee": "🇪🇪", "eg": "🇪🇬", "er": "🇪🇷", "es": "🇪🇸", "et": "🇪🇹", "eu": "🇪🇺",
+            "fi": "🇫🇮", "fj": "🇫🇯", "fk": "🇫🇰", "fm": "🇫🇲", "fo": "🇫🇴", "fr": "🇫🇷",
+            "ga": "🇬🇦", "gd": "🇬🇩", "ge": "🇬🇪", "gf": "🇬🇫", "gg": "🇬🇬", "gh": "🇬🇭", "gi": "🇬🇮", "gl": "🇬🇱", "gm": "🇬🇲", "gn": "🇬🇳", "gp": "🇬🇵", "gq": "🇬🇶", "gr": "🇬🇷", "gs": "🇬🇸", "gt": "🇬🇹", "gu": "🇬🇺", "gw": "🇬🇼", "gy": "🇬🇾",
+            "hk": "🇭🇰", "hm": "🇭🇲", "hn": "🇭🇳", "hr": "🇭🇷", "ht": "🇭🇹", "hu": "🇭🇺",
+            "id": "🇮🇩", "ie": "🇮🇪", "il": "🇮🇱", "im": "🇮🇲", "in": "🇮🇳", "io": "🇮🇴", "iq": "🇮🇶", "ir": "🇮🇷", "is": "🇮🇸", "it": "🇮🇹",
+            "je": "🇯🇪", "jm": "🇯🇲", "jo": "🇯🇴", "jp": "🇯🇵",
+            "ke": "🇰🇪", "kg": "🇰🇬", "kh": "🇰🇭", "ki": "🇰🇮", "km": "🇰🇲", "kn": "🇰🇳", "kp": "🇰🇵", "kr": "🇰🇷", "kw": "🇰🇼", "ky": "🇰🇾", "kz": "🇰🇿",
+            "la": "🇱🇦", "lb": "🇱🇧", "lc": "🇱🇨", "li": "🇱🇮", "lk": "🇱🇰", "lr": "🇱🇷", "ls": "🇱🇸", "lt": "🇱🇹", "lu": "🇱🇺", "lv": "🇱🇻", "ly": "🇱🇾",
+            "ma": "🇲🇦", "mc": "🇲🇨", "md": "🇲🇩", "me": "🇲🇪", "mf": "🇲🇫", "mg": "🇲🇬", "mh": "🇲🇭", "mk": "🇲🇰", "ml": "🇲🇱", "mm": "🇲🇲", "mn": "🇲🇳", "mo": "🇲🇴", "mp": "🇲🇵", "mq": "🇲🇶", "mr": "🇲🇷", "ms": "🇲🇸", "mt": "🇲🇹", "mu": "🇲🇺", "mv": "🇲🇻", "mw": "🇲🇼", "mx": "🇲🇽", "my": "🇲🇾", "mz": "🇲🇿",
+            "na": "🇳🇦", "nc": "🇳🇨", "ne": "🇳🇪", "nf": "🇳🇫", "ng": "🇳🇬", "ni": "🇳🇮", "nl": "🇳🇱", "no": "🇳🇴", "np": "🇳🇵", "nr": "🇳🇷", "nu": "🇳🇺", "nz": "🇳🇿",
+            "om": "🇴🇲",
+            "pa": "🇵🇦", "pe": "🇵🇪", "pf": "🇵🇫", "pg": "🇵🇬", "ph": "🇵🇭", "pk": "🇵🇰", "pl": "🇵🇱", "pm": "🇵🇲", "pn": "🇵🇳", "pr": "🇵🇷", "ps": "🇵🇸", "pt": "🇵🇹", "pw": "🇵🇼", "py": "🇵🇾",
+            "qa": "🇶🇦",
+            "re": "🇷🇪", "ro": "🇷🇴", "rs": "🇷🇸", "ru": "🇷🇺", "rw": "🇷🇼",
+            "sa": "🇸🇦", "sb": "🇸🇧", "sc": "🇸🇨", "sd": "🇸🇩", "se": "🇸🇪", "sg": "🇸🇬", "sh": "🇸🇭", "si": "🇸🇮", "sj": "🇸🇯", "sk": "🇸🇰", "sl": "🇸🇱", "sm": "🇸🇲", "sn": "🇸🇳", "so": "🇸🇴", "sr": "🇸🇷", "ss": "🇸🇸", "st": "🇸🇹", "sv": "🇸🇻", "sx": "🇸🇽", "sy": "🇸🇾", "sz": "🇸🇿",
+            "tc": "🇹🇨", "td": "🇹🇩", "tf": "🇹🇫", "tg": "🇹🇬", "th": "🇹🇭", "tj": "🇹🇯", "tk": "🇹🇰", "tl": "🇹🇱", "tm": "🇹🇲", "tn": "🇹🇳", "to": "🇹🇴", "tr": "🇹🇷", "tt": "🇹🇹", "tv": "🇹🇻", "tw": "🇹🇼", "tz": "🇹🇿",
+            "ua": "🇺🇦", "ug": "🇺🇬", "um": "🇺🇲", "us": "🇺🇸", "uy": "🇺🇾", "uz": "🇺🇿",
+            "va": "🇻🇦", "vc": "🇻🇨", "ve": "🇻🇪", "vg": "🇻🇬", "vi": "🇻🇮", "vn": "🇻🇳", "vu": "🇻🇺",
+            "wf": "🇼🇫", "ws": "🇼🇸",
+            "ye": "🇾🇪", "yt": "🇾🇹",
+            "za": "🇿🇦", "zm": "🇿🇲", "zw": "🇿🇼"
+        };
+
+        const charList = ['щ', 'ч', 'ш', 'х', 'ц', 'ж', 'ю', 'я', 'ё', 'е'];
+        const baseMap = {
+            'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd',
+            'и': 'i', 'й': 'j', 'к': 'k', 'л': 'l', 'м': 'm',
+            'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's',
+            'т': 't', 'у': 'u', 'ф': 'f', 'ъ': '-', 'ы': 'y',
+            'ь': "'", 'э': 'e'
+        };
+
+        function updateTable() {
+            const tbody = document.querySelector('#status-table tbody');
+            tbody.innerHTML = '';
+
+            charList.forEach(char => {
+                const selectEl = document.querySelector(`.rule-select[data-char="${char}"]`);
+                const val = selectEl.value;
+                const len = val.length;
+                const flag = cctldFlags[val] || null;
+
+                const tr = document.createElement('tr');
+                
+                const tdChar = document.createElement('td');
+                tdChar.textContent = char.toUpperCase() + ', ' + char;
+                tr.appendChild(tdChar);
+
+                const tdVal = document.createElement('td');
+                tdVal.textContent = val;
+                tr.appendChild(tdVal);
+
+                const tdLen = document.createElement('td');
+                tdLen.textContent = len + '文字';
+                tr.appendChild(tdLen);
+
+                const tdFlag = document.createElement('td');
+                tdFlag.textContent = flag ? flag : 'なし';
+                tr.appendChild(tdFlag);
+
+                const tdResult = document.createElement('td');
+                if (len >= 2) {
+                    if (flag) {
+                        tdResult.innerHTML = `<span class="flag-converted">${flag}</span> (単独で国旗に置換)`;
+                    } else {
+                        tdResult.innerHTML = `<span class="cyrillic-kept">${char}</span> のまま保持 (連鎖事故防止のため隔離)`;
+                    }
+                } else {
+                    tdResult.innerHTML = `<span class="chain-ready">${val}</span> として周囲の文字と自由に結合`;
+                }
+                tr.appendChild(tdResult);
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        document.querySelectorAll('.rule-select').forEach(select => {
+            select.addEventListener('change', updateTable);
+        });
+
+        document.getElementById('preset-alalc').addEventListener('click', () => {
+            document.getElementById('opt-shch').value = 'shch';
+            document.getElementById('opt-ch').value = 'ch';
+            document.getElementById('opt-sh').value = 'sh';
+            document.getElementById('opt-kh').value = 'kh';
+            document.getElementById('opt-ts').value = 'ts';
+            document.getElementById('opt-zh').value = 'zh';
+            document.getElementById('opt-yu').value = 'yu';
+            document.getElementById('opt-ya').value = 'ya';
+            document.getElementById('opt-yo').value = 'yo';
+            document.getElementById('opt-ye').value = 'ye';
+            updateTable();
+        });
+
+        document.getElementById('preset-iso9').addEventListener('click', () => {
+            document.getElementById('opt-shch').value = 'sc';
+            document.getElementById('opt-ch').value = 'c';
+            document.getElementById('opt-sh').value = 's';
+            document.getElementById('opt-kh').value = 'h';
+            document.getElementById('opt-ts').value = 'c';
+            document.getElementById('opt-zh').value = 'z';
+            document.getElementById('opt-yu').value = 'ju';
+            document.getElementById('opt-ya').value = 'ja';
+            document.getElementById('opt-yo').value = 'jo';
+            document.getElementById('opt-ye').value = 'je';
+            updateTable();
+        });
+
+        document.getElementById('preset-chain').addEventListener('click', () => {
+            document.getElementById('opt-shch').value = 'ss';
+            document.getElementById('opt-ch').value = 'c';
+            document.getElementById('opt-sh').value = 's';
+            document.getElementById('opt-kh').value = 'x';
+            document.getElementById('opt-ts').value = 'z';
+            document.getElementById('opt-zh').value = 'j';
+            document.getElementById('opt-yu').value = 'u';
+            document.getElementById('opt-ya').value = 'a';
+            document.getElementById('opt-yo').value = 'e';
+            document.getElementById('opt-ye').value = 'e';
+            updateTable();
+        });
+
+        let currentSelections = [];
+
+        function updateFinalText() {
+            document.getElementById('finalText').value = currentSelections.join('');
+        }
+
+        function processAtras() {
+            const text = document.getElementById('inputText').value;
+            const outputArea = document.getElementById('outputArea');
+            outputArea.innerHTML = '';
+            currentSelections = [];
+            
+            const transMap = {};
+            charList.forEach(char => {
+                transMap[char] = document.querySelector(`.rule-select[data-char="${char}"]`).value;
+            });
+
+            const tokens = [];
+            let currentWordNodes = [];
+            let currentNonWord = "";
+            const isLetter = (c) => /\p{L}/u.test(c);
+
+            for (let i = 0; i < text.length; i++) {
+                const c = text[i];
+                if (isLetter(c)) {
+                    if (currentNonWord.length > 0) {
+                        tokens.push({ type: 'non-word', text: currentNonWord });
+                        currentNonWord = "";
+                    }
+                    
+                    const lowerC = c.toLowerCase();
+                    let lat = lowerC;
+                    if (transMap[lowerC]) {
+                        lat = transMap[lowerC];
+                    } else if (baseMap[lowerC]) {
+                        lat = baseMap[lowerC];
+                    }
+                    
+                    const isolated = lat.length >= 2;
+                    const flag = isolated ? (cctldFlags[lat] || null) : null;
+                    
+                    currentWordNodes.push({
+                        char: c,
+                        lat: lat,
+                        isolated: isolated,
+                        flag: flag
+                    });
+                } else {
+                    if (currentWordNodes.length > 0) {
+                        tokens.push({ type: 'word', nodes: currentWordNodes });
+                        currentWordNodes = [];
+                    }
+                    currentNonWord += c;
+                }
+            }
+            if (currentWordNodes.length > 0) tokens.push({ type: 'word', nodes: currentWordNodes });
+            if (currentNonWord.length > 0) tokens.push({ type: 'non-word', text: currentNonWord });
+
+            function findVariations(nodes) {
+                const resultsMap = new Map();
+                const originalWord = nodes.map(n => n.char).join('');
+
+                function search(currentPrefix, nodeIndex, unconvertedList) {
+                    if (nodeIndex === nodes.length) {
+                        let missed = false;
+                        for (let i = 0; i < unconvertedList.length - 1; i++) {
+                            const n1 = unconvertedList[i];
+                            const n2 = unconvertedList[i + 1];
+                            if (n2.index === n1.index + 1) {
+                                const pair = (n1.lat + n2.lat).toLowerCase();
+                                if (cctldFlags[pair]) {
+                                    missed = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!missed) {
+                            resultsMap.set(currentPrefix, true);
+                        }
+                        return;
+                    }
+
+                    const node = nodes[nodeIndex];
+                    node.index = nodeIndex;
+
+                    if (node.isolated) {
+                        if (node.flag) {
+                            search(currentPrefix + node.flag, nodeIndex + 1, unconvertedList);
+                        } else {
+                            search(currentPrefix + node.char, nodeIndex + 1, unconvertedList);
+                        }
+                        return;
+                    }
+
+                    search(currentPrefix + node.char, nodeIndex + 1, [...unconvertedList, node]);
+
+                    if (nodeIndex + 1 < nodes.length && !nodes[nodeIndex + 1].isolated) {
+                        const nextNode = nodes[nodeIndex + 1];
+                        const pair = (node.lat + nextNode.lat).toLowerCase();
+                        if (cctldFlags[pair]) {
+                            search(currentPrefix + cctldFlags[pair], nodeIndex + 2, unconvertedList);
+                        }
+                    }
+                }
+
+                search("", 0, []);
+                
+                let uniqueResults = Array.from(resultsMap.keys());
+
+                uniqueResults.sort((a, b) => {
+                    const flagsA = (a.match(/[\uD83C][\uDDE6-\uDDFF]/g) || []).length / 2;
+                    const flagsB = (b.match(/[\uD83C][\uDDE6-\uDDFF]/g) || []).length / 2;
+                    return flagsB - flagsA;
+                });
+
+                if (!uniqueResults.includes(originalWord)) {
+                    uniqueResults.push(originalWord);
+                }
+
+                return uniqueResults;
+            }
+
+            tokens.forEach((token) => {
+                if (token.type === 'non-word') {
+                    outputArea.appendChild(document.createTextNode(token.text));
+                    currentSelections.push(token.text);
+                } else {
+                    const variations = findVariations(token.nodes);
+                    
+                    // 置換可能なバリエーションが1つもない（＝元の単語しか存在しない）場合はテキストのみ出力
+                    if (variations.length === 1) {
+                        outputArea.appendChild(document.createTextNode(variations[0]));
+                        currentSelections.push(variations[0]);
+                    } else {
+                        const container = document.createElement('div');
+                        container.className = 'word-container';
+                        
+                        const displaySpan = document.createElement('span');
+                        displaySpan.className = 'selected-word has-variants';
+                        
+                        const initialChoice = variations[0];
+                        displaySpan.textContent = initialChoice;
+                        currentSelections.push(initialChoice);
+                        const selectionIndex = currentSelections.length - 1;
+
+                        const dropdown = document.createElement('div');
+                        dropdown.className = 'dropdown';
+
+                        variations.forEach(variant => {
+                            const item = document.createElement('div');
+                            item.className = 'dropdown-item';
+                            item.textContent = variant;
+                            item.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                displaySpan.textContent = variant;
+                                currentSelections[selectionIndex] = variant;
+                                updateFinalText();
+                                container.classList.remove('active');
+                            });
+                            dropdown.appendChild(item);
+                        });
+
+                        displaySpan.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            document.querySelectorAll('.word-container.active').forEach(c => {
+                                if (c !== container) c.classList.remove('active');
+                            });
+                            container.classList.toggle('active');
+                        });
+
+                        container.appendChild(displaySpan);
+                        container.appendChild(dropdown);
+                        outputArea.appendChild(container);
+                    }
+                }
+            });
+
+            updateFinalText();
+        }
+
+        document.getElementById('processBtn').addEventListener('click', processAtras);
+
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.word-container.active').forEach(c => {
+                c.classList.remove('active');
+            });
+        });
+
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const finalText = document.getElementById('finalText');
+            finalText.select();
+            document.execCommand('copy');
+            
+            const btn = document.getElementById('copyBtn');
+            const originalText = btn.textContent;
+            btn.textContent = 'コピー完了！';
+            btn.classList.replace('bg-green-600', 'bg-teal-600');
+            
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.classList.replace('bg-teal-600', 'bg-green-600');
+            }, 2000);
+        });
+
+        updateTable(); 
+    </script>
+</body>
+</html>
