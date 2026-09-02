@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Cyrillic ATRAS Engine (Optimized UX)</title>
+    <title>Dynamic Cyrillic ATRAS Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f3f4f6; }
@@ -58,128 +58,217 @@
         .selected-word:hover { background-color: #e5e7eb; }
         .has-variants { 
             border-bottom: 2px dashed #3b82f6; 
-            padding-bottom: 2px; /* 下線との距離を微調整 */
+            padding-bottom: 2px;
+        }
+
+        .lang-selector-container {
+            position: relative;
+            display: inline-block;
+        }
+        .lang-selector-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: white;
+            border: 1px solid #d1d5db;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            color: #374151;
+            cursor: pointer;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+        }
+        .lang-selector-btn:hover {
+            background-color: #f9fafb;
+            border-color: #9ca3af;
+        }
+        .lang-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 110%;
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            min-width: 150px;
+            overflow: hidden;
+        }
+        .lang-selector-container.active .lang-menu {
+            display: block;
+        }
+        .lang-option {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            color: #4b5563;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        .lang-option:last-child {
+            border-bottom: none;
+        }
+        .lang-option:hover {
+            background-color: #f3f4f6;
+            color: #111827;
+        }
+        .lang-option.selected {
+            background-color: #eff6ff;
+            color: #1d4ed8;
+            font-weight: 600;
         }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8 text-gray-800 flex flex-col items-center">
 
+    <div class="w-full max-w-6xl flex justify-between items-center mb-4">
+        <a href="https://hallucinari.github.io/" class="flex items-center gap-1 text-gray-500 hover:text-blue-600 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span class="font-medium text-sm" data-i18n="backBtn">戻る</span>
+        </a>
+
+        <div class="lang-selector-container" id="langSelector">
+            <button class="lang-selector-btn" id="langSelectorBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                </svg>
+                <span id="currentLangLabel">言語</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <div class="lang-menu" id="langMenu">
+                <button class="lang-option selected" data-lang="ja" data-label="言語">日本語</button>
+                <button class="lang-option" data-lang="en" data-label="Language">English</button>
+                <button class="lang-option" data-lang="de" data-label="Sprache">Deutsch</button>
+                <button class="lang-option" data-lang="ru" data-label="Язык">ру́сский</button>
+            </div>
+        </div>
+    </div>
+
     <div class="w-full max-w-6xl bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8">
-        <h1 class="text-3xl font-bold mb-2 text-center text-blue-600">ATRAS Cyrillic Simurator</h1>
-        <p class="text-center text-gray-500 mb-8">キリル文字に翻字したccTLDで文章を置換します</p>
+        <h1 class="text-3xl font-bold mb-2 text-center text-blue-600">ATRAS Cyrillic Simulator</h1>
+        <p class="text-center text-gray-500 mb-8" data-i18n="subtitle">キリル文字に翻字したccTLDで文章を置換します</p>
 
         <div class="bg-indigo-50 border border-indigo-100 p-5 rounded-lg mb-6">
-            <h2 class="text-base font-bold text-indigo-900 mb-3">一括設定</h2>
+            <h2 class="text-base font-bold text-indigo-900 mb-3" data-i18n="presetTitle">一括設定</h2>
             <div class="flex flex-wrap gap-3">
-                <button id="preset-alalc" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition shadow-sm">
+                <button id="preset-alalc" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition shadow-sm" data-i18n="preset1">
                     英米式 / ALA-LC 準拠 (視覚的隔離を優先)
                 </button>
-                <button id="preset-iso9" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition shadow-sm">
+                <button id="preset-iso9" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition shadow-sm" data-i18n="preset2">
                     学術式 / ISO 9 拡張 (j系・c系の統一)
                 </button>
-                <button id="preset-chain" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition shadow-sm">
+                <button id="preset-chain" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition shadow-sm" data-i18n="preset3">
                     単音化 / 結合優先 (1文字化による連鎖の最大化)
                 </button>
             </div>
         </div>
 
         <div class="bg-gray-50 p-5 rounded-lg border border-gray-200 mb-6">
-            <h2 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">独自キリル文字のラテン文字翻字パターン設定</h2>
+            <h2 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2" data-i18n="paramTitle">独自キリル文字のラテン文字翻字パターン設定</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4" id="settings-container">
                 <div class="setting-group">
                     <label class="text-sm font-medium text-gray-700">Щ (shch)</label>
                     <select id="opt-shch" class="rule-select" data-char="щ">
-                        <option value="shch">shch (ALA-LC/英米式: 4文字)</option>
-                        <option value="sc">sc (ISO 9 拡張式: 2文字)</option>
-                        <option value="ss">ss (純粋音韻/長子音: 2文字)</option>
-                        <option value="st">st (ブルガリア音韻: 2文字)</option>
+                        <option value="shch" data-i18n-opt="shch1">shch (ALA-LC/英米式: 4文字)</option>
+                        <option value="sc" data-i18n-opt="shch2">sc (ISO 9 拡張式: 2文字)</option>
+                        <option value="ss" data-i18n-opt="shch3">ss (純粋音韻/長子音: 2文字)</option>
+                        <option value="st" data-i18n-opt="shch4">st (ブルガリア音韻: 2文字)</option>
                     </select>
                 </div>
                 <div class="setting-group">
                     <label class="text-sm font-medium text-gray-700">Ч (ch)</label>
                     <select id="opt-ch" class="rule-select" data-char="ч">
-                        <option value="ch">ch (ALA-LC/英米式: 2文字)</option>
-                        <option value="cz">cz (ポーランド風翻字: 2文字)</option>
-                        <option value="c">c (ISO 9/学術ベース: 1文字)</option>
+                        <option value="ch" data-i18n-opt="ch1">ch (ALA-LC/英米式: 2文字)</option>
+                        <option value="cz" data-i18n-opt="ch2">cz (ポーランド風翻字: 2文字)</option>
+                        <option value="c" data-i18n-opt="ch3">c (ISO 9/学術ベース: 1文字)</option>
                     </select>
                 </div>
                 <div class="setting-group">
                     <label class="text-sm font-medium text-gray-700">Ш (sh)</label>
                     <select id="opt-sh" class="rule-select" data-char="ш">
-                        <option value="sh">sh (ALA-LC/英米式: 2文字)</option>
-                        <option value="s">s (ISO 9/学術ベース: 1文字)</option>
+                        <option value="sh" data-i18n-opt="sh1">sh (ALA-LC/英米式: 2文字)</option>
+                        <option value="s" data-i18n-opt="sh2">s (ISO 9/学術ベース: 1文字)</option>
                     </select>
                 </div>
                 <div class="setting-group">
                     <label class="text-sm font-medium text-gray-700">Х (kh)</label>
                     <select id="opt-kh" class="rule-select" data-char="х">
-                        <option value="kh">kh (ALA-LC/英米式: 2文字)</option>
-                        <option value="h">h (ISO 9/学術ベース: 1文字)</option>
-                        <option value="x">x (字形/IPAベース: 1文字)</option>
+                        <option value="kh" data-i18n-opt="kh1">kh (ALA-LC/英米式: 2文字)</option>
+                        <option value="h" data-i18n-opt="kh2">h (ISO 9/学術ベース: 1文字)</option>
+                        <option value="x" data-i18n-opt="kh3">x (字形/IPAベース: 1文字)</option>
                     </select>
                 </div>
                 <div class="setting-group">
                     <label class="text-sm font-medium text-gray-700">Ц (ts)</label>
                     <select id="opt-ts" class="rule-select" data-char="ц">
-                        <option value="ts">ts (ALA-LC/英米式: 2文字)</option>
-                        <option value="c">c (ISO 9/学術ベース: 1文字)</option>
-                        <option value="z">z (ドイツ語式翻字: 1文字)</option>
+                        <option value="ts" data-i18n-opt="ts1">ts (ALA-LC/英米式: 2文字)</option>
+                        <option value="c" data-i18n-opt="ts2">c (ISO 9/学術ベース: 1文字)</option>
+                        <option value="z" data-i18n-opt="ts3">z (ドイツ語式翻字: 1文字)</option>
                     </select>
                 </div>
                 <div class="setting-group">
                     <label class="text-sm font-medium text-gray-700">Ж (zh)</label>
                     <select id="opt-zh" class="rule-select" data-char="ж">
-                        <option value="zh">zh (ALA-LC/英米式: 2文字)</option>
-                        <option value="z">z (ISO 9/学術ベース: 1文字)</option>
-                        <option value="j">j (フランス式/IPA: 1文字)</option>
+                        <option value="zh" data-i18n-opt="zh1">zh (ALA-LC/英米式: 2文字)</option>
+                        <option value="z" data-i18n-opt="zh2">z (ISO 9/学術ベース: 1文字)</option>
+                        <option value="j" data-i18n-opt="zh3">j (フランス式/IPA: 1文字)</option>
                     </select>
                 </div>
                 <div class="setting-group">
                     <label class="text-sm font-medium text-gray-700">Ю (yu)</label>
                     <select id="opt-yu" class="rule-select" data-char="ю">
-                        <option value="yu">yu (ALA-LC/英米式: 2文字)</option>
-                        <option value="ju">ju (ISO 9/学術ベース: 2文字)</option>
-                        <option value="u">u (単一母音化: 1文字)</option>
+                        <option value="yu" data-i18n-opt="yu1">yu (ALA-LC/英米式: 2文字)</option>
+                        <option value="ju" data-i18n-opt="yu2">ju (ISO 9/学術ベース: 2文字)</option>
+                        <option value="u" data-i18n-opt="yu3">u (単一母音化: 1文字)</option>
                     </select>
                 </div>
                 <div class="setting-group">
                     <label class="text-sm font-medium text-gray-700">Я (ya)</label>
                     <select id="opt-ya" class="rule-select" data-char="я">
-                        <option value="ya">ya (ALA-LC/英米式: 2文字)</option>
-                        <option value="ja">ja (ISO 9/学術ベース: 2文字)</option>
-                        <option value="a">a (単一母音化: 1文字)</option>
+                        <option value="ya" data-i18n-opt="ya1">ya (ALA-LC/英米式: 2文字)</option>
+                        <option value="ja" data-i18n-opt="ya2">ja (ISO 9/学術ベース: 2文字)</option>
+                        <option value="a" data-i18n-opt="ya3">a (単一母音化: 1文字)</option>
                     </select>
                 </div>
                 <div class="setting-group">
                     <label class="text-sm font-medium text-gray-700">Ё (yo)</label>
                     <select id="opt-yo" class="rule-select" data-char="ё">
-                        <option value="yo">yo (ALA-LC/英米式: 2文字)</option>
-                        <option value="jo">jo (ISO 9/学術ベース: 2文字)</option>
-                        <option value="e">e (正書法簡略化: 1文字)</option>
+                        <option value="yo" data-i18n-opt="yo1">yo (ALA-LC/英米式: 2文字)</option>
+                        <option value="jo" data-i18n-opt="yo2">jo (ISO 9/学術ベース: 2文字)</option>
+                        <option value="e" data-i18n-opt="yo3">e (正書法簡略化: 1文字)</option>
                     </select>
                 </div>
                 <div class="setting-group">
                     <label class="text-sm font-medium text-gray-700">Е (ye)</label>
                     <select id="opt-ye" class="rule-select" data-char="е">
-                        <option value="ye">ye (ALA-LC/英米式: 2文字)</option>
-                        <option value="je">je (ISO 9/学術ベース: 2文字)</option>
-                        <option value="e">e (純粋母音化: 1文字)</option>
+                        <option value="ye" data-i18n-opt="ye1">ye (ALA-LC/英米式: 2文字)</option>
+                        <option value="je" data-i18n-opt="ye2">je (ISO 9/学術ベース: 2文字)</option>
+                        <option value="e" data-i18n-opt="ye3">e (純粋母音化: 1文字)</option>
                     </select>
                 </div>
             </div>
         </div>
 
         <div class="mb-8">
-            <h2 class="text-lg font-semibold text-gray-700 mb-2">リアルタイム変換確認表</h2>
+            <h2 class="text-lg font-semibold text-gray-700 mb-2" data-i18n="tableTitle">リアルタイム変換確認表</h2>
             <div class="overflow-x-auto">
                 <table id="status-table">
                     <thead>
                         <tr>
-                            <th>キリル文字</th>
-                            <th>現在のラテン翻字設定</th>
-                            <th>文字数</th>
-                            <th>対応ccTLD</th>
-                            <th>最終的な処理結果</th>
+                            <th data-i18n="tableH1">キリル文字</th>
+                            <th data-i18n="tableH2">現在のラテン翻字設定</th>
+                            <th data-i18n="tableH3">文字数</th>
+                            <th data-i18n="tableH4">対応ccTLD</th>
+                            <th data-i18n="tableH5">最終的な処理結果</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -189,28 +278,217 @@
         </div>
 
         <div class="mb-6">
-            <label for="inputText" class="block text-sm font-medium text-gray-700 mb-2">入力テキスト (キリル文字):</label>
-            <textarea id="inputText" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-lg" placeholder="文章を入力してください (例: Все люди рождаются свободными и равными)"></textarea>
+            <label for="inputText" class="block text-sm font-medium text-gray-700 mb-2" data-i18n="inputLabel">入力テキスト (キリル文字):</label>
+            <textarea id="inputText" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-lg" placeholder="文章を入力してください (例: Все люди рождаются свободными и равными)" data-i18n-placeholder="inputPlaceholder"></textarea>
             <div class="mt-3 flex justify-end">
-                <button id="processBtn" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition font-semibold shadow-sm">国旗(ccTLD)へ置換を実行</button>
+                <button id="processBtn" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition font-semibold shadow-sm" data-i18n="processBtn">国旗(ccTLD)へ置換を実行</button>
             </div>
         </div>
 
         <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">結果 (破線の下線をクリックしてバリエーションを選択可能):</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2" data-i18n="resultLabel">結果 (破線の下線をクリックしてバリエーションを選択可能):</label>
             <div id="outputArea" class="w-full p-4 min-h-[100px] border border-gray-300 rounded-md bg-gray-50 text-2xl leading-relaxed whitespace-pre-wrap"></div>
         </div>
 
         <div class="mb-6">
-            <label for="finalText" class="block text-sm font-medium text-gray-700 mb-2">最終出力テキスト:</label>
+            <label for="finalText" class="block text-sm font-medium text-gray-700 mb-2" data-i18n="outputLabel">最終出力テキスト:</label>
             <textarea id="finalText" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-xl" readonly></textarea>
             <div class="mt-3 flex justify-end">
-                <button id="copyBtn" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition font-semibold shadow-sm">テキストをコピー</button>
+                <button id="copyBtn" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition font-semibold shadow-sm" data-i18n="copyBtn">テキストをコピー</button>
             </div>
         </div>
     </div>
 
     <script>
+        const translations = {
+            ja: {
+                backBtn: "戻る",
+                subtitle: "キリル文字に翻字したccTLDで文章を置換します",
+                presetTitle: "一括設定",
+                preset1: "英米式 / ALA-LC 準拠 (視覚的隔離を優先)",
+                preset2: "学術式 / ISO 9 拡張 (j系・c系の統一)",
+                preset3: "単音化 / 結合優先 (1文字化による連鎖の最大化)",
+                paramTitle: "独自キリル文字のラテン文字翻字パターン設定",
+                shch1: "shch (ALA-LC/英米式: 4文字)", shch2: "sc (ISO 9 拡張式: 2文字)", shch3: "ss (純粋音韻/長子音: 2文字)", shch4: "st (ブルガリア音韻: 2文字)",
+                ch1: "ch (ALA-LC/英米式: 2文字)", ch2: "cz (ポーランド風翻字: 2文字)", ch3: "c (ISO 9/学術ベース: 1文字)",
+                sh1: "sh (ALA-LC/英米式: 2文字)", sh2: "s (ISO 9/学術ベース: 1文字)",
+                kh1: "kh (ALA-LC/英米式: 2文字)", kh2: "h (ISO 9/学術ベース: 1文字)", kh3: "x (字形/IPAベース: 1文字)",
+                ts1: "ts (ALA-LC/英米式: 2文字)", ts2: "c (ISO 9/学術ベース: 1文字)", ts3: "z (ドイツ語式翻字: 1文字)",
+                zh1: "zh (ALA-LC/英米式: 2文字)", zh2: "z (ISO 9/学術ベース: 1文字)", zh3: "j (フランス式/IPA: 1文字)",
+                yu1: "yu (ALA-LC/英米式: 2文字)", yu2: "ju (ISO 9/学術ベース: 2文字)", yu3: "u (単一母音化: 1文字)",
+                ya1: "ya (ALA-LC/英米式: 2文字)", ya2: "ja (ISO 9/学術ベース: 2文字)", ya3: "a (単一母音化: 1文字)",
+                yo1: "yo (ALA-LC/英米式: 2文字)", yo2: "jo (ISO 9/学術ベース: 2文字)", yo3: "e (正書法簡略化: 1文字)",
+                ye1: "ye (ALA-LC/英米式: 2文字)", ye2: "je (ISO 9/学術ベース: 2文字)", ye3: "e (純粋母音化: 1文字)",
+                tableTitle: "リアルタイム変換確認表",
+                tableH1: "キリル文字", tableH2: "現在のラテン翻字設定", tableH3: "文字数", tableH4: "対応ccTLD", tableH5: "最終的な処理結果",
+                inputLabel: "入力テキスト (キリル文字):",
+                inputPlaceholder: "文章を入力してください (例: Все люди рождаются свободными и равными)",
+                processBtn: "国旗(ccTLD)へ置換を実行",
+                resultLabel: "結果 (破線の下線をクリックしてバリエーションを選択可能):",
+                outputLabel: "最終出力テキスト:",
+                copyBtn: "テキストをコピー",
+                copiedBtn: "コピーしました！",
+                tbResSingle: "単独で国旗に置換",
+                tbResKept: "のまま保持 (連鎖事故防止のため隔離)",
+                tbResChain: "として周囲の文字と自由に結合",
+                none: "なし", chars: "文字"
+            },
+            en: {
+                backBtn: "Back",
+                subtitle: "Replaces text with ccTLDs transliterated to Cyrillic",
+                presetTitle: "Quick Presets",
+                preset1: "ALA-LC (Prioritizes Visual Isolation)",
+                preset2: "ISO 9 Extended (Unifies j-series and c-series)",
+                preset3: "Single Phoneme (Maximizes Chaining)",
+                paramTitle: "Transliteration Pattern Settings",
+                shch1: "shch (ALA-LC: 4 chars)", shch2: "sc (ISO 9 Ext: 2 chars)", shch3: "ss (Phonetic: 2 chars)", shch4: "st (Bulgarian: 2 chars)",
+                ch1: "ch (ALA-LC: 2 chars)", ch2: "cz (Polish style: 2 chars)", ch3: "c (ISO 9: 1 char)",
+                sh1: "sh (ALA-LC: 2 chars)", sh2: "s (ISO 9: 1 char)",
+                kh1: "kh (ALA-LC: 2 chars)", kh2: "h (ISO 9: 1 char)", kh3: "x (IPA: 1 char)",
+                ts1: "ts (ALA-LC: 2 chars)", ts2: "c (ISO 9: 1 char)", ts3: "z (German style: 1 char)",
+                zh1: "zh (ALA-LC: 2 chars)", zh2: "z (ISO 9: 1 char)", zh3: "j (French style: 1 char)",
+                yu1: "yu (ALA-LC: 2 chars)", yu2: "ju (ISO 9: 2 chars)", yu3: "u (Single Vowel: 1 char)",
+                ya1: "ya (ALA-LC: 2 chars)", ya2: "ja (ISO 9: 2 chars)", ya3: "a (Single Vowel: 1 char)",
+                yo1: "yo (ALA-LC: 2 chars)", yo2: "jo (ISO 9: 2 chars)", yo3: "e (Simplified: 1 char)",
+                ye1: "ye (ALA-LC: 2 chars)", ye2: "je (ISO 9: 2 chars)", ye3: "e (Pure Vowel: 1 char)",
+                tableTitle: "Real-time Conversion Matrix",
+                tableH1: "Cyrillic", tableH2: "Transliteration", tableH3: "Length", tableH4: "ccTLD", tableH5: "Final Behavior",
+                inputLabel: "Input Text (Cyrillic):",
+                inputPlaceholder: "Enter text here (e.g., Все люди рождаются свободными и равными)",
+                processBtn: "Generate Flags (ccTLD)",
+                resultLabel: "Result (Click dashed underlines to select variations):",
+                outputLabel: "Final Output Text:",
+                copyBtn: "Copy Text",
+                copiedBtn: "Copied!",
+                tbResSingle: "Isolated Flag Replacement",
+                tbResKept: "Kept as is (Isolated to prevent chain accidents)",
+                tbResChain: "Ready to chain with adjacent characters",
+                none: "None", chars: "chars"
+            },
+            de: {
+                backBtn: "Zurück",
+                subtitle: "Ersetzt Text durch in Kyrillisch transliterierte ccTLDs",
+                presetTitle: "Schnell-Voreinstellungen",
+                preset1: "ALA-LC (Priorisiert visuelle Isolierung)",
+                preset2: "ISO 9 Erweitert (Vereinheitlicht j- und c-Reihen)",
+                preset3: "Einzelphonem (Maximiert Verkettungen)",
+                paramTitle: "Einstellungen für Transliterationsmuster",
+                shch1: "shch (ALA-LC: 4 Zchn)", shch2: "sc (ISO 9 Ext: 2 Zchn)", shch3: "ss (Phonetisch: 2 Zchn)", shch4: "st (Bulgarisch: 2 Zchn)",
+                ch1: "ch (ALA-LC: 2 Zchn)", ch2: "cz (Polnisch: 2 Zchn)", ch3: "c (ISO 9: 1 Zchn)",
+                sh1: "sh (ALA-LC: 2 Zchn)", sh2: "s (ISO 9: 1 Zchn)",
+                kh1: "kh (ALA-LC: 2 Zchn)", kh2: "h (ISO 9: 1 Zchn)", kh3: "x (IPA: 1 Zchn)",
+                ts1: "ts (ALA-LC: 2 Zchn)", ts2: "c (ISO 9: 1 Zchn)", ts3: "z (Deutsch: 1 Zchn)",
+                zh1: "zh (ALA-LC: 2 Zchn)", zh2: "z (ISO 9: 1 Zchn)", zh3: "j (Französisch: 1 Zchn)",
+                yu1: "yu (ALA-LC: 2 Zchn)", yu2: "ju (ISO 9: 2 Zchn)", yu3: "u (Einzelvokal: 1 Zchn)",
+                ya1: "ya (ALA-LC: 2 Zchn)", ya2: "ja (ISO 9: 2 Zchn)", ya3: "a (Einzelvokal: 1 Zchn)",
+                yo1: "yo (ALA-LC: 2 Zchn)", yo2: "jo (ISO 9: 2 Zchn)", yo3: "e (Vereinfacht: 1 Zchn)",
+                ye1: "ye (ALA-LC: 2 Zchn)", ye2: "je (ISO 9: 2 Zchn)", ye3: "e (Reiner Vokal: 1 Zchn)",
+                tableTitle: "Echtzeit-Konvertierungsmatrix",
+                tableH1: "Kyrillisch", tableH2: "Transliteration", tableH3: "Länge", tableH4: "ccTLD", tableH5: "Letztes Verhalten",
+                inputLabel: "Eingabetext (Kyrillisch):",
+                inputPlaceholder: "Text eingeben (z.B. Все люди рождаются свободными и равными)",
+                processBtn: "Flaggen (ccTLD) generieren",
+                resultLabel: "Ergebnis (Klicken für Varianten):",
+                outputLabel: "Endgültiger Ausgabetext:",
+                copyBtn: "Text kopieren",
+                copiedBtn: "Kopiert!",
+                tbResSingle: "Isolierte Flaggenersetzung",
+                tbResKept: "Beibehalten (Isoliert um Kettenunfälle zu vermeiden)",
+                tbResChain: "Bereit zur Verkettung mit Nachbarzeichen",
+                none: "Keine", chars: "Zchn"
+            },
+            ru: {
+                backBtn: "Назад",
+                subtitle: "Заменяет текст на ccTLD, транслитерированные на кириллицу",
+                presetTitle: "Быстрые настройки",
+                preset1: "ALA-LC (Приоритет визуальной изоляции)",
+                preset2: "ISO 9 (Объединение рядов j и c)",
+                preset3: "Одиночные фонемы (Максимизация цепочек)",
+                paramTitle: "Настройки шаблонов транслитерации",
+                shch1: "shch (ALA-LC: 4 симв)", shch2: "sc (ISO 9 Ext: 2 симв)", shch3: "ss (Фонетич: 2 симв)", shch4: "st (Болгарский: 2 симв)",
+                ch1: "ch (ALA-LC: 2 симв)", ch2: "cz (Польский стиль: 2 симв)", ch3: "c (ISO 9: 1 симв)",
+                sh1: "sh (ALA-LC: 2 симв)", sh2: "s (ISO 9: 1 симв)",
+                kh1: "kh (ALA-LC: 2 симв)", kh2: "h (ISO 9: 1 симв)", kh3: "x (IPA: 1 симв)",
+                ts1: "ts (ALA-LC: 2 симв)", ts2: "c (ISO 9: 1 симв)", ts3: "z (Немецкий стиль: 1 симв)",
+                zh1: "zh (ALA-LC: 2 симв)", zh2: "z (ISO 9: 1 симв)", zh3: "j (Фр. стиль: 1 симв)",
+                yu1: "yu (ALA-LC: 2 симв)", yu2: "ju (ISO 9: 2 симв)", yu3: "u (Один гласный: 1 симв)",
+                ya1: "ya (ALA-LC: 2 симв)", ya2: "ja (ISO 9: 2 симв)", ya3: "a (Один гласный: 1 симв)",
+                yo1: "yo (ALA-LC: 2 симв)", yo2: "jo (ISO 9: 2 симв)", yo3: "e (Упрощено: 1 симв)",
+                ye1: "ye (ALA-LC: 2 симв)", ye2: "je (ISO 9: 2 симв)", ye3: "e (Чистый гласный: 1 симв)",
+                tableTitle: "Матрица конвертации в реальном времени",
+                tableH1: "Кириллица", tableH2: "Транслитерация", tableH3: "Длина", tableH4: "ccTLD", tableH5: "Конечное поведение",
+                inputLabel: "Ввод текста (Кириллица):",
+                inputPlaceholder: "Введите текст (например, Все люди рождаются свободными и равными)",
+                processBtn: "Генерировать флаги (ccTLD)",
+                resultLabel: "Результат (Нажмите для выбора вариантов):",
+                outputLabel: "Итоговый текст:",
+                copyBtn: "Копировать текст",
+                copiedBtn: "Скопировано!",
+                tbResSingle: "Изолированная замена на флаг",
+                tbResKept: "Оставлено (Изолировано для пред. ошибок в цепочках)",
+                tbResChain: "Готово к сцеплению с соседними символами",
+                none: "Нет", chars: "симв"
+            }
+        };
+
+        let currentLang = 'ja';
+
+        function applyLanguage(lang, label) {
+            currentLang = lang;
+            document.getElementById('currentLangLabel').textContent = label;
+
+            document.querySelectorAll('.lang-option').forEach(btn => {
+                if(btn.dataset.lang === lang) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.dataset.i18n;
+                if (translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
+
+            document.querySelectorAll('option[data-i18n-opt]').forEach(el => {
+                const key = el.dataset.i18nOpt;
+                if (translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
+
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.dataset.i18nPlaceholder;
+                if (translations[lang][key]) {
+                    el.placeholder = translations[lang][key];
+                }
+            });
+
+            updateTable();
+        }
+
+        const langSelectorBtn = document.getElementById('langSelectorBtn');
+        const langSelectorContainer = document.getElementById('langSelector');
+
+        langSelectorBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            langSelectorContainer.classList.toggle('active');
+        });
+
+        document.addEventListener('click', () => {
+            langSelectorContainer.classList.remove('active');
+        });
+
+        document.querySelectorAll('.lang-option').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                applyLanguage(btn.dataset.lang, btn.dataset.label);
+                langSelectorContainer.classList.remove('active');
+            });
+        });
+
         const cctldFlags = {
             "ac": "🇦🇨", "ad": "🇦🇩", "ae": "🇦🇪", "af": "🇦🇫", "ag": "🇦🇬", "ai": "🇦🇮", "al": "🇦🇱", "am": "🇦🇲", "ao": "🇦🇴", "aq": "🇦🇶", "ar": "🇦🇷", "as": "🇦🇸", "at": "🇦🇹", "au": "🇦🇺", "aw": "🇦🇼", "ax": "🇦🇽", "az": "🇦🇿",
             "ba": "🇧🇦", "bb": "🇧🇧", "bd": "🇧🇩", "be": "🇧🇪", "bf": "🇧🇫", "bg": "🇧🇬", "bh": "🇧🇭", "bi": "🇧🇮", "bj": "🇧🇯", "bm": "🇧🇲", "bn": "🇧🇳", "bo": "🇧🇴", "br": "🇧🇷", "bs": "🇧🇸", "bt": "🇧🇹", "bv": "🇧🇻", "bw": "🇧🇼", "by": "🇧🇾", "bz": "🇧🇿",
@@ -232,7 +510,7 @@
             "re": "🇷🇪", "ro": "🇷🇴", "rs": "🇷🇸", "ru": "🇷🇺", "rw": "🇷🇼",
             "sa": "🇸🇦", "sb": "🇸🇧", "sc": "🇸🇨", "sd": "🇸🇩", "se": "🇸🇪", "sg": "🇸🇬", "sh": "🇸🇭", "si": "🇸🇮", "sj": "🇸🇯", "sk": "🇸🇰", "sl": "🇸🇱", "sm": "🇸🇲", "sn": "🇸🇳", "so": "🇸🇴", "sr": "🇸🇷", "ss": "🇸🇸", "st": "🇸🇹", "sv": "🇸🇻", "sx": "🇸🇽", "sy": "🇸🇾", "sz": "🇸🇿",
             "tc": "🇹🇨", "td": "🇹🇩", "tf": "🇹🇫", "tg": "🇹🇬", "th": "🇹🇭", "tj": "🇹🇯", "tk": "🇹🇰", "tl": "🇹🇱", "tm": "🇹🇲", "tn": "🇹🇳", "to": "🇹🇴", "tr": "🇹🇷", "tt": "🇹🇹", "tv": "🇹🇻", "tw": "🇹🇼", "tz": "🇹🇿",
-            "ua": "🇺🇦", "ug": "🇺🇬", "um": "🇺🇲", "us": "🇺🇸", "uy": "🇺🇾", "uz": "🇺🇿",
+            "ua": "🇺🇦", "ug": "🇺🇬", "uk": "🇬🇧", "us": "🇺🇸", "uy": "🇺🇾", "uz": "🇺🇿",
             "va": "🇻🇦", "vc": "🇻🇨", "ve": "🇻🇪", "vg": "🇻🇬", "vi": "🇻🇮", "vn": "🇻🇳", "vu": "🇻🇺",
             "wf": "🇼🇫", "ws": "🇼🇸",
             "ye": "🇾🇪", "yt": "🇾🇹",
@@ -251,6 +529,7 @@
         function updateTable() {
             const tbody = document.querySelector('#status-table tbody');
             tbody.innerHTML = '';
+            const t = translations[currentLang] || translations['ja'];
 
             charList.forEach(char => {
                 const selectEl = document.querySelector(`.rule-select[data-char="${char}"]`);
@@ -269,22 +548,22 @@
                 tr.appendChild(tdVal);
 
                 const tdLen = document.createElement('td');
-                tdLen.textContent = len + '文字';
+                tdLen.textContent = len + ' ' + t.chars;
                 tr.appendChild(tdLen);
 
                 const tdFlag = document.createElement('td');
-                tdFlag.textContent = flag ? flag : 'なし';
+                tdFlag.textContent = flag ? flag : t.none;
                 tr.appendChild(tdFlag);
 
                 const tdResult = document.createElement('td');
                 if (len >= 2) {
                     if (flag) {
-                        tdResult.innerHTML = `<span class="flag-converted">${flag}</span> (単独で国旗に置換)`;
+                        tdResult.innerHTML = `<span class="flag-converted">${flag}</span> (${t.tbResSingle})`;
                     } else {
-                        tdResult.innerHTML = `<span class="cyrillic-kept">${char}</span> のまま保持 (連鎖事故防止のため隔離)`;
+                        tdResult.innerHTML = `<span class="cyrillic-kept">${char}</span> ${t.tbResKept}`;
                     }
                 } else {
-                    tdResult.innerHTML = `<span class="chain-ready">${val}</span> として周囲の文字と自由に結合`;
+                    tdResult.innerHTML = `<span class="chain-ready">${val}</span> ${t.tbResChain}`;
                 }
                 tr.appendChild(tdResult);
 
@@ -358,11 +637,11 @@
             const tokens = [];
             let currentWordNodes = [];
             let currentNonWord = "";
-            const isLetter = (c) => /\p{L}/u.test(c);
+            const isCyrillic = (c) => /[\u0400-\u04FF]/u.test(c);
 
             for (let i = 0; i < text.length; i++) {
                 const c = text[i];
-                if (isLetter(c)) {
+                if (isCyrillic(c)) {
                     if (currentNonWord.length > 0) {
                         tokens.push({ type: 'non-word', text: currentNonWord });
                         currentNonWord = "";
@@ -467,7 +746,6 @@
                 } else {
                     const variations = findVariations(token.nodes);
                     
-                    // 置換可能なバリエーションが1つもない（＝元の単語しか存在しない）場合はテキストのみ出力
                     if (variations.length === 1) {
                         outputArea.appendChild(document.createTextNode(variations[0]));
                         currentSelections.push(variations[0]);
@@ -533,7 +811,7 @@
             
             const btn = document.getElementById('copyBtn');
             const originalText = btn.textContent;
-            btn.textContent = 'コピー完了！';
+            btn.textContent = translations[currentLang].copiedBtn;
             btn.classList.replace('bg-green-600', 'bg-teal-600');
             
             setTimeout(() => {
