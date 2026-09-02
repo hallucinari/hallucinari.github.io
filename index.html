@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Portfolio</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body { 
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; 
             line-height: 1.6; 
@@ -14,7 +17,7 @@
             color: #333;
         }
         .container { 
-            width: 85%; 
+            width: 90%; 
             max-width: 800px; 
             margin: 4rem auto; 
             background: #ffffff; 
@@ -43,17 +46,45 @@
             margin-bottom: 1.5rem;
         }
         .nav-links a { 
+            display: inline-block;
             text-decoration: none; 
             color: #3498db; 
             font-weight: bold; 
             border: 2px solid #3498db; 
-            padding: 10px 20px; 
-            border-radius: 5px; 
+            padding: 12px 20px; 
+            border-radius: 6px; 
             transition: all 0.3s ease; 
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            text-align: center;
         }
         .nav-links a:hover { 
             background: #3498db; 
             color: #ffffff; 
+        }
+        .sub-text {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: normal;
+            margin-top: 4px;
+            letter-spacing: 0.05em;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                width: 92%;
+                margin: 2rem auto;
+                padding: 1.5rem;
+            }
+            .nav-links {
+                flex-direction: column;
+                gap: 12px;
+            }
+            .nav-links a {
+                display: block;
+                width: 100%;
+                padding: 14px 16px;
+            }
         }
     </style>
 </head>
@@ -64,9 +95,14 @@
 
         <h2>サイト内コンテンツ</h2>
         <div class="nav-links">
-            <a href="atras_simulator.html">Atras Simulator<br>A🇹🇷🇦🇸 🇸🇮🇲🇺🇱🇦🇹🇴r</a>
-            <a href="atras_cyrillic_simulator.html">Atras Cyrillic Simulator<br>A🇹🇷🇦🇸 🇨🇾r🇮🇱🇱🇮c 🇸🇮🇲🇺🇱🇦🇹🇴r</a>
-            
+            <a href="atras_simulator.html">
+                Atras Simulator
+                <span class="sub-text">A🇹🇷🇦🇸 🇸🇮🇲🇺🇱🇦🇹🇴r</span>
+            </a>
+            <a href="atras_cyrillic_simulator.html">
+                Atras Cyrillic Simulator
+                <span class="sub-text">A🇹🇷🇦🇸 🇨🇾r🇮🇱🇱🇮c 🇸🇮🇲🇺🇱🇦🇹🇴r</span>
+            </a>
         </div>
 
         <h2>その他色々</h2>
