@@ -57,29 +57,29 @@
                 <div class="border-2 border-blue-300 bg-blue-50/40 rounded-lg p-4 relative transition-colors duration-300" id="modeAContainer">
                     <label class="flex items-start cursor-pointer mb-3">
                         <input type="radio" name="mainMode" value="A" class="form-radio h-5 w-5 text-blue-600 mt-0.5" checked>
-                        <span class="ml-3 text-md font-bold text-gray-800">基本置換ルール1-3</span>
+                        <span class="ml-3 text-md font-bold text-gray-800">基本置換</span>
                     </label>
                     <hr class="my-3 border-blue-200">
                     <div class="space-y-3 pl-8">
                         <label class="flex items-start opacity-80 cursor-not-allowed">
                             <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 mt-0.5" checked disabled>
                             <span class="ml-2 text-sm text-gray-800 leading-tight">
-                                <strong class="block text-gray-900 mb-0.5">ルール1: 完全一致 (必須)</strong>
-                                モーラがccTLDと一致する場合のみ置換。
+                                <strong class="block text-gray-900 mb-0.5">1:完全一致 (必須)</strong>
+                                モーラがccTLDと一致する場合のみ置換
                             </span>
                         </label>
                         <label class="flex items-start cursor-pointer transition-opacity duration-300 hover:bg-blue-100/50 p-1 rounded -ml-1" id="rule2Label">
                             <input type="checkbox" id="rule2" class="form-checkbox h-4 w-4 text-blue-600 mt-0.5" checked>
                             <span class="ml-2 text-sm text-gray-800 leading-tight">
-                                <strong class="block text-gray-900 mb-0.5">ルール2: 母音残し (アクセント)</strong>
-                                フラグ化できなかった部分の母音を残す。
+                                <strong class="block text-gray-900 mb-0.5">2:母音残し(任意)</strong>
+                                フラグ化できなかった部分の母音を残す
                             </span>
                         </label>
                         <label class="flex items-start cursor-pointer transition-opacity duration-300 hover:bg-blue-100/50 p-1 rounded -ml-1" id="rule3Label">
                             <input type="checkbox" id="rule3" class="form-checkbox h-4 w-4 text-blue-600 mt-0.5" checked>
                             <span class="ml-2 text-sm text-gray-800 leading-tight">
-                                <strong class="block text-gray-900 mb-0.5">ルール3: 子音残し (アクセント)</strong>
-                                子音を残し最大1回(2モーラ)まで置換。
+                                <strong class="block text-gray-900 mb-0.5">3:子音残し(任意)</strong>
+                                子音を残し最大1回(2モーラ)まで置換
                             </span>
                         </label>
                     </div>
@@ -93,7 +93,7 @@
                     <hr class="my-3 border-gray-200">
                     <p class="pl-8 text-sm text-gray-600 leading-relaxed">
                         <strong class="block text-gray-900 mb-1">制約無視・最大フラグ化</strong>
-                        ルール1〜3の上限を無視し、フラグ化できる全組み合わせを置換。多数のラテン文字が残存します。
+                        基本ルール1-3の上限を無視し、絵文字国旗化できる全組み合わせを置換
                     </p>
                 </div>
             </div>
