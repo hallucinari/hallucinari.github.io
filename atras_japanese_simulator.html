@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATRAS Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', 'Noto Sans JP', sans-serif; background-color: #f9fafb; }
+        .word-container { position: relative; display: inline-block; margin: 2px 0; }
+        .dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            z-index: 50;
+            min-width: 100%;
+            max-height: 250px;
+            overflow-y: auto;
+            white-space: nowrap;
+        }
+        .word-container.active .dropdown { display: block; }
+        .dropdown-item { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f3f4f6; font-size: 1.1rem; }
+        .dropdown-item:last-child { border-bottom: none; }
+        .dropdown-item:hover { background-color: #e5e7eb; }
+        .selected-word {
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .selected-word:hover { background-color: #e5e7eb; }
+        .has-variants { border-bottom: 2px dashed #3b82f6; }
+        .flag-text { letter-spacing: 0.02em; }
+        .diff-highlight { background-color: #fff7ed; border-color: #fed7aa; }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8 text-gray-800 flex flex-col items-center relative">
+
+    <a href="https://hallucinari.github.io/" class="absolute top-4 left-4 md:top-8 md:left-8 flex items-center gap-1 text-blue-600 hover:text-blue-800 transition font-medium">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        戻る
+    </a>
+
+    <div class="w-full max-w-5xl bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8 mt-10 md:mt-0">
+        <h1 class="text-3xl font-bold mb-2 text-center text-blue-600">ATRAS Simulator</h1>
+        <p class="text-center text-gray-500 mb-8">ひらがな・カタカナ・ローマ字対応 ccTLD国旗置換シミュレータ</p>
+
+        <div class="bg-white p-5 rounded-lg border border-gray-200 mb-6 shadow-sm">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">置換ルール</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border-2 border-blue-300 bg-blue-50/40 rounded-lg p-4 relative transition-colors duration-300" id="modeAContainer">
+                    <label class="flex items-start cursor-pointer mb-3">
+                        <input type="radio" name="mainMode" value="A" class="form-radio h-5 w-5 text-blue-600 mt-0.5" checked>
+                        <span class="ml-3 text-md font-bold text-gray-800">基本・アクセント (ルール1〜3)</span>
+                    </label>
+                    <hr class="my-3 border-blue-200">
+                    <div class="space-y-3 pl-8">
+                        <label class="flex items-start opacity-80 cursor-not-allowed">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 mt-0.5" checked disabled>
+                            <span class="ml-2 text-sm text-gray-800 leading-tight">
+                                <strong class="block text-gray-900 mb-0.5">ルール1: 完全一致 (必須)</strong>
+                                モーラがccTLDと一致する場合のみ置換。
+                            </span>
+                        </label>
+                        <label class="flex items-start cursor-pointer transition-opacity duration-300 hover:bg-blue-100/50 p-1 rounded -ml-1" id="rule2Label">
+                            <input type="checkbox" id="rule2" class="form-checkbox h-4 w-4 text-blue-600 mt-0.5" checked>
+                            <span class="ml-2 text-sm text-gray-800 leading-tight">
+                                <strong class="block text-gray-900 mb-0.5">ルール2: 母音残し (アクセント)</strong>
+                                フラグ化できなかった部分の母音を残す。
+                            </span>
+                        </label>
+                        <label class="flex items-start cursor-pointer transition-opacity duration-300 hover:bg-blue-100/50 p-1 rounded -ml-1" id="rule3Label">
+                            <input type="checkbox" id="rule3" class="form-checkbox h-4 w-4 text-blue-600 mt-0.5" checked>
+                            <span class="ml-2 text-sm text-gray-800 leading-tight">
+                                <strong class="block text-gray-900 mb-0.5">ルール3: 子音残し (アクセント)</strong>
+                                子音を残し最大1回(2モーラ)まで置換。
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="border border-gray-200 bg-gray-50/50 rounded-lg p-4 relative transition-colors duration-300 hover:bg-gray-100/50" id="modeBContainer">
+                    <label class="flex items-start cursor-pointer mb-3">
+                        <input type="radio" name="mainMode" value="B" class="form-radio h-5 w-5 text-blue-600 mt-0.5">
+                        <span class="ml-3 text-md font-bold text-gray-800">強制フル置換 (ルール4)</span>
+                    </label>
+                    <hr class="my-3 border-gray-200">
+                    <p class="pl-8 text-sm text-gray-600 leading-relaxed">
+                        <strong class="block text-gray-900 mb-1">制約無視・最大フラグ化</strong>
+                        ルール1〜3の上限を無視し、フラグ化できる全組み合わせを置換。多数のラテン文字が残存します。
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gray-50 p-5 rounded-lg border border-gray-200 mb-8 shadow-sm">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">詳細パラメータ設定</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-700 mb-2">置換対象</h3>
+                    <div class="flex flex-wrap gap-4">
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="targetHiragana" class="form-checkbox h-4 w-4 text-blue-600 rounded" checked>
+                            <span class="ml-2 text-sm text-gray-700">ひらがな</span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="targetKatakana" class="form-checkbox h-4 w-4 text-blue-600 rounded" checked>
+                            <span class="ml-2 text-sm text-gray-700">カタカナ</span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="targetAlpha" class="form-checkbox h-4 w-4 text-blue-600 rounded" checked>
+                            <span class="ml-2 text-sm text-gray-700">アルファベット</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-700 mb-2">ローマ字化の手法</h3>
+                    <div class="flex gap-4">
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="radio" name="romajiStyle" value="hepburn" class="form-radio h-4 w-4 text-blue-600" checked>
+                            <span class="ml-2 text-sm text-gray-700">ヘボン式</span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="radio" name="romajiStyle" value="typing" class="form-radio h-4 w-4 text-blue-600">
+                            <span class="ml-2 text-sm text-gray-700">ローマ字タイピング</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-700 mb-2">残す母音の形式</h3>
+                    <div class="flex flex-wrap gap-4">
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="radio" name="vowelFormat" value="auto" class="form-radio h-4 w-4 text-blue-600" checked>
+                            <span class="ml-2 text-sm text-gray-700">自動(元の文章)</span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="radio" name="vowelFormat" value="hiragana" class="form-radio h-4 w-4 text-blue-600">
+                            <span class="ml-2 text-sm text-gray-700">ひらがな</span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="radio" name="vowelFormat" value="kata_full" class="form-radio h-4 w-4 text-blue-600">
+                            <span class="ml-2 text-sm text-gray-700">全角カタカナ</span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="radio" name="vowelFormat" value="kata_half" class="form-radio h-4 w-4 text-blue-600">
+                            <span class="ml-2 text-sm text-gray-700">半角カタカナ</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-700 mb-2">残す子音の形式</h3>
+                    <div class="flex flex-wrap gap-4">
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="radio" name="consonantCase" value="upper" class="form-radio h-4 w-4 text-blue-600">
+                            <span class="ml-2 text-sm text-gray-700">大文字 (例: N🇦🇮)</span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="radio" name="consonantCase" value="lower" class="form-radio h-4 w-4 text-blue-600" checked>
+                            <span class="ml-2 text-sm text-gray-700">小文字 (例: n🇦🇮)</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+            <div class="flex flex-col">
+                <label for="inputText" class="block text-sm font-semibold text-gray-700 mb-2">入力テキスト:</label>
+                <textarea id="inputText" rows="6" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-lg flex-grow" placeholder="文章を入力してください">知ってた
+ひでり
+トワイライト
+シルエット</textarea>
+                <div class="mt-3 flex justify-end">
+                    <button id="processBtn" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition font-semibold shadow-sm">置換を実行</button>
+                </div>
+            </div>
+            
+            <div class="flex flex-col h-full space-y-4">
+                <div class="flex flex-col flex-shrink-0">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">ローマ字変換プレビュー <span class="text-xs text-gray-500 font-normal">(Read-only)</span>:</label>
+                    <textarea id="romajiPreview" rows="2" class="w-full p-3 border border-gray-300 rounded-md bg-gray-100 text-lg font-mono text-gray-600 shadow-inner outline-none" readonly></textarea>
+                </div>
+                
+                <div class="flex flex-col flex-grow">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">結果プレビュー <span class="text-xs text-gray-500 font-normal">(破線下線をタップで候補選択)</span>:</label>
+                    <div id="outputArea" class="w-full p-4 border border-gray-300 rounded-md bg-white text-xl leading-relaxed whitespace-pre-wrap flag-text flex-grow shadow-inner"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-8 w-full">
+            <label for="finalText" class="block text-sm font-semibold text-gray-700 mb-2">最終出力テキスト:</label>
+            <textarea id="finalText" rows="3" class="w-full p-3 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-xl flag-text outline-none" readonly></textarea>
+            <div class="mt-3 flex justify-end">
+                <button id="copyBtn" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition font-semibold shadow-sm">テキストをコピー</button>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm w-full overflow-hidden">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-lg font-semibold text-gray-800 mb-3 md:mb-0">ATRAS 五十音拡張対応表</h2>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <div class="flex flex-col items-start text-xs text-gray-500 gap-1.5 mr-2">
+                        <div class="flex items-center">
+                            <span class="inline-block w-4 h-4 bg-blue-50 border border-blue-300 mr-1.5 rounded-sm"></span>
+                            置換可能なセル
+                        </div>
+                        <div class="flex items-center">
+                            <span class="inline-block w-4 h-4 diff-highlight border mr-1.5 rounded-sm"></span>
+                            ヘボン式・タイピング式での差異
+                        </div>
+                    </div>
+                    <div class="flex bg-gray-100 rounded-lg p-1 mt-3 sm:mt-0">
+                        <button id="showHiraganaBtn" class="px-5 py-1.5 rounded-md bg-white shadow-sm text-sm font-medium text-blue-600 transition">ひらがな</button>
+                        <button id="showKatakanaBtn" class="px-5 py-1.5 rounded-md text-sm font-medium text-gray-500 hover:text-gray-700 transition">カタカナ</button>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                <div id="hepburnTableContainer" class="flex flex-col space-y-6"></div>
+                <div id="typingTableContainer" class="flex flex-col space-y-6"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const cctldFlags = {
+            "ac": "🇦🇨", "ad": "🇦🇩", "ae": "🇦🇪", "af": "🇦🇫", "ag": "🇦🇬", "ai": "🇦🇮", "al": "🇦🇱", "am": "🇦🇲", "ao": "🇦🇴", "aq": "🇦🇶", "ar": "🇦🇷", "as": "🇦🇸", "at": "🇦🇹", "au": "🇦🇺", "aw": "🇦🇼", "ax": "🇦🇽", "az": "🇦🇿",
+            "ba": "🇧🇦", "bb": "🇧🇧", "bd": "🇧🇩", "be": "🇧🇪", "bf": "🇧🇫", "bg": "🇧🇬", "bh": "🇧🇭", "bi": "🇧🇮", "bj": "🇧🇯", "bm": "🇧🇲", "bn": "🇧🇳", "bo": "🇧🇴", "br": "🇧🇷", "bs": "🇧🇸", "bt": "🇧🇹", "bw": "🇧🇼", "by": "🇧🇾", "bz": "🇧🇿",
+            "ca": "🇨🇦", "cc": "🇨🇨", "cd": "🇨🇩", "cf": "🇨🇫", "cg": "🇨🇬", "ch": "🇨🇭", "ci": "🇨🇮", "ck": "🇨🇰", "cl": "🇨🇱", "cm": "🇨🇲", "cn": "🇨🇳", "co": "🇨🇴", "cr": "🇨🇷", "cu": "🇨🇺", "cv": "🇨🇻", "cw": "🇨🇼", "cx": "🇨🇽", "cy": "🇨🇾", "cz": "🇨🇿",
+            "de": "🇩🇪", "dj": "🇩🇯", "dk": "🇩🇰", "dm": "🇩🇲", "do": "🇩🇴", "dz": "🇩🇿",
+            "ec": "🇪🇨", "ee": "🇪🇪", "eg": "🇪🇬", "er": "🇪🇷", "es": "🇪🇸", "et": "🇪🇹", "eu": "🇪🇺",
+            "fi": "🇫🇮", "fj": "🇫🇯", "fk": "🇫🇰", "fm": "🇫🇲", "fo": "🇫🇴", "fr": "🇫🇷",
+            "ga": "🇬🇦", "gd": "🇬🇩", "ge": "🇬🇪", "gf": "🇬🇫", "gg": "🇬🇬", "gh": "🇬🇭", "gi": "🇬🇮", "gl": "🇬🇱", "gm": "🇬🇲", "gn": "🇬🇳", "gp": "🇬🇵", "gq": "🇬🇶", "gr": "🇬🇷", "gs": "🇬🇸", "gt": "🇬🇹", "gu": "🇬🇺", "gw": "🇬🇼", "gy": "🇬🇾",
+            "hk": "🇭🇰", "hm": "🇭🇲", "hn": "🇭🇳", "hr": "🇭🇷", "ht": "🇭🇹", "hu": "🇭🇺",
+            "id": "🇮🇩", "ie": "🇮🇪", "il": "🇮🇱", "im": "🇮🇲", "in": "🇮🇳", "io": "🇮🇴", "iq": "🇮🇶", "ir": "🇮🇷", "is": "🇮🇸", "it": "🇮🇹",
+            "je": "🇯🇪", "jm": "🇯🇲", "jo": "🇯🇴", "jp": "🇯🇵",
+            "ke": "🇰🇪", "kg": "🇰🇬", "kh": "🇰🇭", "ki": "🇰🇮", "km": "🇰🇲", "kn": "🇰🇳", "kp": "🇰🇵", "kr": "🇰🇷", "kw": "🇰🇼", "ky": "🇰🇾", "kz": "🇰🇿",
+            "la": "🇱🇦", "lb": "🇱🇧", "lc": "🇱🇨", "li": "🇱🇮", "lk": "🇱🇰", "lr": "🇱🇷", "ls": "🇱🇸", "lt": "🇱🇹", "lu": "🇱🇺", "lv": "🇱🇻", "ly": "🇱🇾",
+            "ma": "🇲🇦", "mc": "🇲🇨", "md": "🇲🇩", "me": "🇲🇪", "mg": "🇲🇬", "mh": "🇲🇭", "mk": "🇲🇰", "ml": "🇲🇱", "mm": "🇲🇲", "mn": "🇲🇳", "mo": "🇲🇴", "mp": "🇲🇵", "mq": "🇲🇶", "mr": "🇲🇷", "ms": "🇲🇸", "mt": "🇲🇹", "mu": "🇲🇺", "mv": "🇲🇻", "mw": "🇲🇼", "mx": "🇲🇽", "my": "🇲🇾", "mz": "🇲🇿",
+            "na": "🇳🇦", "nc": "🇳🇨", "ne": "🇳🇪", "nf": "🇳🇫", "ng": "🇳🇬", "ni": "🇳🇮", "nl": "🇳🇱", "no": "🇳🇴", "np": "🇳🇵", "nr": "🇳🇷", "nu": "🇳🇺", "nz": "🇳🇿",
+            "om": "🇴🇲",
+            "pa": "🇵🇦", "pe": "🇵🇪", "pf": "🇵🇫", "pg": "🇵🇬", "ph": "🇵🇭", "pk": "🇵🇰", "pl": "🇵🇱", "pm": "🇵🇲", "pn": "🇵🇳", "pr": "🇵🇷", "ps": "🇵🇸", "pt": "🇵🇹", "pw": "🇵🇼", "py": "🇵🇾",
+            "qa": "🇶🇦",
+            "re": "🇷🇪", "ro": "🇷🇴", "rs": "🇷🇸", "ru": "🇷🇺", "rw": "🇷🇼",
+            "sa": "🇸🇦", "sb": "🇸🇧", "sc": "🇸🇨", "sd": "🇸🇩", "se": "🇸🇪", "sg": "🇸🇬", "sh": "🇸🇭", "si": "🇸🇮", "sk": "🇸🇰", "sl": "🇸🇱", "sm": "🇸🇲", "sn": "🇸🇳", "so": "🇸🇴", "sr": "🇸🇷", "ss": "🇸🇸", "st": "🇸🇹", "sv": "🇸🇻", "sx": "🇸🇽", "sy": "🇸🇾", "sz": "🇸🇿",
+            "tc": "🇹🇨", "td": "🇹🇩", "tf": "🇹🇫", "tg": "🇹🇬", "th": "🇹🇭", "tj": "🇹🇯", "tk": "🇹🇰", "tl": "🇹🇱", "tm": "🇹🇲", "tn": "🇹🇳", "to": "🇹🇴", "tr": "🇹🇷", "tt": "🇹🇹", "tv": "🇹🇻", "tw": "🇹🇼", "tz": "🇹🇿",
+            "ua": "🇺🇦", "ug": "🇺🇬", "uk": "🇬🇧", "us": "🇺🇸", "uy": "🇺🇾", "uz": "🇺🇿",
+            "va": "🇻🇦", "vc": "🇻🇨", "ve": "🇻🇪", "vg": "🇻🇬", "vi": "🇻🇮", "vn": "🇻🇳", "vu": "🇻🇺",
+            "wf": "🇼🇫", "ws": "🇼🇸",
+            "ye": "🇾🇪", "yt": "🇾🇹",
+            "za": "🇿🇦", "zm": "🇿🇲", "zw": "🇿🇼",
+            "tt": "🇹🇹" 
+        };
+
+        const hiraganaMap = {
+            "あ":"a","い":"i","う":"u","え":"e","お":"o",
+            "か":"ka","き":"ki","く":"ku","け":"ke","こ":"ko",
+            "さ":"sa","し":"shi","す":"su","せ":"se","そ":"so",
+            "た":"ta","ち":"chi","つ":"tsu","て":"te","と":"to",
+            "な":"na","に":"ni","ぬ":"nu","ね":"ne","の":"no",
+            "は":"ha","ひ":"hi","ふ":"fu","へ":"he","ほ":"ho",
+            "ま":"ma","み":"mi","む":"mu","め":"me","も":"mo",
+            "や":"ya","ゆ":"yu","よ":"yo",
+            "ら":"ra","り":"ri","る":"ru","れ":"re","ろ":"ro",
+            "わ":"wa","ゐ":"wi","ゑ":"we","を":"wo","ん":"n",
+            "が":"ga","ぎ":"gi","ぐ":"gu","げ":"ge","ご":"go",
+            "ざ":"za","じ":"ji","ず":"zu","ぜ":"ze","ぞ":"zo",
+            "だ":"da","ぢ":"ji","づ":"zu","で":"de","ど":"do",
+            "ば":"ba","び":"bi","ぶ":"bu","べ":"be","ぼ":"bo",
+            "ぱ":"pa","ぴ":"pi","ぷ":"pu","ぺ":"pe","ぽ":"po",
+            "きゃ":"kya","きゅ":"kyu","きょ":"kyo",
+            "しゃ":"sha","しゅ":"shu","しょ":"sho",
+            "ちゃ":"cha","ちゅ":"chu","ちょ":"cho",
+            "にゃ":"nya","にゅ":"nyu","にょ":"nyo",
+            "ひゃ":"hya","ひゅ":"hyu","ひょ":"hyo",
+            "みゃ":"mya","みゅ":"myu","みょ":"myo",
+            "りゃ":"rya","りゅ":"ryu","りょ":"ryo",
+            "ぎゃ":"gya","ぎゅ":"gyu","ぎょ":"gyo",
+            "じゃ":"ja","じゅ":"ju","じょ":"jo",
+            "ぢゃ":"ja","ぢゅ":"ju","ぢょ":"jo",
+            "びゃ":"bya","びゅ":"byu","びょ":"byo",
+            "ぴゃ":"pya","ぴゅ":"pyu","ぴょ":"pyo",
+            "ぁ":"a","ぃ":"i","ぅ":"u","ぇ":"e","ぉ":"o",
+            "ゃ":"ya","ゅ":"yu","ょ":"yo",
+            "っ":"xtu"
+        };
+
+        const typingOverrides = {
+            "し":"si", "ち":"ti", "つ":"tu", "ふ":"hu", "じ":"zi", "ぢ":"di", "づ":"du",
+            "しゃ":"sya", "しゅ":"syu", "しょ":"syo", "ちゃ":"tya", "ちゅ":"tyu", "ちょ":"tyo",
+            "じゃ":"zya", "じゅ":"zyu", "じょ":"zyo",
+            "ぢゃ":"dya", "ぢゅ":"dyu", "ぢょ":"dyo", "を":"wo",
+            "っ":"tt" 
+        };
+
+        const gojuonGroups = [
+            {
+                title: "清音・撥音",
+                colHeaders: ['あ行', 'か行', 'さ行', 'た行', 'な行', 'は行', 'ま行', 'や行', 'ら行', 'わ行', '撥音'],
+                rowHeaders: ['あ段', 'い段', 'う段', 'え段', 'お段'],
+                layout: [
+                    ['あ', 'か', 'さ', 'た', 'な', 'は', 'ま', 'や', 'ら', 'わ', 'ん'],
+                    ['い', 'き', 'し', 'ち', 'に', 'ひ', 'み', '', 'り', 'ゐ', ''],
+                    ['う', 'く', 'す', 'つ', 'ぬ', 'ふ', 'む', 'ゆ', 'る', '', ''],
+                    ['え', 'け', 'せ', 'て', 'ね', 'へ', 'め', '', 'れ', 'ゑ', ''],
+                    ['お', 'こ', 'そ', 'と', 'の', 'ほ', 'も', 'よ', 'ろ', 'を', '']
+                ]
+            },
+            {
+                title: "濁音・半濁音",
+                colHeaders: ['が行', 'ざ行', 'だ行', 'ば行', 'ぱ行'],
+                rowHeaders: ['あ段', 'い段', 'う段', 'え段', 'お段'],
+                layout: [
+                    ['が', 'ざ', 'だ', 'ば', 'ぱ'],
+                    ['ぎ', 'じ', 'ぢ', 'び', 'ぴ'],
+                    ['ぐ', 'ず', 'づ', 'ぶ', 'ぷ'],
+                    ['げ', 'ぜ', 'で', 'べ', 'ぺ'],
+                    ['ご', 'ぞ', 'ど', 'ぼ', 'ぽ']
+                ]
+            },
+            {
+                title: "拗音",
+                colHeaders: ['きゃ行', 'しゃ行', 'ちゃ行', 'にゃ行', 'ひゃ行', 'みゃ行', 'りゃ行', 'ぎゃ行', 'じゃ行', 'ぢゃ行', 'びゃ行', 'ぴゃ行'],
+                rowHeaders: ['あ段', 'う段', 'お段'],
+                layout: [
+                    ['きゃ', 'しゃ', 'ちゃ', 'にゃ', 'ひゃ', 'みゃ', 'りゃ', 'ぎゃ', 'じゃ', 'ぢゃ', 'びゃ', 'ぴゃ'],
+                    ['きゅ', 'しゅ', 'ちゅ', 'にゅ', 'ひゅ', 'みゅ', 'りゅ', 'ぎゅ', 'じゅ', 'ぢゅ', 'びゅ', 'ぴゅ'],
+                    ['きょ', 'しょ', 'ちょ', 'にょ', 'ひょ', 'みょ', 'りょ', 'ぎょ', 'じょ', 'ぢょ', 'びょ', 'ぴょ']
+                ]
+            },
+            {
+                title: "促音",
+                colHeaders: ['促音'],
+                rowHeaders: [], 
+                layout: [
+                    ['っ']
+                ]
+            }
+        ];
+
+        let currentTableScript = 'hiragana';
+        let currentSelections = [];
+
+        function getRomaji(kana, style) {
+            let hira = kana.replace(/[\u30a1-\u30f6]/g, match => String.fromCharCode(match.charCodeAt(0) - 0x60));
+            if (style === 'typing' && typingOverrides[hira]) return typingOverrides[hira];
+            return hiraganaMap[hira] || hira;
+        }
+
+        function getVowelKana(vowelChar, originalScript, formatSetting) {
+            const vMap = { 'a':'あ', 'i':'い', 'u':'う', 'e':'え', 'o':'お' };
+            let hira = vMap[vowelChar] || vowelChar;
+            
+            if (formatSetting === 'hiragana') return hira;
+            if (formatSetting === 'kata_full' || (formatSetting === 'auto' && originalScript === 'katakana')) {
+                return hira.replace(/[\u3041-\u3096]/g, match => String.fromCharCode(match.charCodeAt(0) + 0x60));
+            }
+            if (formatSetting === 'kata_half') {
+                const halfMap = {'あ':'ｱ','い':'ｲ','う':'ｳ','え':'ｴ','お':'ｵ'};
+                return halfMap[hira] || hira;
+            }
+            return hira;
+        }
+
+        function splitToMoras(kanaStr) {
+            let moras = [];
+            for(let i = 0; i < kanaStr.length; i++) {
+                let c = kanaStr[i];
+                if(i + 1 < kanaStr.length && /^[ゃゅょャュョぁぃぅぇぉァィゥェォ]$/.test(kanaStr[i+1])) {
+                    moras.push(c + kanaStr[i+1]);
+                    i++;
+                } else {
+                    moras.push(c);
+                }
+            }
+            return moras;
+        }
+
+        function getNodes(chunk, script, romajiStyle) {
+            let nodes = [];
+            if (script === 'alpha') {
+                for (let i = 0; i < chunk.length; i++) {
+                    nodes.push({ char: chunk[i].toLowerCase(), isStart: true, kana: chunk[i], romajiLen: 1 });
+                }
+            } else {
+                let moras = splitToMoras(chunk);
+                for (let i = 0; i < moras.length; i++) {
+                    let mora = moras[i];
+                    let romaji = "";
+                    if (mora === 'っ' || mora === 'ッ') {
+                        if (i + 1 < moras.length) {
+                            let nextRomaji = getRomaji(moras[i+1], romajiStyle);
+                            let firstChar = nextRomaji[0] || 't';
+                            romaji = /[aiueo]/.test(firstChar) ? 'tt' : firstChar;
+                        } else {
+                            romaji = romajiStyle === 'typing' ? 'tt' : 'xtu';
+                        }
+                    } else {
+                        romaji = getRomaji(mora, romajiStyle) || mora;
+                    }
+                    
+                    for (let j = 0; j < romaji.length; j++) {
+                        nodes.push({ char: romaji[j], isStart: (j === 0), kana: mora, romajiLen: romaji.length });
+                    }
+                }
+            }
+            return nodes;
+        }
+
+        function getPathsMemo(nodes, allowVowel, allowConsonant, isModeB) {
+            let memo = {};
+            function search(idx) {
+                if (idx === nodes.length) return { cost: 0, paths: [[]] };
+                if (memo[idx]) return memo[idx];
+
+                let bestCost = Infinity;
+                let bestPaths = [];
+
+                function evaluate(tokenCost, token, nextIdx) {
+                    let nextRes = search(nextIdx);
+                    if (nextRes.cost === Infinity) return;
+                    let totalCost = tokenCost + nextRes.cost;
+                    if (totalCost < bestCost) {
+                        bestCost = totalCost;
+                        bestPaths = nextRes.paths.map(p => [token, ...p]).slice(0, 15);
+                    } else if (totalCost === bestCost) {
+                        if (bestPaths.length < 15) {
+                            let newPaths = nextRes.paths.map(p => [token, ...p]);
+                            bestPaths.push(...newPaths);
+                            if (bestPaths.length > 15) bestPaths.length = 15;
+                        }
+                    }
+                }
+
+                if (idx + 1 < nodes.length) {
+                    let pair = nodes[idx].char + nodes[idx+1].char;
+                    if (cctldFlags[pair]) {
+                        let isMoraMatch = (nodes[idx].isStart && nodes[idx].romajiLen === 2);
+                        if (isModeB || isMoraMatch || allowVowel || allowConsonant) {
+                            evaluate(-10000, {type: 'flag', text: cctldFlags[pair]}, idx + 2);
+                        }
+                    }
+                }
+
+                if (nodes[idx].isStart) {
+                    let len = nodes[idx].romajiLen;
+                    evaluate(0, {type: 'kana', text: nodes[idx].kana}, idx + len);
+                }
+
+                if (allowVowel && /[aiueo]/.test(nodes[idx].char)) {
+                    evaluate(10, {type: 'vowel', text: nodes[idx].char}, idx + 1);
+                }
+
+                if (allowConsonant && !/[aiueo]/.test(nodes[idx].char)) {
+                    evaluate(10, {type: 'consonant', text: nodes[idx].char}, idx + 1);
+                }
+
+                memo[idx] = { cost: bestCost, paths: bestPaths };
+                return memo[idx];
+            }
+            return search(0).paths;
+        }
+
+        function getChunkVariations(chunk, script, romajiStyle, isModeB, rule2On, rule3On, vowelFmt, consonantCase) {
+            const allowVowel = isModeB ? true : rule2On;
+            const allowConsonant = isModeB ? true : rule3On;
+
+            if (!isModeB && !rule2On && !rule3On && script === 'alpha') {
+                let resultStr = "";
+                let temp = chunk.toLowerCase();
+                for (let i = 0; i < temp.length; i++) {
+                    if (i + 1 < temp.length && cctldFlags[temp.substring(i, i+2)]) {
+                        resultStr += cctldFlags[temp.substring(i, i+2)];
+                        i++;
+                    } else {
+                        resultStr += chunk[i];
+                    }
+                }
+                return [{ text: resultStr, flagCount: 0, consonantCount: 0, vowelCount: 0 }];
+            }
+
+            let nodes = getNodes(chunk, script, romajiStyle);
+            let paths = getPathsMemo(nodes, allowVowel, allowConsonant, isModeB);
+            let validVariations = [];
+            let seen = new Set();
+
+            for (let path of paths) {
+                let resultStr = "";
+                let hasConsonant = false;
+
+                for (let token of path) {
+                    if (token.type === 'flag') {
+                        resultStr += token.text;
+                    } else if (token.type === 'kana') {
+                        resultStr += token.text;
+                    } else if (token.type === 'vowel') {
+                        if (script === 'alpha') {
+                            resultStr += token.text; 
+                        } else {
+                            resultStr += getVowelKana(token.text, script, vowelFmt);
+                        }
+                    } else if (token.type === 'consonant') {
+                        hasConsonant = true;
+                        let c = token.text;
+                        resultStr += (consonantCase === 'upper') ? c.toUpperCase() : c.toLowerCase();
+                    }
+                }
+
+                if (!isModeB && rule2On && !rule3On && hasConsonant) continue;
+                
+                let flagCount = path.filter(t => t.type === 'flag').length;
+                if (!isModeB && hasConsonant && flagCount > 1) continue;
+
+                if (!seen.has(resultStr)) {
+                    validVariations.push({
+                        text: resultStr,
+                        flagCount: flagCount,
+                        consonantCount: path.filter(t => t.type === 'consonant').length,
+                        vowelCount: path.filter(t => t.type === 'vowel').length
+                    });
+                    seen.add(resultStr);
+                }
+            }
+
+            if (validVariations.length > 0) {
+                let maxFlags = Math.max(...validVariations.map(v => v.flagCount));
+                if (maxFlags > 0) {
+                    validVariations = validVariations.filter(v => v.flagCount === maxFlags);
+                } else {
+                    validVariations = [];
+                }
+            }
+
+            if (validVariations.length === 0) {
+                validVariations.push({ text: chunk, flagCount: 0, consonantCount: 0, vowelCount: 0 });
+            } else {
+                validVariations.sort((a, b) => {
+                    if (b.flagCount !== a.flagCount) return b.flagCount - a.flagCount;
+                    let aComp = a.consonantCount + a.vowelCount;
+                    let bComp = b.consonantCount + b.vowelCount;
+                    return aComp - bComp;
+                });
+            }
+
+            return validVariations;
+        }
+
+        function createDropdownUI(validVariations, containerDOM, onSelect) {
+            const wordContainer = document.createElement('div');
+            wordContainer.className = 'word-container';
+            
+            const displaySpan = document.createElement('span');
+            displaySpan.className = 'selected-word has-variants pb-0.5';
+            displaySpan.textContent = validVariations[0].text;
+            
+            const dropdown = document.createElement('div');
+            dropdown.className = 'dropdown shadow-xl border border-gray-200 z-50';
+            
+            validVariations.forEach(variant => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item flag-text text-left text-sm whitespace-nowrap';
+                item.textContent = variant.text;
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    displaySpan.textContent = variant.text;
+                    if (onSelect) onSelect(variant.text);
+                    wordContainer.classList.remove('active');
+                });
+                dropdown.appendChild(item);
+            });
+            
+            displaySpan.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.word-container.active').forEach(c => {
+                    if (c !== wordContainer) c.classList.remove('active');
+                });
+                wordContainer.classList.toggle('active');
+            });
+            
+            wordContainer.appendChild(displaySpan);
+            wordContainer.appendChild(dropdown);
+            containerDOM.appendChild(wordContainer);
+        }
+
+        function closeAllDropdowns() {
+            document.querySelectorAll('.word-container.active').forEach(c => c.classList.remove('active'));
+        }
+
+        function updateFinalText() {
+            document.getElementById('finalText').value = currentSelections.join('');
+        }
+
+        function updateRomajiPreview() {
+            const text = document.getElementById('inputText').value;
+            const romajiStyle = document.querySelector('input[name="romajiStyle"]:checked').value;
+            const regex = /([\u3041-\u309F]+|[\u30A1-\u30FA\u30FC]+|[a-zA-Z]+|[^a-zA-Z\u3041-\u309F\u30A1-\u30FA\u30FC]+)/g;
+            const chunks = text.match(regex) || [];
+            
+            let fullRomaji = "";
+            chunks.forEach(chunk => {
+                if (/[\u3041-\u309F\u30A1-\u30FA\u30FC]/.test(chunk[0])) {
+                    let nodes = getNodes(chunk, /[\u3041-\u309F]/.test(chunk[0]) ? 'hiragana' : 'katakana', romajiStyle);
+                    fullRomaji += nodes.map(n => n.char).join('');
+                } else {
+                    fullRomaji += chunk;
+                }
+            });
+            document.getElementById('romajiPreview').value = fullRomaji;
+        }
+
+        function syncModeState() {
+            const isModeB = document.querySelector('input[name="mainMode"][value="B"]').checked;
+            const rule2 = document.getElementById('rule2');
+            const rule3 = document.getElementById('rule3');
+            
+            if (isModeB) {
+                rule2.disabled = true;
+                rule3.disabled = true;
+                document.getElementById('modeAContainer').classList.replace('border-blue-300', 'border-gray-200');
+                document.getElementById('modeAContainer').classList.replace('border-2', 'border');
+                document.getElementById('modeAContainer').classList.replace('bg-blue-50/40', 'bg-gray-50/50');
+                
+                document.getElementById('modeBContainer').classList.replace('border-gray-200', 'border-blue-300');
+                document.getElementById('modeBContainer').classList.replace('border', 'border-2');
+                document.getElementById('modeBContainer').classList.replace('bg-gray-50/50', 'bg-blue-50/40');
+                
+                document.getElementById('rule2Label').classList.add('opacity-50', 'cursor-not-allowed');
+                document.getElementById('rule3Label').classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                rule2.disabled = false;
+                rule3.disabled = false;
+                document.getElementById('modeBContainer').classList.replace('border-blue-300', 'border-gray-200');
+                document.getElementById('modeBContainer').classList.replace('border-2', 'border');
+                document.getElementById('modeBContainer').classList.replace('bg-blue-50/40', 'bg-gray-50/50');
+                
+                document.getElementById('modeAContainer').classList.replace('border-gray-200', 'border-blue-300');
+                document.getElementById('modeAContainer').classList.replace('border', 'border-2');
+                document.getElementById('modeAContainer').classList.replace('bg-gray-50/50', 'bg-blue-50/40');
+
+                document.getElementById('rule2Label').classList.remove('opacity-50', 'cursor-not-allowed');
+                document.getElementById('rule3Label').classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function processAtras() {
+            const text = document.getElementById('inputText').value;
+            const targetHira = document.getElementById('targetHiragana').checked;
+            const targetKata = document.getElementById('targetKatakana').checked;
+            const targetAlpha = document.getElementById('targetAlpha').checked;
+            const romajiStyle = document.querySelector('input[name="romajiStyle"]:checked').value;
+            const vowelFmt = document.querySelector('input[name="vowelFormat"]:checked').value;
+            const consonantCase = document.querySelector('input[name="consonantCase"]:checked').value;
+            
+            const isModeB = document.querySelector('input[name="mainMode"][value="B"]').checked;
+            const rule2On = document.getElementById('rule2').checked;
+            const rule3On = document.getElementById('rule3').checked;
+
+            syncModeState();
+            updateRomajiPreview();
+
+            const outputArea = document.getElementById('outputArea');
+            outputArea.innerHTML = '';
+            currentSelections = [];
+
+            const regex = /([\u3041-\u309F]+|[\u30A1-\u30FA\u30FC]+|[a-zA-Z]+|[^a-zA-Z\u3041-\u309F\u30A1-\u30FA\u30FC]+)/g;
+            const chunks = text.match(regex) || [];
+
+            chunks.forEach((chunk) => {
+                const isHira = /[\u3041-\u309F]/.test(chunk[0]);
+                const isKata = /[\u30A1-\u30FA\u30FC]/.test(chunk[0]);
+                const isAlpha = /[a-zA-Z]/.test(chunk[0]);
+                
+                const isTarget = (targetHira && isHira) || (targetKata && isKata) || (targetAlpha && isAlpha);
+                const script = isHira ? 'hiragana' : (isKata ? 'katakana' : 'alpha');
+
+                if (!isTarget) {
+                    outputArea.appendChild(document.createTextNode(chunk));
+                    currentSelections.push(chunk);
+                    return;
+                }
+
+                let variations = getChunkVariations(chunk, script, romajiStyle, isModeB, rule2On, rule3On, vowelFmt, consonantCase);
+                const selectionIndex = currentSelections.length;
+                currentSelections.push(variations[0].text);
+
+                if (variations.length === 1 || variations[0].text === chunk) {
+                    outputArea.appendChild(document.createTextNode(variations[0].text));
+                } else {
+                    createDropdownUI(variations, outputArea, (selectedText) => {
+                        currentSelections[selectionIndex] = selectedText;
+                        updateFinalText();
+                    });
+                }
+            });
+
+            updateFinalText();
+        }
+
+        function createTableHTMLNodes(containerId, scriptType, romajiStyle) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `<h3 class="text-md font-semibold text-gray-700 mb-2 text-center border-b pb-2">${romajiStyle === 'hepburn' ? 'ヘボン式' : 'ローマ字タイピング'}</h3>`;
+            
+            const isModeB = document.querySelector('input[name="mainMode"][value="B"]').checked;
+            const rule2On = document.getElementById('rule2').checked;
+            const rule3On = document.getElementById('rule3').checked;
+            const vowelFmt = document.querySelector('input[name="vowelFormat"]:checked').value;
+            const consonantCase = document.querySelector('input[name="consonantCase"]:checked').value;
+
+            gojuonGroups.forEach(group => {
+                const title = document.createElement('h4');
+                title.className = 'text-xs font-bold text-gray-500 mt-6 mb-2 text-left';
+                title.textContent = group.title;
+                container.appendChild(title);
+
+                const tableWrapper = document.createElement('div');
+                tableWrapper.className = 'overflow-x-auto pb-8'; 
+
+                const table = document.createElement('table');
+                let tableClasses = 'text-center border-collapse text-sm flag-text mb-4 bg-white min-w-max';
+                if (group.title !== '促音') {
+                    tableClasses += ' w-full';
+                } else {
+                    tableClasses += ' md:w-auto mx-auto'; 
+                }
+                table.className = tableClasses;
+
+                const thead = document.createElement('thead');
+                const headerRow = document.createElement('tr');
+                const hasRowHeaders = group.rowHeaders.length > 0;
+                
+                if (hasRowHeaders) {
+                    headerRow.appendChild(document.createElement('th'));
+                }
+                
+                group.colHeaders.forEach(ch => {
+                    const th = document.createElement('th');
+                    th.className = 'p-2 text-xs text-gray-500 font-normal bg-gray-100 border border-gray-200 whitespace-nowrap';
+                    th.textContent = ch;
+                    headerRow.appendChild(th);
+                });
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+
+                const tbody = document.createElement('tbody');
+
+                group.layout.forEach((row, rowIndex) => {
+                    const tr = document.createElement('tr');
+                    
+                    if (hasRowHeaders) {
+                        const th = document.createElement('th');
+                        th.className = 'p-2 text-xs text-gray-500 font-normal bg-gray-100 border border-gray-200 whitespace-nowrap';
+                        th.textContent = group.rowHeaders[rowIndex];
+                        tr.appendChild(th);
+                    }
+
+                    row.forEach(hira => {
+                        const td = document.createElement('td');
+                        td.className = 'p-1 md:p-2 border border-gray-200 transition min-w-[3rem] h-12 relative align-middle';
+                        
+                        if (hira === '') {
+                            td.classList.add('bg-gray-50', 'text-gray-200');
+                            td.textContent = '-';
+                        } else {
+                            const hepburnRomaji = getRomaji(hira, 'hepburn');
+                            const typingRomaji = getRomaji(hira, 'typing');
+                            if (hepburnRomaji !== typingRomaji) {
+                                td.classList.add('diff-highlight');
+                            }
+
+                            let kana = scriptType === 'katakana' ? 
+                                hira.replace(/[\u3041-\u3096]/g, match => String.fromCharCode(match.charCodeAt(0) + 0x60)) 
+                                : hira;
+                            
+                            let variations = getChunkVariations(kana, scriptType === 'katakana' ? 'katakana' : 'hiragana', romajiStyle, true, true, true, vowelFmt, consonantCase);
+                            
+                            let selectedText = variations[0].text;
+                            const hasFlagCheck = variations.some(v => v.flagCount > 0);
+                            
+                            if (hasFlagCheck) {
+                                td.classList.add('bg-blue-50', 'hover:bg-blue-100');
+                            } else {
+                                td.classList.add('hover:bg-gray-50');
+                            }
+                            
+                            let isExpanded = false;
+                            
+                            const cellContainer = document.createElement('div');
+                            cellContainer.className = 'word-container';
+
+                            const textSpan = document.createElement('span');
+                            textSpan.className = 'cursor-pointer transition-colors duration-200 select-none inline-block';
+                            
+                            if (variations.length > 1) {
+                                textSpan.classList.add('border-b', 'border-dashed', 'border-blue-400', 'pb-0.5');
+                            }
+                            textSpan.textContent = selectedText;
+                            
+                            const updateExpandDisplay = () => {
+                                let romajiStr = "";
+                                if (hira === 'っ') {
+                                    romajiStr = romajiStyle === 'typing' ? 'tt' : 'xtu'; 
+                                } else {
+                                    romajiStr = getRomaji(hira, romajiStyle);
+                                }
+
+                                if (isExpanded) {
+                                    const hasFlag = /[\uD83C][\uDDE6-\uDDFF]/.test(selectedText);
+                                    if (hasFlag) {
+                                        textSpan.textContent = `${selectedText} = ${kana}(${romajiStr})`;
+                                    } else {
+                                        textSpan.textContent = `${kana} = ${romajiStr}`;
+                                    }
+                                    textSpan.classList.add('text-blue-700', 'bg-blue-100', 'rounded', 'px-1', 'font-medium', 'whitespace-nowrap');
+                                    textSpan.classList.remove('border-b', 'border-dashed', 'border-blue-400', 'pb-0.5');
+                                } else {
+                                    textSpan.textContent = selectedText;
+                                    textSpan.classList.remove('text-blue-700', 'bg-blue-100', 'rounded', 'px-1', 'font-medium', 'whitespace-nowrap');
+                                    if (variations.length > 1) {
+                                        textSpan.classList.add('border-b', 'border-dashed', 'border-blue-400', 'pb-0.5');
+                                    }
+                                }
+                            };
+
+                            const dropdown = document.createElement('div');
+                            if (variations.length > 1) {
+                                dropdown.className = 'dropdown shadow-xl border border-gray-200 z-50';
+                                variations.forEach(v => {
+                                    const item = document.createElement('div');
+                                    item.className = 'dropdown-item flag-text text-left text-sm whitespace-nowrap';
+                                    item.textContent = v.text;
+                                    item.addEventListener('click', (e) => {
+                                        e.stopPropagation();
+                                        selectedText = v.text;
+                                        isExpanded = false; 
+                                        updateExpandDisplay();
+                                        cellContainer.classList.remove('active');
+                                    });
+                                    dropdown.appendChild(item);
+                                });
+                                cellContainer.appendChild(dropdown);
+                            }
+
+                            textSpan.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                const wasActive = cellContainer.classList.contains('active');
+                                closeAllDropdowns();
+                                
+                                if (variations.length > 1) {
+                                    if (!wasActive) {
+                                        isExpanded = true;
+                                        updateExpandDisplay();
+                                        cellContainer.classList.add('active');
+                                    } else {
+                                        isExpanded = false;
+                                        updateExpandDisplay();
+                                        cellContainer.classList.remove('active');
+                                    }
+                                } else {
+                                    isExpanded = !isExpanded;
+                                    updateExpandDisplay();
+                                }
+                            });
+
+                            cellContainer.appendChild(textSpan);
+                            td.appendChild(cellContainer);
+                        }
+                        tr.appendChild(td);
+                    });
+                    tbody.appendChild(tr);
+                });
+                table.appendChild(tbody);
+                tableWrapper.appendChild(table);
+                container.appendChild(tableWrapper);
+            });
+        }
+
+        function renderKanaTables(scriptType) {
+            currentTableScript = scriptType;
+            createTableHTMLNodes('hepburnTableContainer', scriptType, 'hepburn');
+            createTableHTMLNodes('typingTableContainer', scriptType, 'typing');
+        }
+
+        document.getElementById('showHiraganaBtn').addEventListener('click', (e) => {
+            e.target.classList.add('bg-white', 'shadow-sm', 'text-blue-600');
+            e.target.classList.remove('text-gray-500', 'hover:text-gray-700');
+            const kataBtn = document.getElementById('showKatakanaBtn');
+            kataBtn.classList.remove('bg-white', 'shadow-sm', 'text-blue-600');
+            kataBtn.classList.add('text-gray-500', 'hover:text-gray-700');
+            renderKanaTables('hiragana');
+        });
+
+        document.getElementById('showKatakanaBtn').addEventListener('click', (e) => {
+            e.target.classList.add('bg-white', 'shadow-sm', 'text-blue-600');
+            e.target.classList.remove('text-gray-500', 'hover:text-gray-700');
+            const hiraBtn = document.getElementById('showHiraganaBtn');
+            hiraBtn.classList.remove('bg-white', 'shadow-sm', 'text-blue-600');
+            hiraBtn.classList.add('text-gray-500', 'hover:text-gray-700');
+            renderKanaTables('katakana');
+        });
+
+        document.getElementById('processBtn').addEventListener('click', () => {
+            processAtras();
+            renderKanaTables(currentTableScript);
+        });
+        
+        document.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(el => {
+            el.addEventListener('change', () => {
+                processAtras();
+                renderKanaTables(currentTableScript);
+            });
+        });
+
+        document.addEventListener('click', closeAllDropdowns);
+
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const out = document.getElementById('finalText');
+            out.select();
+            document.execCommand('copy');
+            const btn = document.getElementById('copyBtn');
+            const orig = btn.innerText;
+            btn.innerText = "コピーしました！";
+            btn.classList.replace('bg-green-600', 'bg-teal-600');
+            setTimeout(() => {
+                btn.innerText = orig;
+                btn.classList.replace('bg-teal-600', 'bg-green-600');
+            }, 2000);
+        });
+
+        processAtras();
+        renderKanaTables('hiragana');
+    </script>
+</body>
+</html>
