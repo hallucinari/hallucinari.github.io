@@ -176,11 +176,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
             <div class="flex flex-col">
                 <label for="inputText" class="block text-sm font-semibold text-gray-700 mb-2">入力テキスト:</label>
-                <textarea id="inputText" rows="6" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-lg flex-grow" placeholder="文章を入力してください">ない
-知ってた
-ひでり
-マカロン
-シルエット</textarea>
+                <textarea id="inputText" rows="6" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-lg flex-grow" placeholder="文章を入力してください"></textarea>
             </div>
             
             <div class="flex flex-col h-full space-y-4">
@@ -233,6 +229,17 @@
     </div>
 
     <script>
+        const sampleTexts = [
+            "やすいたくらみ おとしあな\nよきせぬふかさに つちをほる\nそこのまわり ひろめても\nうえへはゆけん ねむれ",
+            "へい ろりこんたち きけよ ひまなら やすみを あわせ もうふ ほして ぬるめの おゆに つかれ そとは さむくねえ ゐゑ",
+            "いろはにほへと ちりぬるを わかよたれそ つねならむ うゐのおくやま けふこえて あさきゆめみし ゑひもせす",
+            "ぞうさん、ぞうさん、\nおはなが、ながいのね。\nそうよ、かあさんも、\nながいのよ",
+            "をりとりてはらりとおもきすすきかな",
+            "吾輩は猫である。名前はまだ無い。どこで生れたかとんと見当がつかぬ。何でも薄暗いじめじめした所でニャーニャー泣いていた事だけは記憶している。吾輩はここで始めて人間というものを見た。",
+            "雀の子そこのけそこのけお馬が通る",
+            "そうかそうかつまり君はそんなやつなんだな"
+        ];
+
         const cctldFlags = {
             "ac": "🇦🇨", "ad": "🇦🇩", "ae": "🇦🇪", "af": "🇦🇫", "ag": "🇦🇬", "ai": "🇦🇮", "al": "🇦🇱", "am": "🇦🇲", "ao": "🇦🇴", "aq": "🇦🇶", "ar": "🇦🇷", "as": "🇦🇸", "at": "🇦🇹", "au": "🇦🇺", "aw": "🇦🇼", "ax": "🇦🇽", "az": "🇦🇿",
             "ba": "🇧🇦", "bb": "🇧🇧", "bd": "🇧🇩", "be": "🇧🇪", "bf": "🇧🇫", "bg": "🇧🇬", "bh": "🇧🇭", "bi": "🇧🇮", "bj": "🇧🇯", "bm": "🇧🇲", "bn": "🇧🇳", "bo": "🇧🇴", "br": "🇧🇷", "bs": "🇧🇸", "bt": "🇧🇹", "bw": "🇧🇼", "by": "🇧🇾", "bz": "🇧🇿",
@@ -258,8 +265,7 @@
             "va": "🇻🇦", "vc": "🇻🇨", "ve": "🇻🇪", "vg": "🇻🇬", "vi": "🇻🇮", "vn": "🇻🇳", "vu": "🇻🇺",
             "wf": "🇼🇫", "ws": "🇼🇸",
             "ye": "🇾🇪", "yt": "🇾🇹",
-            "za": "🇿🇦", "zm": "🇿🇲", "zw": "🇿🇼",
-            "tt": "🇹🇹" 
+            "za": "🇿🇦", "zm": "🇿🇲", "zw": "🇿🇼"
         };
 
         const hiraganaMap = {
@@ -272,7 +278,7 @@
             "ま":"ma","み":"mi","む":"mu","め":"me","も":"mo",
             "や":"ya","ゆ":"yu","よ":"yo",
             "ら":"ra","り":"ri","る":"ru","れ":"re","ろ":"ro",
-            "わ":"wa","ゐ":"wi","ゑ":"we","を":"wo","ん":"nn",
+            "わ":"wa","ゐ":"wi","ゑ":"we","を":"wo","ん":"n",
             "が":"ga","ぎ":"gi","ぐ":"gu","げ":"ge","ご":"go",
             "ざ":"za","じ":"ji","ず":"zu","ぜ":"ze","ぞ":"zo",
             "だ":"da","ぢ":"ji","づ":"zu","で":"de","ど":"do",
@@ -300,7 +306,7 @@
             "しゃ":"sya", "しゅ":"syu", "しょ":"syo", "ちゃ":"tya", "ちゅ":"tyu", "ちょ":"tyo",
             "じゃ":"zya", "じゅ":"zyu", "じょ":"zyo",
             "ぢゃ":"dya", "ぢゅ":"dyu", "ぢょ":"dyo", "を":"wo",
-            "っ":"tt" 
+            "ん":"nn", "っ":"tt"
         };
 
         const gojuonGroups = [
@@ -313,7 +319,7 @@
                     ['い', 'き', 'し', 'ち', 'に', 'ひ', 'み', '', 'り', 'ゐ', ''],
                     ['う', 'く', 'す', 'つ', 'ぬ', 'ふ', 'む', 'ゆ', 'る', '', ''],
                     ['え', 'け', 'せ', 'て', 'ね', 'へ', 'め', '', 'れ', 'ゑ', ''],
-                    ['お', 'こ', 'そ', 'と', 'の', 'ほ', 'も', 'よ', 'ろ', 'を', '']
+                    ['お', 'こ', 'そ', 'と', 'の', 'ほ', 'も', 'よ', 'ろ', 'を', 'ん']
                 ]
             },
             {
@@ -419,44 +425,53 @@
 
         function getPaths(nodes, allowVowel, allowConsonant, isModeB) {
             let memo = {};
-            function search(idx) {
+            function search(idx, nonExactCount) {
                 if (idx === nodes.length) return [[]];
-                if (memo[idx]) return memo[idx];
+                const key = `${idx}_${nonExactCount}`;
+                if (memo[key]) return memo[key];
 
                 let res = [];
 
+                // 1. 国旗置換 (2文字)
                 if (idx + 1 < nodes.length) {
                     let pair = nodes[idx].char + nodes[idx+1].char;
                     if (cctldFlags[pair]) {
                         let isExactMatch = (nodes[idx].isStart && nodes[idx].romajiLen === 2);
-                        if (isModeB || isExactMatch || allowVowel || allowConsonant) {
-                            let subPaths = search(idx + 2);
-                            for (let p of subPaths) {
-                                res.push([{type: 'flag', text: cctldFlags[pair], exact: isExactMatch}].concat(p));
+                        let nextNonExact = isExactMatch ? nonExactCount : nonExactCount + 1;
+
+                        if (isModeB || nextNonExact <= 1) {
+                            if (isModeB || isExactMatch || allowVowel || allowConsonant) {
+                                let subPaths = search(idx + 2, nextNonExact);
+                                for (let p of subPaths) {
+                                    res.push([{type: 'flag', text: cctldFlags[pair], exact: isExactMatch}].concat(p));
+                                }
                             }
                         }
                     }
                 }
 
+                // 2. かなスキップ (元の文字を残す)
                 if (nodes[idx].isStart) {
                     let len = nodes[idx].romajiLen;
-                    let subPaths = search(idx + len);
+                    let subPaths = search(idx + len, nonExactCount);
                     for (let p of subPaths) {
                         res.push([{type: 'kana', text: nodes[idx].kana}].concat(p));
                     }
                 }
 
-                if (allowVowel && /[aiueo]/.test(nodes[idx].char)) {
-                    let subPaths = search(idx + 1);
+                // 3. 子音残し (拗音で子音+国旗の結合を優先させるため母音残しより先に探索)
+                if (allowConsonant && !/[aiueo]/.test(nodes[idx].char)) {
+                    let subPaths = search(idx + 1, nonExactCount);
                     for (let p of subPaths) {
-                        res.push([{type: 'vowel', text: nodes[idx].char}].concat(p));
+                        res.push([{type: 'consonant', text: nodes[idx].char}].concat(p));
                     }
                 }
 
-                if (allowConsonant && !/[aiueo]/.test(nodes[idx].char)) {
-                    let subPaths = search(idx + 1);
+                // 4. 母音残し
+                if (allowVowel && /[aiueo]/.test(nodes[idx].char)) {
+                    let subPaths = search(idx + 1, nonExactCount);
                     for (let p of subPaths) {
-                        res.push([{type: 'consonant', text: nodes[idx].char}].concat(p));
+                        res.push([{type: 'vowel', text: nodes[idx].char}].concat(p));
                     }
                 }
 
@@ -467,10 +482,10 @@
                     return a.length - b.length;
                 });
                 
-                memo[idx] = res.slice(0, 100); 
-                return memo[idx];
+                memo[key] = res.slice(0, 50); 
+                return memo[key];
             }
-            return search(0);
+            return search(0, 0);
         }
 
         function getChunkVariations(chunk, script, romajiStyle, isModeB, rule2On, rule3On, vowelFmt, consonantCase) {
@@ -552,6 +567,7 @@
                     if (b.flagCount !== a.flagCount) return b.flagCount - a.flagCount;
                     if (b.exactFlagCount !== a.exactFlagCount) return b.exactFlagCount - a.exactFlagCount;
                     
+                    // 拗音等でより完全なフラグ化を優先（残余子音が1文字で母音残しがない形を優先）
                     let aStray = a.consonantCount + a.vowelCount;
                     let bStray = b.consonantCount + b.vowelCount;
                     return aStray - bStray;
@@ -646,7 +662,7 @@
                 rule2.disabled = false;
                 rule3.disabled = false;
                 document.getElementById('modeBContainer').classList.replace('border-blue-300', 'border-gray-200');
-                document.getElementById('modeBContainer').classList.replace('border-2', 'border');
+                document.getElementById('modeBContainer').classList.replace('border', 'border-2');
                 document.getElementById('modeBContainer').classList.replace('bg-gray-50/50', 'bg-blue-50/40');
                 
                 document.getElementById('modeAContainer').classList.replace('border-gray-200', 'border-blue-300');
@@ -799,16 +815,9 @@
                             }
                             
                             let isExpanded = false;
-                            
-                            const cellContainer = document.createElement('div');
-                            cellContainer.className = 'word-container';
 
                             const textSpan = document.createElement('span');
                             textSpan.className = 'cursor-pointer transition-colors duration-200 select-none inline-block';
-                            
-                            if (variations.length > 1) {
-                                textSpan.classList.add('border-b', 'border-dashed', 'border-blue-400', 'pb-0.5');
-                            }
                             textSpan.textContent = selectedText;
                             
                             const updateExpandDisplay = () => {
@@ -827,58 +836,19 @@
                                         textSpan.textContent = `${kana} = ${romajiStr}`;
                                     }
                                     textSpan.classList.add('text-blue-700', 'bg-blue-100', 'rounded', 'px-1', 'font-medium', 'whitespace-nowrap');
-                                    textSpan.classList.remove('border-b', 'border-dashed', 'border-blue-400', 'pb-0.5');
                                 } else {
                                     textSpan.textContent = selectedText;
                                     textSpan.classList.remove('text-blue-700', 'bg-blue-100', 'rounded', 'px-1', 'font-medium', 'whitespace-nowrap');
-                                    if (variations.length > 1) {
-                                        textSpan.classList.add('border-b', 'border-dashed', 'border-blue-400', 'pb-0.5');
-                                    }
                                 }
                             };
 
-                            const dropdown = document.createElement('div');
-                            if (variations.length > 1) {
-                                dropdown.className = 'dropdown shadow-xl border border-gray-200 z-50';
-                                variations.forEach(v => {
-                                    const item = document.createElement('div');
-                                    item.className = 'dropdown-item flag-text text-left text-sm whitespace-nowrap';
-                                    item.textContent = v.text;
-                                    item.addEventListener('click', (e) => {
-                                        e.stopPropagation();
-                                        selectedText = v.text;
-                                        isExpanded = false; 
-                                        updateExpandDisplay();
-                                        cellContainer.classList.remove('active');
-                                    });
-                                    dropdown.appendChild(item);
-                                });
-                                cellContainer.appendChild(dropdown);
-                            }
-
                             textSpan.addEventListener('click', (e) => {
                                 e.stopPropagation();
-                                const wasActive = cellContainer.classList.contains('active');
-                                closeAllDropdowns();
-                                
-                                if (variations.length > 1) {
-                                    if (!wasActive) {
-                                        isExpanded = true;
-                                        updateExpandDisplay();
-                                        cellContainer.classList.add('active');
-                                    } else {
-                                        isExpanded = false;
-                                        updateExpandDisplay();
-                                        cellContainer.classList.remove('active');
-                                    }
-                                } else {
-                                    isExpanded = !isExpanded;
-                                    updateExpandDisplay();
-                                }
+                                isExpanded = !isExpanded;
+                                updateExpandDisplay();
                             });
 
-                            cellContainer.appendChild(textSpan);
-                            td.appendChild(cellContainer);
+                            td.appendChild(textSpan);
                         }
                         tr.appendChild(td);
                     });
@@ -941,6 +911,9 @@
                 btn.classList.replace('bg-teal-600', 'bg-green-600');
             }, 2000);
         });
+
+        const randomSample = sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
+        document.getElementById('inputText').value = randomSample;
 
         processAtras();
         renderKanaTables('hiragana');
