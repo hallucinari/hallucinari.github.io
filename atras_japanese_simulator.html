@@ -54,46 +54,48 @@
             <h2 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">置換ルール</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- モードA: 基本・アクセント -->
                 <div class="border-2 border-blue-300 bg-blue-50/40 rounded-lg p-4 relative transition-colors duration-300" id="modeAContainer">
                     <label class="flex items-start cursor-pointer mb-3">
                         <input type="radio" name="mainMode" value="A" class="form-radio h-5 w-5 text-blue-600 mt-0.5" checked>
-                        <span class="ml-3 text-md font-bold text-gray-800">基本置換</span>
+                        <span class="ml-3 text-md font-bold text-gray-800">基本・アクセント (ルール1〜3)</span>
                     </label>
                     <hr class="my-3 border-blue-200">
                     <div class="space-y-3 pl-8">
                         <label class="flex items-start opacity-80 cursor-not-allowed">
                             <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600 mt-0.5" checked disabled>
                             <span class="ml-2 text-sm text-gray-800 leading-tight">
-                                <strong class="block text-gray-900 mb-0.5">1:完全一致 (必須)</strong>
-                                モーラがccTLDと一致する場合のみ置換
+                                <strong class="block text-gray-900 mb-0.5">ルール1: 完全一致 (必須)</strong>
+                                モーラがccTLDと一致する場合に置換（最優先）。
                             </span>
                         </label>
                         <label class="flex items-start cursor-pointer transition-opacity duration-300 hover:bg-blue-100/50 p-1 rounded -ml-1" id="rule2Label">
                             <input type="checkbox" id="rule2" class="form-checkbox h-4 w-4 text-blue-600 mt-0.5" checked>
                             <span class="ml-2 text-sm text-gray-800 leading-tight">
-                                <strong class="block text-gray-900 mb-0.5">2:母音残し(任意)</strong>
-                                フラグ化できなかった部分の母音を残す
+                                <strong class="block text-gray-900 mb-0.5">ルール2: 母音残し (アクセント)</strong>
+                                フラグ化できなかった部分の母音を残す。
                             </span>
                         </label>
                         <label class="flex items-start cursor-pointer transition-opacity duration-300 hover:bg-blue-100/50 p-1 rounded -ml-1" id="rule3Label">
                             <input type="checkbox" id="rule3" class="form-checkbox h-4 w-4 text-blue-600 mt-0.5" checked>
                             <span class="ml-2 text-sm text-gray-800 leading-tight">
-                                <strong class="block text-gray-900 mb-0.5">3:子音残し(任意)</strong>
-                                子音を残し最大1回(2モーラ)まで置換
+                                <strong class="block text-gray-900 mb-0.5">ルール3: 子音残し (アクセント)</strong>
+                                子音を残し、最大1回(2モーラ)まで置換。
                             </span>
                         </label>
                     </div>
                 </div>
 
+                <!-- モードB: 強制フル置換 -->
                 <div class="border border-gray-200 bg-gray-50/50 rounded-lg p-4 relative transition-colors duration-300 hover:bg-gray-100/50" id="modeBContainer">
                     <label class="flex items-start cursor-pointer mb-3">
                         <input type="radio" name="mainMode" value="B" class="form-radio h-5 w-5 text-blue-600 mt-0.5">
-                        <span class="ml-3 text-md font-bold text-gray-800">フル置換</span>
+                        <span class="ml-3 text-md font-bold text-gray-800">強制フル置換 (ルール4)</span>
                     </label>
                     <hr class="my-3 border-gray-200">
                     <p class="pl-8 text-sm text-gray-600 leading-relaxed">
                         <strong class="block text-gray-900 mb-1">制約無視・最大フラグ化</strong>
-                        基本ルール1-3の上限を無視し、絵文字国旗化できる全組み合わせを置換
+                        ルール1〜3の上限や優先度を無視し、フラグ化できる全組み合わせを置換。多数のラテン文字が残存します。
                     </p>
                 </div>
             </div>
@@ -162,11 +164,11 @@
                     <div class="flex flex-wrap gap-4">
                         <label class="inline-flex items-center cursor-pointer">
                             <input type="radio" name="consonantCase" value="upper" class="form-radio h-4 w-4 text-blue-600">
-                            <span class="ml-2 text-sm text-gray-700">大文字</span>
+                            <span class="ml-2 text-sm text-gray-700">大文字 (N🇦🇮)</span>
                         </label>
                         <label class="inline-flex items-center cursor-pointer">
                             <input type="radio" name="consonantCase" value="lower" class="form-radio h-4 w-4 text-blue-600" checked>
-                            <span class="ml-2 text-sm text-gray-700">小文字</span>
+                            <span class="ml-2 text-sm text-gray-700">小文字 (n🇦🇮)</span>
                         </label>
                     </div>
                 </div>
@@ -176,9 +178,10 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
             <div class="flex flex-col">
                 <label for="inputText" class="block text-sm font-semibold text-gray-700 mb-2">入力テキスト:</label>
-                <textarea id="inputText" rows="6" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-lg flex-grow" placeholder="文章を入力してください">知ってた
+                <textarea id="inputText" rows="6" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-lg flex-grow" placeholder="文章を入力してください">ない
+知ってた
 ひでり
-トワイライト
+マカロン
 シルエット</textarea>
                 <div class="mt-3 flex justify-end">
                     <button id="processBtn" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition font-semibold shadow-sm">置換を実行</button>
@@ -419,58 +422,60 @@
             return nodes;
         }
 
-        function getPathsMemo(nodes, allowVowel, allowConsonant, isModeB) {
+        function getPaths(nodes, allowVowel, allowConsonant, isModeB) {
             let memo = {};
             function search(idx) {
-                if (idx === nodes.length) return { cost: 0, paths: [[]] };
+                if (idx === nodes.length) return [[]];
                 if (memo[idx]) return memo[idx];
 
-                let bestCost = Infinity;
-                let bestPaths = [];
-
-                function evaluate(tokenCost, token, nextIdx) {
-                    let nextRes = search(nextIdx);
-                    if (nextRes.cost === Infinity) return;
-                    let totalCost = tokenCost + nextRes.cost;
-                    if (totalCost < bestCost) {
-                        bestCost = totalCost;
-                        bestPaths = nextRes.paths.map(p => [token, ...p]).slice(0, 15);
-                    } else if (totalCost === bestCost) {
-                        if (bestPaths.length < 15) {
-                            let newPaths = nextRes.paths.map(p => [token, ...p]);
-                            bestPaths.push(...newPaths);
-                            if (bestPaths.length > 15) bestPaths.length = 15;
-                        }
-                    }
-                }
+                let res = [];
 
                 if (idx + 1 < nodes.length) {
                     let pair = nodes[idx].char + nodes[idx+1].char;
                     if (cctldFlags[pair]) {
-                        let isMoraMatch = (nodes[idx].isStart && nodes[idx].romajiLen === 2);
-                        if (isModeB || isMoraMatch || allowVowel || allowConsonant) {
-                            evaluate(-10000, {type: 'flag', text: cctldFlags[pair]}, idx + 2);
+                        let isExactMatch = (nodes[idx].isStart && nodes[idx].romajiLen === 2);
+                        if (isModeB || isExactMatch || allowVowel || allowConsonant) {
+                            let subPaths = search(idx + 2);
+                            for (let p of subPaths) {
+                                res.push([{type: 'flag', text: cctldFlags[pair], exact: isExactMatch}].concat(p));
+                            }
                         }
                     }
                 }
 
                 if (nodes[idx].isStart) {
                     let len = nodes[idx].romajiLen;
-                    evaluate(0, {type: 'kana', text: nodes[idx].kana}, idx + len);
+                    let subPaths = search(idx + len);
+                    for (let p of subPaths) {
+                        res.push([{type: 'kana', text: nodes[idx].kana}].concat(p));
+                    }
                 }
 
                 if (allowVowel && /[aiueo]/.test(nodes[idx].char)) {
-                    evaluate(10, {type: 'vowel', text: nodes[idx].char}, idx + 1);
+                    let subPaths = search(idx + 1);
+                    for (let p of subPaths) {
+                        res.push([{type: 'vowel', text: nodes[idx].char}].concat(p));
+                    }
                 }
 
                 if (allowConsonant && !/[aiueo]/.test(nodes[idx].char)) {
-                    evaluate(10, {type: 'consonant', text: nodes[idx].char}, idx + 1);
+                    let subPaths = search(idx + 1);
+                    for (let p of subPaths) {
+                        res.push([{type: 'consonant', text: nodes[idx].char}].concat(p));
+                    }
                 }
 
-                memo[idx] = { cost: bestCost, paths: bestPaths };
+                res.sort((a, b) => {
+                    let aFlags = a.filter(t => t.type === 'flag').length;
+                    let bFlags = b.filter(t => t.type === 'flag').length;
+                    if (aFlags !== bFlags) return bFlags - aFlags;
+                    return a.length - b.length;
+                });
+                
+                memo[idx] = res.slice(0, 100); 
                 return memo[idx];
             }
-            return search(0).paths;
+            return search(0);
         }
 
         function getChunkVariations(chunk, script, romajiStyle, isModeB, rule2On, rule3On, vowelFmt, consonantCase) {
@@ -488,24 +493,32 @@
                         resultStr += chunk[i];
                     }
                 }
-                return [{ text: resultStr, flagCount: 0, consonantCount: 0, vowelCount: 0 }];
+                return [{ text: resultStr, flagCount: 0, exactFlagCount: 0, consonantCount: 0, vowelCount: 0 }];
             }
 
             let nodes = getNodes(chunk, script, romajiStyle);
-            let paths = getPathsMemo(nodes, allowVowel, allowConsonant, isModeB);
+            let rawPaths = getPaths(nodes, allowVowel, allowConsonant, isModeB);
+            
             let validVariations = [];
             let seen = new Set();
 
-            for (let path of paths) {
+            for (let path of rawPaths) {
                 let resultStr = "";
                 let hasConsonant = false;
+                let flagCount = 0;
+                let exactFlagCount = 0;
+                let vowelCount = 0;
+                let consCount = 0;
 
                 for (let token of path) {
                     if (token.type === 'flag') {
                         resultStr += token.text;
+                        flagCount++;
+                        if (token.exact) exactFlagCount++;
                     } else if (token.type === 'kana') {
                         resultStr += token.text;
                     } else if (token.type === 'vowel') {
+                        vowelCount++;
                         if (script === 'alpha') {
                             resultStr += token.text; 
                         } else {
@@ -513,44 +526,40 @@
                         }
                     } else if (token.type === 'consonant') {
                         hasConsonant = true;
-                        let c = token.text;
-                        resultStr += (consonantCase === 'upper') ? c.toUpperCase() : c.toLowerCase();
+                        consCount++;
+                        resultStr += (consonantCase === 'upper') ? token.text.toUpperCase() : token.text.toLowerCase();
                     }
                 }
 
-                if (!isModeB && rule2On && !rule3On && hasConsonant) continue;
-                
-                let flagCount = path.filter(t => t.type === 'flag').length;
-                if (!isModeB && hasConsonant && flagCount > 1) continue;
+                if (!isModeB) {
+                    if (rule2On && !rule3On && hasConsonant) continue;
+                    if (hasConsonant && flagCount > 1) continue;
+                }
+
+                if (flagCount === 0 && resultStr !== chunk) continue;
 
                 if (!seen.has(resultStr)) {
                     validVariations.push({
                         text: resultStr,
-                        flagCount: flagCount,
-                        consonantCount: path.filter(t => t.type === 'consonant').length,
-                        vowelCount: path.filter(t => t.type === 'vowel').length
+                        flagCount,
+                        exactFlagCount,
+                        consonantCount: consCount,
+                        vowelCount
                     });
                     seen.add(resultStr);
                 }
             }
 
-            if (validVariations.length > 0) {
-                let maxFlags = Math.max(...validVariations.map(v => v.flagCount));
-                if (maxFlags > 0) {
-                    validVariations = validVariations.filter(v => v.flagCount === maxFlags);
-                } else {
-                    validVariations = [];
-                }
-            }
-
             if (validVariations.length === 0) {
-                validVariations.push({ text: chunk, flagCount: 0, consonantCount: 0, vowelCount: 0 });
+                validVariations.push({ text: chunk, flagCount: 0, exactFlagCount: 0, consonantCount: 0, vowelCount: 0 });
             } else {
                 validVariations.sort((a, b) => {
                     if (b.flagCount !== a.flagCount) return b.flagCount - a.flagCount;
-                    let aComp = a.consonantCount + a.vowelCount;
-                    let bComp = b.consonantCount + b.vowelCount;
-                    return aComp - bComp;
+                    if (b.exactFlagCount !== a.exactFlagCount) return b.exactFlagCount - a.exactFlagCount;
+                    
+                    let aStray = a.consonantCount + a.vowelCount;
+                    let bStray = b.consonantCount + b.vowelCount;
+                    return aStray - bStray;
                 });
             }
 
@@ -783,7 +792,7 @@
                                 hira.replace(/[\u3041-\u3096]/g, match => String.fromCharCode(match.charCodeAt(0) + 0x60)) 
                                 : hira;
                             
-                            let variations = getChunkVariations(kana, scriptType === 'katakana' ? 'katakana' : 'hiragana', romajiStyle, true, true, true, vowelFmt, consonantCase);
+                            let variations = getChunkVariations(kana, scriptType === 'katakana' ? 'katakana' : 'hiragana', romajiStyle, isModeB, rule2On, rule3On, vowelFmt, consonantCase);
                             
                             let selectedText = variations[0].text;
                             const hasFlagCheck = variations.some(v => v.flagCount > 0);
