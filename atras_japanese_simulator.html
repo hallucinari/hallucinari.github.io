@@ -533,7 +533,8 @@
 
                 if (!isModeB) {
                     if (rule2On && !rule3On && hasConsonant) continue;
-                    if (hasConsonant && flagCount > 1) continue;
+                    // 非完全一致のフラグ（子音残し等で作られたもの）が複数できるパスは弾く
+                    if (hasConsonant && (flagCount - exactFlagCount) > 1) continue;
                 }
 
                 if (flagCount === 0 && resultStr !== chunk) continue;
@@ -652,7 +653,7 @@
                 rule3.disabled = false;
                 document.getElementById('modeBContainer').classList.replace('border-blue-300', 'border-gray-200');
                 document.getElementById('modeBContainer').classList.replace('border-2', 'border');
-                document.getElementById('modeBContainer').classList.replace('bg-blue-50/40', 'bg-gray-50/50');
+                document.getElementById('modeBContainer').classList.replace('bg-gray-50/50', 'bg-blue-50/40');
                 
                 document.getElementById('modeAContainer').classList.replace('border-gray-200', 'border-blue-300');
                 document.getElementById('modeAContainer').classList.replace('border', 'border-2');
