@@ -3,16 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Portfolio</title>
-
+    <title>Slavic ATRAS Cyrillic Simulator</title>
     <link rel="icon" type="image/png" href="favicon.png">
-
-    <style>
-</head>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATRAS Slavic Cyrillic Simulator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f3f4f6; }
@@ -70,7 +62,7 @@
         .lang-option:hover { background-color: #f3f4f6; color: #111827; }
         .lang-option.selected { background-color: #eff6ff; color: #1d4ed8; font-weight: 600; }
     </style>
-</>
+</head>
 <body class="min-h-screen p-4 md:p-8 text-gray-800 flex flex-col items-center">
 
     <div class="w-full max-w-6xl flex justify-between items-center mb-4">
@@ -102,7 +94,7 @@
     </div>
 
     <div class="w-full max-w-6xl bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8">
-        <h1 class="text-3xl font-bold mb-2 text-center text-blue-600" data-i18n="appTitle">ATRAS Slavic Cyrillic Simulator</h1>
+        <h1 class="text-3xl font-bold mb-2 text-center text-blue-600" data-i18n="appTitle">Slavic ATRAS Cyrillic Simulator</h1>
         <p class="text-center text-gray-500 mb-8" data-i18n="subtitle">スラブ諸語のキリル文字に特化したccTLD文章置換エンジン</p>
 
         <div class="bg-indigo-50 border border-indigo-100 p-5 rounded-lg mb-6">
@@ -111,7 +103,7 @@
                 <div class="flex flex-col w-full sm:w-1/2">
                     <label class="text-sm font-medium text-gray-700 mb-1" data-i18n="selectLangLbl">1. 対象言語</label>
                     <select id="targetLang" class="rule-select">
-                        <option value="all" data-i18n-opt="lang_all">すべて</option>
+                        <option value="all" data-i18n-opt="lang_all">すべて (All Slavic)</option>
                         <option value="ru" data-i18n-opt="lang_ru">ロシア語 (Russian)</option>
                         <option value="uk" data-i18n-opt="lang_uk">ウクライナ語 (Ukrainian)</option>
                         <option value="be" data-i18n-opt="lang_be">ベラルーシ語 (Belarusian)</option>
@@ -129,6 +121,17 @@
                     </select>
                 </div>
             </div>
+            <div class="flex flex-wrap gap-3 mt-4 pt-4 border-t border-indigo-200">
+                <button id="preset-alalc" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition shadow-sm" data-i18n="meth_0">
+                    英米式 / ALA-LC (視覚的隔離を優先)
+                </button>
+                <button id="preset-iso9" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition shadow-sm" data-i18n="meth_1">
+                    学術式 / ISO 9 (j系・c系の統一)
+                </button>
+                <button id="preset-chain" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition shadow-sm" data-i18n="meth_2">
+                    単音化 / 結合優先 (連鎖の最大化)
+                </button>
+            </div>
         </div>
 
         <div class="bg-gray-50 p-5 rounded-lg border border-gray-200 mb-6">
@@ -142,7 +145,7 @@
             <h2 class="text-lg font-semibold text-gray-700 mb-2" data-i18n="tableTitle">リアルタイム変換確認表</h2>
             <div class="overflow-x-auto">
                 <table id="status-table">
-                    <t>
+                    <thead>
                         <tr>
                             <th data-i18n="tableH1">キリル文字</th>
                             <th data-i18n="tableH2">現在の設定</th>
@@ -160,9 +163,6 @@
         <div class="mb-6">
             <label for="inputText" class="block text-sm font-medium text-gray-700 mb-2" data-i18n="inputLabel">入力テキスト (キリル文字):</label>
             <textarea id="inputText" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-lg" placeholder="文章を入力してください" data-i18n-placeholder="inputPlaceholder"></textarea>
-            <div class="mt-3 flex justify-end">
-                <button id="processBtn" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition font-semibold shadow-sm" data-i18n="processBtn">国旗(ccTLD)へ置換を実行</button>
-            </div>
         </div>
 
         <div class="mb-6">
@@ -182,14 +182,14 @@
     <script>
         const translations = {
             ja: {
-                appTitle: "ATRAS Slavic Cyrillic Simulator",
+                appTitle: "Slavic ATRAS Cyrillic Simulator",
                 backBtn: "戻る",
                 subtitle: "スラブ諸語のキリル文字に特化したccTLD文章置換エンジン",
                 presetTitle: "一括設定",
                 selectLangLbl: "1. 対象言語",
                 selectMethLbl: "2. 翻字形式",
                 paramTitle: "独自キリル文字のラテン文字翻字パターン設定",
-                lang_all: "すべて", lang_ru: "ロシア語", lang_uk: "ウクライナ語", lang_be: "ベラルーシ語", lang_bg: "ブルガリア語", lang_sr: "セルビア語", lang_mk: "マケドニア語",
+                lang_all: "すべて (All Slavic)", lang_ru: "ロシア語", lang_uk: "ウクライナ語", lang_be: "ベラルーシ語", lang_bg: "ブルガリア語", lang_sr: "セルビア語", lang_mk: "マケドニア語",
                 meth_0: "英米式 / ALA-LC (視覚的隔離を優先)", meth_1: "学術式 / ISO 9 (j系・c系の統一)", meth_2: "単音化 / 結合優先 (連鎖の最大化)",
                 o_shch_0: "shch (ALA-LC: 4文字)", o_shch_1: "sc (ISO 9: 2文字)", o_shch_2: "ss (純粋音韻: 2文字)", o_shch_3: "st (ブルガリア音韻: 2文字)",
                 o_ch_0: "ch (ALA-LC: 2文字)", o_ch_1: "cz (ポーランド風: 2文字)", o_ch_2: "c (ISO 9: 1文字)",
@@ -217,7 +217,6 @@
                 tableH1: "キリル文字", tableH2: "現在の設定", tableH3: "文字数", tableH4: "対応ccTLD", tableH5: "処理結果",
                 inputLabel: "入力テキスト:",
                 inputPlaceholder: "文章を入力してください",
-                processBtn: "国旗(ccTLD)へ置換を実行",
                 resultLabel: "結果 (破線の下線をクリックしてバリエーションを選択可能):",
                 outputLabel: "最終出力テキスト:",
                 copyBtn: "テキストをコピー",
@@ -226,12 +225,12 @@
                 none: "なし", chars: "文字"
             },
             en: {
-                appTitle: "ATRAS Slavic Cyrillic Simulator", backBtn: "Back",
+                appTitle: "Slavic ATRAS Cyrillic Simulator", backBtn: "Back",
                 subtitle: "ccTLD Replacer specialized for Slavic Cyrillic alphabets",
                 presetTitle: "Quick Presets",
                 selectLangLbl: "1. Target Language", selectMethLbl: "2. Transliteration Format",
                 paramTitle: "Unique Cyrillic Transliteration Settings",
-                lang_all: "All", lang_ru: "Russian", lang_uk: "Ukrainian", lang_be: "Belarusian", lang_bg: "Bulgarian", lang_sr: "Serbian", lang_mk: "Macedonian",
+                lang_all: "All (Pan-Slavic)", lang_ru: "Russian", lang_uk: "Ukrainian", lang_be: "Belarusian", lang_bg: "Bulgarian", lang_sr: "Serbian", lang_mk: "Macedonian",
                 meth_0: "ALA-LC (Prioritize Visual Isolation)", meth_1: "ISO 9 (Unify j/c series)", meth_2: "Single Phoneme (Maximize Chaining)",
                 o_shch_0: "shch (ALA-LC: 4)", o_shch_1: "sc (ISO: 2)", o_shch_2: "ss (Phonetic: 2)", o_shch_3: "st (BG: 2)",
                 o_ch_0: "ch (ALA-LC: 2)", o_ch_1: "cz (Polish: 2)", o_ch_2: "c (ISO: 1)",
@@ -258,12 +257,12 @@
                 tableTitle: "Real-time Conversion Matrix",
                 tableH1: "Cyrillic", tableH2: "Format", tableH3: "Length", tableH4: "ccTLD", tableH5: "Result",
                 inputLabel: "Input Text:", inputPlaceholder: "Enter text here",
-                processBtn: "Generate Flags (ccTLD)", resultLabel: "Result (Click dashed underlines for variations):",
+                resultLabel: "Result (Click dashed underlines for variations):",
                 outputLabel: "Final Output:", copyBtn: "Copy Text", copiedBtn: "Copied!",
                 tbResSingle: "Isolated Flag", tbResKept: "Kept as is (Isolated)", tbResChain: "Ready to chain", none: "None", chars: "chars"
             },
             de: {
-                appTitle: "ATRAS Slavic Cyrillic Simulator", backBtn: "Zurück",
+                appTitle: "Slavic ATRAS Cyrillic Simulator", backBtn: "Zurück",
                 subtitle: "ccTLD-Ersetzer spezialisiert auf slawisch-kyrillische Alphabete",
                 presetTitle: "Schnell-Voreinstellungen",
                 selectLangLbl: "1. Zielsprache", selectMethLbl: "2. Transliterationsformat",
@@ -295,7 +294,7 @@
                 tableTitle: "Echtzeit-Konvertierungsmatrix",
                 tableH1: "Kyrillisch", tableH2: "Format", tableH3: "Länge", tableH4: "ccTLD", tableH5: "Ergebnis",
                 inputLabel: "Eingabetext:", inputPlaceholder: "Text eingeben",
-                processBtn: "Flaggen (ccTLD) generieren", resultLabel: "Ergebnis (Klicken für Varianten):",
+                resultLabel: "Ergebnis (Klicken für Varianten):",
                 outputLabel: "Endgültige Ausgabe:", copyBtn: "Text kopieren", copiedBtn: "Kopiert!",
                 tbResSingle: "Isolierte Flagge", tbResKept: "Beibehalten", tbResChain: "Bereit zur Verkettung", none: "Keine", chars: "Zchn"
             },
@@ -305,7 +304,7 @@
                 presetTitle: "Брзе настройкы",
                 selectLangLbl: "1. Цєлевы ѩзык", selectMethLbl: "2. Метод транслитерациє",
                 paramTitle: "Уникалне настройкы транслитерациє",
-                lang_all: "Всє", lang_ru: "Русскы ѩзык", lang_uk: "Украинскы ѩзык", lang_be: "Бєлорускы ѩзык", lang_bg: "Болгарскы ѩзык", lang_sr: "Србскы ѩзык", lang_mk: "Македонскы ѩзык",
+                lang_all: "Всє (Pan-slavjansky)", lang_ru: "Русскы ѩзык", lang_uk: "Украинскы ѩзык", lang_be: "Бєлорускы ѩзык", lang_bg: "Болгарскы ѩзык", lang_sr: "Србскы ѩзык", lang_mk: "Македонскы ѩзык",
                 meth_0: "ALA-LC (Визуална Изолациѩ)", meth_1: "ISO 9 (Академичны)", meth_2: "Єдин Звук (Максимална Веза)",
                 o_shch_0: "shch (ALA: 4)", o_shch_1: "sc (ISO: 2)", o_shch_2: "ss (Звук: 2)", o_shch_3: "st (BG: 2)",
                 o_ch_0: "ch (ALA: 2)", o_ch_1: "cz (Полскы: 2)", o_ch_2: "c (ISO: 1)",
@@ -332,7 +331,7 @@
                 tableTitle: "Матрица конверсиє",
                 tableH1: "Кирилица", tableH2: "Метод", tableH3: "Долгост", tableH4: "ccTLD", tableH5: "Резултат",
                 inputLabel: "Входны текст:", inputPlaceholder: "Впишите текст",
-                processBtn: "Генерировати флагы", resultLabel: "Резултат:",
+                resultLabel: "Резултат:",
                 outputLabel: "Финалны текст:", copyBtn: "Копировати", copiedBtn: "Скопировано!",
                 tbResSingle: "Флаг", tbResKept: "Оставјено", tbResChain: "Веза", none: "Нич", chars: "зн."
             },
@@ -342,7 +341,7 @@
                 presetTitle: "Brze nastrojky",
                 selectLangLbl: "1. Cělevy język", selectMethLbl: "2. Metod transliteracije",
                 paramTitle: "Unikalne nastrojky transliteracije",
-                lang_all: "Vse", lang_ru: "Russky język", lang_uk: "Ukrainsky język", lang_be: "Bělorusky język", lang_bg: "Bolgarsky język", lang_sr: "Srbsky język", lang_mk: "Makedonsky język",
+                lang_all: "Vse (Pan-slavjansky)", lang_ru: "Russky język", lang_uk: "Ukrainsky język", lang_be: "Bělorusky język", lang_bg: "Bolgarsky język", lang_sr: "Srbsky język", lang_mk: "Makedonsky język",
                 meth_0: "ALA-LC (Vizualna Izolacija)", meth_1: "ISO 9 (Akademičny)", meth_2: "Jedin Zvuk (Maksimalna Veza)",
                 o_shch_0: "shch (ALA: 4)", o_shch_1: "sc (ISO: 2)", o_shch_2: "ss (Zvuk: 2)", o_shch_3: "st (BG: 2)",
                 o_ch_0: "ch (ALA: 2)", o_ch_1: "cz (Polsky: 2)", o_ch_2: "c (ISO: 1)",
@@ -369,7 +368,7 @@
                 tableTitle: "Matrica konversije",
                 tableH1: "Kirilica", tableH2: "Metod", tableH3: "Dolgost", tableH4: "ccTLD", tableH5: "Rezultat",
                 inputLabel: "Vhodny tekst:", inputPlaceholder: "Vpišite tekst",
-                processBtn: "Generirovati flagy", resultLabel: "Rezultat:",
+                resultLabel: "Rezultat:",
                 outputLabel: "Finalny tekst:", copyBtn: "Kopirovati", copiedBtn: "Skopirovano!",
                 tbResSingle: "Flag", tbResKept: "Ostavjeno", tbResChain: "Veza", none: "Nič", chars: "zn."
             }
@@ -468,13 +467,17 @@
                 });
                 
                 select.selectedIndex = method < select.options.length ? method : select.options.length - 1;
-                select.addEventListener('change', updateTable);
+                select.addEventListener('change', () => {
+                    updateTable();
+                    processAtras();
+                });
                 
                 group.appendChild(label);
                 group.appendChild(select);
                 container.appendChild(group);
             });
             updateTable();
+            processAtras();
         }
 
         function updateTable() {
@@ -562,6 +565,20 @@
 
         document.getElementById('targetLang').addEventListener('change', renderSettings);
         document.getElementById('translitMethod').addEventListener('change', renderSettings);
+        document.getElementById('inputText').addEventListener('input', processAtras);
+
+        document.getElementById('preset-alalc').addEventListener('click', () => {
+            document.getElementById('translitMethod').value = "0";
+            renderSettings();
+        });
+        document.getElementById('preset-iso9').addEventListener('click', () => {
+            document.getElementById('translitMethod').value = "1";
+            renderSettings();
+        });
+        document.getElementById('preset-chain').addEventListener('click', () => {
+            document.getElementById('translitMethod').value = "2";
+            renderSettings();
+        });
 
         const langSelectorBtn = document.getElementById('langSelectorBtn');
         const langSelectorContainer = document.getElementById('langSelector');
@@ -756,8 +773,6 @@
             });
             updateFinalText();
         }
-
-        document.getElementById('processBtn').addEventListener('click', processAtras);
 
         document.addEventListener('click', () => {
             document.querySelectorAll('.word-container.active').forEach(c => c.classList.remove('active'));
