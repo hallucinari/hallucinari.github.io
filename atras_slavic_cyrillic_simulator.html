@@ -100,10 +100,10 @@
         <div class="bg-indigo-50 border border-indigo-100 p-5 rounded-lg mb-6">
             <h2 class="text-base font-bold text-indigo-900 mb-3" data-i18n="presetTitle">一括設定</h2>
             <div class="flex flex-col sm:flex-row gap-4">
-                <div class="flex flex-col w-full sm:w-1/2">
+                <div class="flex flex-col w-full sm:w-1/3">
                     <label class="text-sm font-medium text-gray-700 mb-1" data-i18n="selectLangLbl">1. 対象言語</label>
                     <select id="targetLang" class="rule-select">
-                        <option value="all" data-i18n-opt="lang_all">すべて </option>
+                        <option value="all" data-i18n-opt="lang_all">すべて</option>
                         <option value="ru" data-i18n-opt="lang_ru">ロシア語 (Russian)</option>
                         <option value="uk" data-i18n-opt="lang_uk">ウクライナ語 (Ukrainian)</option>
                         <option value="be" data-i18n-opt="lang_be">ベラルーシ語 (Belarusian)</option>
@@ -112,8 +112,17 @@
                         <option value="mk" data-i18n-opt="lang_mk">マケドニア語 (Macedonian)</option>
                     </select>
                 </div>
-                <div class="flex flex-col w-full sm:w-1/2">
-                    <label class="text-sm font-medium text-gray-700 mb-1" data-i18n="selectMethLbl">2. 翻字形式</label>
+                <div class="flex flex-col w-full sm:w-1/3">
+                    <label class="text-sm font-medium text-gray-700 mb-1" data-i18n="selectIdnLbl">2. IDN ccTLD</label>
+                    <select id="globalIdnSetting" class="rule-select">
+                        <option value="0" data-i18n-opt="idn_0">両方使用する</option>
+                        <option value="1" data-i18n-opt="idn_1">IDNのみ使用</option>
+                        <option value="2" data-i18n-opt="idn_2">通常のみ使用</option>
+                        <option value="custom" data-i18n-opt="idn_custom" hidden>カスタム</option>
+                    </select>
+                </div>
+                <div class="flex flex-col w-full sm:w-1/3">
+                    <label class="text-sm font-medium text-gray-700 mb-1" data-i18n="selectMethLbl">3. 翻字形式</label>
                     <select id="translitMethod" class="rule-select">
                         <option value="0" data-i18n-opt="meth_0">英米式 / ALA-LC (視覚的隔離を優先)</option>
                         <option value="1" data-i18n-opt="meth_1">学術式 / ISO 9 (j系・c系の統一)</option>
@@ -121,16 +130,83 @@
                     </select>
                 </div>
             </div>
-            <div class="flex flex-wrap gap-3 mt-4 pt-4 border-t border-indigo-200">
-                <button id="preset-alalc" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition shadow-sm" data-i18n="meth_0">
-                    英米式 / ALA-LC (視覚的隔離を優先)
-                </button>
-                <button id="preset-iso9" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition shadow-sm" data-i18n="meth_1">
-                    学術式 / ISO 9 (j系・c系の統一)
-                </button>
-                <button id="preset-chain" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition shadow-sm" data-i18n="meth_2">
-                    単音化 / 結合優先 (連鎖の最大化)
-                </button>
+        </div>
+
+        <div class="bg-gray-50 p-5 rounded-lg border border-gray-200 mb-6">
+            <h2 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2" data-i18n="idnIndivTitle">国別 IDN ccTLD 設定</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                <div class="setting-group">
+                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_by">🇧🇾 ベラルーシ (.бел/.by)</label>
+                    <select id="idn-by" class="idn-select rule-select" data-country="by">
+                        <option value="0" data-i18n-opt="idn_0_s">両方</option>
+                        <option value="1" data-i18n-opt="idn_1_s">IDNのみ</option>
+                        <option value="2" data-i18n-opt="idn_2_s">通常のみ</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_bg">🇧🇬 ブルガリア (.бг/.bg)</label>
+                    <select id="idn-bg" class="idn-select rule-select" data-country="bg">
+                        <option value="0" data-i18n-opt="idn_0_s">両方</option>
+                        <option value="1" data-i18n-opt="idn_1_s">IDNのみ</option>
+                        <option value="2" data-i18n-opt="idn_2_s">通常のみ</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_eu">🇪🇺 欧州連合 (.ею/.eu)</label>
+                    <select id="idn-eu" class="idn-select rule-select" data-country="eu">
+                        <option value="0" data-i18n-opt="idn_0_s">両方</option>
+                        <option value="1" data-i18n-opt="idn_1_s">IDNのみ</option>
+                        <option value="2" data-i18n-opt="idn_2_s">通常のみ</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_kz">🇰🇿 カザフスタン (.қаз/.kz)</label>
+                    <select id="idn-kz" class="idn-select rule-select" data-country="kz">
+                        <option value="0" data-i18n-opt="idn_0_s">両方</option>
+                        <option value="1" data-i18n-opt="idn_1_s">IDNのみ</option>
+                        <option value="2" data-i18n-opt="idn_2_s">通常のみ</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_mk">🇲🇰 北マケドニア (.мкд/.mk)</label>
+                    <select id="idn-mk" class="idn-select rule-select" data-country="mk">
+                        <option value="0" data-i18n-opt="idn_0_s">両方</option>
+                        <option value="1" data-i18n-opt="idn_1_s">IDNのみ</option>
+                        <option value="2" data-i18n-opt="idn_2_s">通常のみ</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_mn">🇲🇳 モンゴル (.мон/.mn)</label>
+                    <select id="idn-mn" class="idn-select rule-select" data-country="mn">
+                        <option value="0" data-i18n-opt="idn_0_s">両方</option>
+                        <option value="1" data-i18n-opt="idn_1_s">IDNのみ</option>
+                        <option value="2" data-i18n-opt="idn_2_s">通常のみ</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_ru">🇷🇺 ロシア (.рф/.ru)</label>
+                    <select id="idn-ru" class="idn-select rule-select" data-country="ru">
+                        <option value="0" data-i18n-opt="idn_0_s">両方</option>
+                        <option value="1" data-i18n-opt="idn_1_s">IDNのみ</option>
+                        <option value="2" data-i18n-opt="idn_2_s">通常のみ</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_rs">🇷🇸 セルビア (.срб/.rs)</label>
+                    <select id="idn-rs" class="idn-select rule-select" data-country="rs">
+                        <option value="0" data-i18n-opt="idn_0_s">両方</option>
+                        <option value="1" data-i18n-opt="idn_1_s">IDNのみ</option>
+                        <option value="2" data-i18n-opt="idn_2_s">通常のみ</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_ua">🇺🇦 ウクライナ (.укр/.ua)</label>
+                    <select id="idn-ua" class="idn-select rule-select" data-country="ua">
+                        <option value="0" data-i18n-opt="idn_0_s">両方</option>
+                        <option value="1" data-i18n-opt="idn_1_s">IDNのみ</option>
+                        <option value="2" data-i18n-opt="idn_2_s">通常のみ</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -187,9 +263,16 @@
                 subtitle: "スラブ諸語のキリル文字に特化したccTLD文章置換エンジン",
                 presetTitle: "一括設定",
                 selectLangLbl: "1. 対象言語",
-                selectMethLbl: "2. 翻字形式",
+                selectIdnLbl: "2. IDN ccTLD",
+                selectMethLbl: "3. 翻字形式",
                 paramTitle: "独自キリル文字のラテン文字翻字パターン設定",
-                lang_all: "すべて ", lang_ru: "ロシア語", lang_uk: "ウクライナ語", lang_be: "ベラルーシ語", lang_bg: "ブルガリア語", lang_sr: "セルビア語", lang_mk: "マケドニア語",
+                idnIndivTitle: "国別 IDN ccTLD 設定",
+                lang_all: "すべて", lang_ru: "ロシア語", lang_uk: "ウクライナ語", lang_be: "ベラルーシ語", lang_bg: "ブルガリア語", lang_sr: "セルビア語", lang_mk: "マケドニア語",
+                idn_0: "両方使用する", idn_1: "IDNのみ使用", idn_2: "通常のみ使用", idn_custom: "カスタム",
+                idn_0_s: "両方", idn_1_s: "IDNのみ", idn_2_s: "通常のみ",
+                lbl_by: "🇧🇾 ベラルーシ (.бел/.by)", lbl_bg: "🇧🇬 ブルガリア (.бг/.bg)", lbl_eu: "🇪🇺 欧州連合 (.ею/.eu)", 
+                lbl_kz: "🇰🇿 カザフスタン (.қаз/.kz)", lbl_mk: "🇲🇰 北マケドニア (.мкд/.mk)", lbl_mn: "🇲🇳 モンゴル (.мон/.mn)", 
+                lbl_ru: "🇷🇺 ロシア (.рф/.ru)", lbl_rs: "🇷🇸 セルビア (.срб/.rs)", lbl_ua: "🇺🇦 ウクライナ (.укр/.ua)",
                 meth_0: "英米式 / ALA-LC (視覚的隔離を優先)", meth_1: "学術式 / ISO 9 (j系・c系の統一)", meth_2: "単音化 / 結合優先 (連鎖の最大化)",
                 o_shch_0: "shch (ALA-LC: 4文字)", o_shch_1: "sc (ISO 9: 2文字)", o_shch_2: "ss (純粋音韻: 2文字)", o_shch_3: "st (ブルガリア音韻: 2文字)",
                 o_ch_0: "ch (ALA-LC: 2文字)", o_ch_1: "cz (ポーランド風: 2文字)", o_ch_2: "c (ISO 9: 1文字)",
@@ -215,12 +298,10 @@
                 o_kj_0: "kj (二重音字: 2文字)", o_kj_1: "k (単音化: 1文字)",
                 tableTitle: "リアルタイム変換確認表",
                 tableH1: "キリル文字", tableH2: "現在の設定", tableH3: "文字数", tableH4: "対応ccTLD", tableH5: "処理結果",
-                inputLabel: "入力テキスト:",
-                inputPlaceholder: "文章を入力してください",
+                inputLabel: "入力テキスト:", inputPlaceholder: "文章を入力してください",
                 resultLabel: "結果 (破線の下線をクリックしてバリエーションを選択可能):",
                 outputLabel: "最終出力テキスト:",
-                copyBtn: "テキストをコピー",
-                copiedBtn: "コピーしました！",
+                copyBtn: "テキストをコピー", copiedBtn: "コピーしました！",
                 tbResSingle: "単独で国旗に置換", tbResKept: "のまま保持 (連鎖事故防止のため隔離)", tbResChain: "として周囲と結合",
                 none: "なし", chars: "文字"
             },
@@ -228,9 +309,14 @@
                 appTitle: "ATRAS Slavic Cyrillic Simulator", backBtn: "Back",
                 subtitle: "ccTLD Replacer specialized for Slavic Cyrillic alphabets",
                 presetTitle: "Quick Presets",
-                selectLangLbl: "1. Target Language", selectMethLbl: "2. Transliteration Format",
-                paramTitle: "Unique Cyrillic Transliteration Settings",
-                lang_all: "All ", lang_ru: "Russian", lang_uk: "Ukrainian", lang_be: "Belarusian", lang_bg: "Bulgarian", lang_sr: "Serbian", lang_mk: "Macedonian",
+                selectLangLbl: "1. Target Language", selectIdnLbl: "2. IDN ccTLD Usage", selectMethLbl: "3. Transliteration Format",
+                paramTitle: "Unique Cyrillic Transliteration Settings", idnIndivTitle: "Per-Country IDN Settings",
+                lang_all: "All", lang_ru: "Russian", lang_uk: "Ukrainian", lang_be: "Belarusian", lang_bg: "Bulgarian", lang_sr: "Serbian", lang_mk: "Macedonian",
+                idn_0: "Use Both", idn_1: "IDN Only", idn_2: "Standard Only", idn_custom: "Custom",
+                idn_0_s: "Both", idn_1_s: "IDN Only", idn_2_s: "Standard Only",
+                lbl_by: "🇧🇾 Belarus (.бел/.by)", lbl_bg: "🇧🇬 Bulgaria (.бг/.bg)", lbl_eu: "🇪🇺 EU (.ею/.eu)", 
+                lbl_kz: "🇰🇿 Kazakhstan (.қаз/.kz)", lbl_mk: "🇲🇰 N. Macedonia (.мкд/.mk)", lbl_mn: "🇲🇳 Mongolia (.мон/.mn)", 
+                lbl_ru: "🇷🇺 Russia (.рф/.ru)", lbl_rs: "🇷🇸 Serbia (.срб/.rs)", lbl_ua: "🇺🇦 Ukraine (.укр/.ua)",
                 meth_0: "ALA-LC (Prioritize Visual Isolation)", meth_1: "ISO 9 (Unify j/c series)", meth_2: "Single Phoneme (Maximize Chaining)",
                 o_shch_0: "shch (ALA-LC: 4)", o_shch_1: "sc (ISO: 2)", o_shch_2: "ss (Phonetic: 2)", o_shch_3: "st (BG: 2)",
                 o_ch_0: "ch (ALA-LC: 2)", o_ch_1: "cz (Polish: 2)", o_ch_2: "c (ISO: 1)",
@@ -265,9 +351,14 @@
                 appTitle: "ATRAS Slavic Cyrillic Simulator", backBtn: "Zurück",
                 subtitle: "ccTLD-Ersetzer spezialisiert auf slawisch-kyrillische Alphabete",
                 presetTitle: "Schnell-Voreinstellungen",
-                selectLangLbl: "1. Zielsprache", selectMethLbl: "2. Transliterationsformat",
-                paramTitle: "Einzigartige kyrillische Transliterationseinstellungen",
+                selectLangLbl: "1. Zielsprache", selectIdnLbl: "2. IDN ccTLD", selectMethLbl: "3. Transliterationsformat",
+                paramTitle: "Einzigartige kyrillische Transliterationseinstellungen", idnIndivTitle: "Länderspezifische IDN Einstellungen",
                 lang_all: "Alle", lang_ru: "Russisch", lang_uk: "Ukrainisch", lang_be: "Weißrussisch", lang_bg: "Bulgarisch", lang_sr: "Serbisch", lang_mk: "Mazedonisch",
+                idn_0: "Beide nutzen", idn_1: "Nur IDN", idn_2: "Nur Standard", idn_custom: "Benutzerdefiniert",
+                idn_0_s: "Beide", idn_1_s: "Nur IDN", idn_2_s: "Nur Standard",
+                lbl_by: "🇧🇾 Belarus (.бел/.by)", lbl_bg: "🇧🇬 Bulgarien (.бг/.bg)", lbl_eu: "🇪🇺 EU (.ею/.eu)", 
+                lbl_kz: "🇰🇿 Kasachstan (.қаз/.kz)", lbl_mk: "🇲🇰 N. Mazedonien (.мкд/.mk)", lbl_mn: "🇲🇳 Mongolei (.мон/.mn)", 
+                lbl_ru: "🇷🇺 Russland (.рф/.ru)", lbl_rs: "🇷🇸 Serbien (.срб/.rs)", lbl_ua: "🇺🇦 Ukraine (.укр/.ua)",
                 meth_0: "ALA-LC (Priorisiert Isolierung)", meth_1: "ISO 9 (Vereinheitlicht j/c)", meth_2: "Einzelphonem (Verkettung)",
                 o_shch_0: "shch (ALA-LC: 4)", o_shch_1: "sc (ISO: 2)", o_shch_2: "ss (Phon: 2)", o_shch_3: "st (BG: 2)",
                 o_ch_0: "ch (ALA-LC: 2)", o_ch_1: "cz (Polnisch: 2)", o_ch_2: "c (ISO: 1)",
@@ -299,12 +390,17 @@
                 tbResSingle: "Isolierte Flagge", tbResKept: "Beibehalten", tbResChain: "Bereit zur Verkettung", none: "Keine", chars: "Zchn"
             },
             is_cyrl: {
-                appTitle: "Словјанскы ATRAS Симулятор", backBtn: "Назад",
+                appTitle: "ATRAS Slavic Cyrillic Simulator", backBtn: "Назад",
                 subtitle: "ccTLD симулятор за словјанске кирилске ѩзыкы",
                 presetTitle: "Брзе настройкы",
-                selectLangLbl: "1. Цєлевы ѩзык", selectMethLbl: "2. Метод транслитерациє",
-                paramTitle: "Уникалне настройкы транслитерациє",
+                selectLangLbl: "1. Цєлевы ѩзык", selectIdnLbl: "2. IDN ccTLD", selectMethLbl: "3. Метод транслитерациє",
+                paramTitle: "Уникалне настройкы транслитерациє", idnIndivTitle: "Локалне IDN настройкы",
                 lang_all: "Всє", lang_ru: "Русскы ѩзык", lang_uk: "Украинскы ѩзык", lang_be: "Бєлорускы ѩзык", lang_bg: "Болгарскы ѩзык", lang_sr: "Србскы ѩзык", lang_mk: "Македонскы ѩзык",
+                idn_0: "Оба", idn_1: "Толко IDN", idn_2: "Толко Стандарт", idn_custom: "Ручно",
+                idn_0_s: "Оба", idn_1_s: "IDN", idn_2_s: "Стандарт",
+                lbl_by: "🇧🇾 Бєлорусиѩ (.бел/.by)", lbl_bg: "🇧🇬 Болгариѩ (.бг/.bg)", lbl_eu: "🇪🇺 ЕУ (.ею/.eu)", 
+                lbl_kz: "🇰🇿 Казахскы (.қаз/.kz)", lbl_mk: "🇲🇰 Македониѩ (.мкд/.mk)", lbl_mn: "🇲🇳 Монголиѩ (.мон/.mn)", 
+                lbl_ru: "🇷🇺 Россиѩ (.рф/.ru)", lbl_rs: "🇷🇸 Србиѩ (.срб/.rs)", lbl_ua: "🇺🇦 Украина (.укр/.ua)",
                 meth_0: "ALA-LC (Визуална Изолациѩ)", meth_1: "ISO 9 (Академичны)", meth_2: "Єдин Звук (Максимална Веза)",
                 o_shch_0: "shch (ALA: 4)", o_shch_1: "sc (ISO: 2)", o_shch_2: "ss (Звук: 2)", o_shch_3: "st (BG: 2)",
                 o_ch_0: "ch (ALA: 2)", o_ch_1: "cz (Полскы: 2)", o_ch_2: "c (ISO: 1)",
@@ -336,12 +432,17 @@
                 tbResSingle: "Флаг", tbResKept: "Оставјено", tbResChain: "Веза", none: "Нич", chars: "зн."
             },
             is_latn: {
-                appTitle: "Slovjansky ATRAS Simujator", backBtn: "Nazad",
+                appTitle: "ATRAS Slavic Cyrillic Simulator", backBtn: "Nazad",
                 subtitle: "ccTLD simujator za slovjanske kirilske języky",
                 presetTitle: "Brze nastrojky",
-                selectLangLbl: "1. Cělevy język", selectMethLbl: "2. Metod transliteracije",
-                paramTitle: "Unikalne nastrojky transliteracije",
+                selectLangLbl: "1. Cělevy język", selectIdnLbl: "2. IDN ccTLD", selectMethLbl: "3. Metod transliteracije",
+                paramTitle: "Unikalne nastrojky transliteracije", idnIndivTitle: "Lokalne IDN nastrojky",
                 lang_all: "Vse", lang_ru: "Russky język", lang_uk: "Ukrainsky język", lang_be: "Bělorusky język", lang_bg: "Bolgarsky język", lang_sr: "Srbsky język", lang_mk: "Makedonsky język",
+                idn_0: "Oba", idn_1: "Tolko IDN", idn_2: "Tolko Standart", idn_custom: "Ručno",
+                idn_0_s: "Oba", idn_1_s: "IDN", idn_2_s: "Standart",
+                lbl_by: "🇧🇾 Bělorusija (.бел/.by)", lbl_bg: "🇧🇬 Bolgarija (.бг/.bg)", lbl_eu: "🇪🇺 EU (.ею/.eu)", 
+                lbl_kz: "🇰🇿 Kazahsky (.қаз/.kz)", lbl_mk: "🇲🇰 Makedonija (.мкд/.mk)", lbl_mn: "🇲🇳 Mongolija (.мон/.mn)", 
+                lbl_ru: "🇷🇺 Rossija (.рф/.ru)", lbl_rs: "🇷🇸 Srbija (.срб/.rs)", lbl_ua: "🇺🇦 Ukraina (.укр/.ua)",
                 meth_0: "ALA-LC (Vizualna Izolacija)", meth_1: "ISO 9 (Akademičny)", meth_2: "Jedin Zvuk (Maksimalna Veza)",
                 o_shch_0: "shch (ALA: 4)", o_shch_1: "sc (ISO: 2)", o_shch_2: "ss (Zvuk: 2)", o_shch_3: "st (BG: 2)",
                 o_ch_0: "ch (ALA: 2)", o_ch_1: "cz (Polsky: 2)", o_ch_2: "c (ISO: 1)",
@@ -361,7 +462,7 @@
                 o_lj_0: "lj (Digraph: 2)", o_lj_1: "l (Jedin: 1)",
                 o_nj_0: "nj (Digraph: 2)", o_nj_1: "n (Jedin: 1)",
                 o_tc_0: "c (ISO: 1)", o_tc_1: "ch (ALA: 2)",
-                o_dzh_0: "dzh (ALA: 3)", o_dzh_1: "dz (Digraph: 2)", o_dzh_2: "j (Jedin: 1)",
+                o_dzh_0: "dzh (ALA: 3)", o_dzh_1: "dz (Digraf: 2)", o_dzh_2: "j (Jedin: 1)",
                 o_gj_0: "gj (Digraph: 2)", o_gj_1: "g (Jedin: 1)",
                 o_dz_0: "dz (Digraph: 2)", o_dz_1: "z (Jedin: 1)",
                 o_kj_0: "kj (Digraph: 2)", o_kj_1: "k (Jedin: 1)",
@@ -412,7 +513,7 @@
             'ќ': [ {val:'kj', key:'o_kj_0'}, {val:'k', key:'o_kj_1'} ],
         };
 
-        const cctldFlags = {
+        const masterCctldFlags = {
             "ac": "🇦🇨", "ad": "🇦🇩", "ae": "🇦🇪", "af": "🇦🇫", "ag": "🇦🇬", "ai": "🇦🇮", "al": "🇦🇱", "am": "🇦🇲", "ao": "🇦🇴", "aq": "🇦🇶", "ar": "🇦🇷", "as": "🇦🇸", "at": "🇦🇹", "au": "🇦🇺", "aw": "🇦🇼", "ax": "🇦🇽", "az": "🇦🇿",
             "ba": "🇧🇦", "bb": "🇧🇧", "bd": "🇧🇩", "be": "🇧🇪", "bf": "🇧🇫", "bg": "🇧🇬", "bh": "🇧🇭", "bi": "🇧🇮", "bj": "🇧🇯", "bm": "🇧🇲", "bn": "🇧🇳", "bo": "🇧🇴", "br": "🇧🇷", "bs": "🇧🇸", "bt": "🇧🇹", "bw": "🇧🇼", "by": "🇧🇾", "bz": "🇧🇿",
             "ca": "🇨🇦", "cc": "🇨🇨", "cd": "🇨🇩", "cf": "🇨🇫", "cg": "🇨🇬", "ch": "🇨🇭", "ci": "🇨🇮", "ck": "🇨🇰", "cl": "🇨🇱", "cm": "🇨🇲", "cn": "🇨🇳", "co": "🇨🇴", "cr": "🇨🇷", "cu": "🇨🇺", "cv": "🇨🇻", "cw": "🇨🇼", "cx": "🇨🇽", "cy": "🇨🇾", "cz": "🇨🇿",
@@ -438,6 +539,18 @@
             "wf": "🇼🇫", "ws": "🇼🇸",
             "ye": "🇾🇪", "yt": "🇾🇹",
             "za": "🇿🇦", "zm": "🇿🇲", "zw": "🇿🇼"
+        };
+
+        const idnMap = {
+            "by": { cyr: "бел", lat: "by", flag: "🇧🇾" },
+            "bg": { cyr: "бг", lat: "bg", flag: "🇧🇬" },
+            "eu": { cyr: "ею", lat: "eu", flag: "🇪🇺" },
+            "kz": { cyr: "қаз", lat: "kz", flag: "🇰🇿" },
+            "mk": { cyr: "мкд", lat: "mk", flag: "🇲🇰" },
+            "mn": { cyr: "мон", lat: "mn", flag: "🇲🇳" },
+            "ru": { cyr: "рф", lat: "ru", flag: "🇷🇺" },
+            "rs": { cyr: "срб", lat: "rs", flag: "🇷🇸" },
+            "ua": { cyr: "укр", lat: "ua", flag: "🇺🇦" }
         };
 
         function renderSettings() {
@@ -486,12 +599,21 @@
             const t = translations[currentLang] || translations['ja'];
             const activeLang = document.getElementById('targetLang').value;
 
+            // Compute active Latin flags just for the table display logic
+            const activeLatinFlags = { ...masterCctldFlags };
+            Object.keys(idnMap).forEach(country => {
+                const sel = document.getElementById('idn-' + country);
+                if (sel && sel.value === "1") {
+                    delete activeLatinFlags[idnMap[country].lat];
+                }
+            });
+
             langConfigs[activeLang].specials.forEach(char => {
                 const selectEl = document.querySelector(`.rule-select[data-char="${char}"]`);
                 if(!selectEl) return;
                 const val = selectEl.value;
                 const len = val.length;
-                const flag = cctldFlags[val] || null;
+                const flag = activeLatinFlags[val] || null;
 
                 const tr = document.createElement('tr');
                 
@@ -546,9 +668,9 @@
                 }
             });
 
-            document.querySelectorAll('option[data-i18n-opt]').forEach(el => {
-                const key = el.dataset.i18nOpt;
-                if (translations[lang][key]) {
+            document.querySelectorAll('option[data-i18n-opt], label[data-i18n-opt]').forEach(el => {
+                const key = el.dataset.i18nOpt || el.dataset.i18n;
+                if (key && translations[lang][key]) {
                     el.textContent = translations[lang][key];
                 }
             });
@@ -560,6 +682,12 @@
                 }
             });
 
+            // Update dynamically generated labels in individual IDN settings
+            Object.keys(idnMap).forEach(k => {
+                const lbl = document.querySelector(`[data-i18n="lbl_${k}"]`);
+                if(lbl && translations[lang][`lbl_${k}`]) lbl.textContent = translations[lang][`lbl_${k}`];
+            });
+
             renderSettings();
         }
 
@@ -567,17 +695,19 @@
         document.getElementById('translitMethod').addEventListener('change', renderSettings);
         document.getElementById('inputText').addEventListener('input', processAtras);
 
-        document.getElementById('preset-alalc').addEventListener('click', () => {
-            document.getElementById('translitMethod').value = "0";
-            renderSettings();
+        document.getElementById('globalIdnSetting').addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (val !== "custom") {
+                document.querySelectorAll('.idn-select').forEach(sel => sel.value = val);
+                renderSettings();
+            }
         });
-        document.getElementById('preset-iso9').addEventListener('click', () => {
-            document.getElementById('translitMethod').value = "1";
-            renderSettings();
-        });
-        document.getElementById('preset-chain').addEventListener('click', () => {
-            document.getElementById('translitMethod').value = "2";
-            renderSettings();
+
+        document.querySelectorAll('.idn-select').forEach(sel => {
+            sel.addEventListener('change', () => {
+                document.getElementById('globalIdnSetting').value = "custom";
+                renderSettings();
+            });
         });
 
         const langSelectorBtn = document.getElementById('langSelectorBtn');
@@ -616,6 +746,25 @@
             const charList = langConfigs[activeLang].specials;
             const baseMap = langConfigs[activeLang].base;
 
+            // Build active flags based on IDN settings
+            const activeLatinFlags = { ...masterCctldFlags };
+            const activeCyrillicFlags = {};
+
+            Object.keys(idnMap).forEach(country => {
+                const sel = document.getElementById('idn-' + country);
+                const val = sel ? sel.value : "0";
+                const data = idnMap[country];
+                
+                if (val === "1") {
+                    delete activeLatinFlags[data.lat];
+                    activeCyrillicFlags[data.cyr] = data.flag;
+                } else if (val === "2") {
+                    // Do nothing to latin, don't add Cyrillic
+                } else {
+                    activeCyrillicFlags[data.cyr] = data.flag;
+                }
+            });
+
             const transMap = {};
             charList.forEach(char => {
                 const sel = document.querySelector(`.rule-select[data-char="${char}"]`);
@@ -646,7 +795,7 @@
                     }
                     
                     const isolated = lat.length >= 2;
-                    const flag = isolated ? (cctldFlags[lat] || null) : null;
+                    const flag = isolated ? (activeLatinFlags[lat] || null) : null;
                     
                     currentWordNodes.push({
                         char: c, lat: lat, isolated: isolated, flag: flag
@@ -669,14 +818,25 @@
                 function search(currentPrefix, nodeIndex, unconvertedList) {
                     if (nodeIndex === nodes.length) {
                         let missed = false;
-                        for (let i = 0; i < unconvertedList.length - 1; i++) {
-                            const n1 = unconvertedList[i];
-                            const n2 = unconvertedList[i + 1];
-                            if (n2.index === n1.index + 1) {
-                                const pair = (n1.lat + n2.lat).toLowerCase();
-                                if (cctldFlags[pair]) {
-                                    missed = true;
-                                    break;
+                        const unconvCyr = unconvertedList.map(n => n.char).join('').toLowerCase();
+                        
+                        // Check for missed IDN Cyrillic flags
+                        for (let idn of Object.keys(activeCyrillicFlags)) {
+                            if (unconvCyr.includes(idn)) {
+                                missed = true; break;
+                            }
+                        }
+
+                        if (!missed) {
+                            for (let i = 0; i < unconvertedList.length - 1; i++) {
+                                const n1 = unconvertedList[i];
+                                const n2 = unconvertedList[i + 1];
+                                if (n2.index === n1.index + 1) {
+                                    const pair = (n1.lat + n2.lat).toLowerCase();
+                                    if (activeLatinFlags[pair]) {
+                                        missed = true;
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -701,8 +861,22 @@
                     if (nodeIndex + 1 < nodes.length && !nodes[nodeIndex + 1].isolated) {
                         const nextNode = nodes[nodeIndex + 1];
                         const pair = (node.lat + nextNode.lat).toLowerCase();
-                        if (cctldFlags[pair]) {
-                            search(currentPrefix + cctldFlags[pair], nodeIndex + 2, unconvertedList);
+                        if (activeLatinFlags[pair]) {
+                            search(currentPrefix + activeLatinFlags[pair], nodeIndex + 2, unconvertedList);
+                        }
+                    }
+
+                    if (nodeIndex + 1 < nodes.length) {
+                        const cyr2 = (node.char + nodes[nodeIndex + 1].char).toLowerCase();
+                        if (activeCyrillicFlags[cyr2]) {
+                            search(currentPrefix + activeCyrillicFlags[cyr2], nodeIndex + 2, unconvertedList);
+                        }
+                    }
+
+                    if (nodeIndex + 2 < nodes.length) {
+                        const cyr3 = (node.char + nodes[nodeIndex + 1].char + nodes[nodeIndex + 2].char).toLowerCase();
+                        if (activeCyrillicFlags[cyr3]) {
+                            search(currentPrefix + activeCyrillicFlags[cyr3], nodeIndex + 3, unconvertedList);
                         }
                     }
                 }
