@@ -11,12 +11,12 @@
         .setting-group { display: flex; flex-direction: column; gap: 0.25rem; }
         select { background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.5rem; font-size: 0.875rem; cursor: pointer; }
         select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 1px #3b82f6; }
-        table { border-collapse: collapse; width: 100%; font-size: 0.875rem; }
+        table { border-collapse: collapse; width: 100%; font-size: 0.875rem; background-color: white; }
         th, td { border: 1px solid #e5e7eb; padding: 0.75rem; text-align: left; }
         th { background-color: #f9fafb; font-weight: 600; color: #374151; }
-        td.cyrillic-kept { color: #dc2626; font-weight: 500; }
+        td.cyrillic-kept { color: #dc2626; font-weight: 600; }
         td.flag-converted { color: #059669; font-size: 1.25rem; }
-        td.chain-ready { color: #2563eb; font-weight: 500; }
+        td.chain-ready { color: #2563eb; font-weight: 600; }
 
         #outputArea, #finalText {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
@@ -41,17 +41,17 @@
         .has-variants { border-bottom: 2px dashed #3b82f6; padding-bottom: 2px; }
 
         .lang-selector-container { position: relative; display: inline-block; }
-        .lang-selector-btn {
+        .lang-selector-btn, .script-toggle-btn {
             display: flex; align-items: center; gap: 0.5rem; background-color: white;
             border: 1px solid #d1d5db; padding: 0.5rem 1rem; border-radius: 0.5rem;
             font-size: 0.875rem; color: #374151; cursor: pointer; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             transition: all 0.2s;
         }
-        .lang-selector-btn:hover { background-color: #f9fafb; border-color: #9ca3af; }
+        .lang-selector-btn:hover, .script-toggle-btn:hover { background-color: #f9fafb; border-color: #9ca3af; }
         .lang-menu {
             display: none; position: absolute; right: 0; top: 110%; background-color: white;
             border: 1px solid #e5e7eb; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            z-index: 50; min-width: 200px; overflow: hidden;
+            z-index: 50; min-width: 220px; max-height: 400px; overflow-y: auto;
         }
         .lang-selector-container.active .lang-menu { display: block; }
         .lang-option {
@@ -61,6 +61,8 @@
         .lang-option:last-child { border-bottom: none; }
         .lang-option:hover { background-color: #f3f4f6; color: #111827; }
         .lang-option.selected { background-color: #eff6ff; color: #1d4ed8; font-weight: 600; }
+        
+        .hidden { display: none !important; }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8 text-gray-800 flex flex-col items-center">
@@ -73,47 +75,60 @@
             <span class="font-medium text-sm" data-i18n="backBtn">戻る</span>
         </a>
 
-        <div class="lang-selector-container" id="langSelector">
-            <button class="lang-selector-btn" id="langSelectorBtn">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-                </svg>
-                <span id="currentLangLabel">日本語</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
+        <div class="flex items-center gap-2">
+            <!-- ラテン/キリル切り替えボタン -->
+            <button class="script-toggle-btn hidden" id="scriptToggleBtn" title="Toggle Script">
+                <span class="font-bold">B/Б</span>
             </button>
-            <div class="lang-menu" id="langMenu">
-                <button class="lang-option selected" data-lang="ja" data-label="日本語">日本語</button>
-                <button class="lang-option" data-lang="en" data-label="English">English</button>
-                <button class="lang-option" data-lang="de" data-label="Deutsch">Deutsch</button>
-                <button class="lang-option" data-lang="is_cyrl" data-label="Меджусловјански">Меджусловјански (Interslavic)</button>
-                <button class="lang-option" data-lang="is_latn" data-label="Medžuslovjanski">Medžuslovjanski (Interslavic)</button>
+            
+            <div class="lang-selector-container" id="langSelector">
+                <button class="lang-selector-btn" id="langSelectorBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                    </svg>
+                    <span id="currentLangLabel">日本語</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div class="lang-menu" id="langMenu">
+                    <button class="lang-option selected" data-lang="ja" data-label="日本語">日本語</button>
+                    <button class="lang-option" data-lang="en" data-label="English">English</button>
+                    <button class="lang-option" data-lang="de" data-label="Deutsch">Deutsch</button>
+                    <button class="lang-option" data-lang="ru" data-label="Русский">Русский</button>
+                    <button class="lang-option" data-lang="uk" data-label="Українська">Українська</button>
+                    <button class="lang-option" data-lang="be" data-label="Беларуская">Беларуская</button>
+                    <button class="lang-option" data-lang="bg" data-label="Български">Български</button>
+                    <button class="lang-option" data-lang="mk" data-label="Македонски">Македонски</button>
+                    <button class="lang-option" data-lang="sr_cyrl" data-label="Српски">Српски</button>
+                    <button class="lang-option" data-lang="sh_cyrl" data-label="Српскохрватски">Српскохрватски</button>
+                    <button class="lang-option" data-lang="is_cyrl" data-label="Меджусловјански">Меджусловјански</button>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="w-full max-w-6xl bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8">
         <h1 class="text-3xl font-bold mb-2 text-center text-blue-600" data-i18n="appTitle">ATRAS Slavic Cyrillic Simulator</h1>
-        <p class="text-center text-gray-500 mb-8" data-i18n="subtitle">スラブ諸語のキリル文字に特化したccTLD文章置換シミュレータ</p>
+        <p class="text-center text-gray-500 mb-8" data-i18n="subtitle">国際転写規格に完全準拠したスラブ語派ccTLD置換エンジン</p>
 
         <div class="bg-indigo-50 border border-indigo-100 p-5 rounded-lg mb-6">
-            <h2 class="text-base font-bold text-indigo-900 mb-3" data-i18n="presetTitle">一括設定</h2>
+            <h2 class="text-base font-bold text-indigo-900 mb-3" data-i18n="presetTitle">一括変換設定</h2>
             <div class="flex flex-col sm:flex-row gap-4">
                 <div class="flex flex-col w-full sm:w-1/3">
                     <label class="text-sm font-medium text-gray-700 mb-1" data-i18n="selectLangLbl">1. 対象言語</label>
                     <select id="targetLang" class="rule-select">
+                        <option value="ru" data-i18n-opt="lang_ru">ロシア語</option>
+                        <option value="uk" data-i18n-opt="lang_uk">ウクライナ語</option>
+                        <option value="be" data-i18n-opt="lang_be">ベラルーシ語</option>
+                        <option value="bg" data-i18n-opt="lang_bg">ブルガリア語</option>
+                        <option value="sr" data-i18n-opt="lang_sr">セルビア語</option>
+                        <option value="mk" data-i18n-opt="lang_mk">マケドニア語</option>
                         <option value="all" data-i18n-opt="lang_all">すべて</option>
-                        <option value="ru" data-i18n-opt="lang_ru">ロシア語 (Russian)</option>
-                        <option value="uk" data-i18n-opt="lang_uk">ウクライナ語 (Ukrainian)</option>
-                        <option value="be" data-i18n-opt="lang_be">ベラルーシ語 (Belarusian)</option>
-                        <option value="bg" data-i18n-opt="lang_bg">ブルガリア語 (Bulgarian)</option>
-                        <option value="sr" data-i18n-opt="lang_sr">セルビア語 (Serbian)</option>
-                        <option value="mk" data-i18n-opt="lang_mk">マケドニア語 (Macedonian)</option>
                     </select>
                 </div>
                 <div class="flex flex-col w-full sm:w-1/3">
-                    <label class="text-sm font-medium text-gray-700 mb-1" data-i18n="selectIdnLbl">2. IDN ccTLD</label>
+                    <label class="text-sm font-medium text-gray-700 mb-1" data-i18n="selectIdnLbl">2. IDN ccTLDの扱い</label>
                     <select id="globalIdnSetting" class="rule-select">
                         <option value="0" data-i18n-opt="idn_0">両方使用する</option>
                         <option value="1" data-i18n-opt="idn_1">IDNのみ使用</option>
@@ -122,11 +137,11 @@
                     </select>
                 </div>
                 <div class="flex flex-col w-full sm:w-1/3">
-                    <label class="text-sm font-medium text-gray-700 mb-1" data-i18n="selectMethLbl">3. 翻字形式</label>
+                    <label class="text-sm font-medium text-gray-700 mb-1" data-i18n="selectMethLbl">3. 国際規格の選択</label>
                     <select id="translitMethod" class="rule-select">
-                        <option value="0" data-i18n-opt="meth_0">英米式 / ALA-LC (視覚的隔離を優先)</option>
-                        <option value="1" data-i18n-opt="meth_1">学術式 / ISO 9 (j系・c系の統一)</option>
-                        <option value="2" data-i18n-opt="meth_2">単音化 / 結合優先 (連鎖の最大化)</option>
+                        <option value="iso9" data-i18n-opt="meth_iso9">ISO 9:1995 (厳密な1対1・記号付加)</option>
+                        <option value="alalc" data-i18n-opt="meth_alalc">ALA-LC (英米式目録規則)</option>
+                        <option value="gost" data-i18n-opt="meth_gost">GOST 7.79-2000 System B</option>
                     </select>
                 </div>
             </div>
@@ -136,7 +151,7 @@
             <h2 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2" data-i18n="idnIndivTitle">国別 IDN ccTLD 設定 (IDN ccTLD / ラテン文字翻字ccTLD)</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_by">🇧🇾 ベラルーシ (.бел/.би)</label>
+                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_by">🇧🇾 ベラルーシ (.бел/.by)</label>
                     <select id="idn-by" class="idn-select rule-select" data-country="by">
                         <option value="0" data-i18n-opt="idn_0_s">両方</option>
                         <option value="1" data-i18n-opt="idn_1_s">IDNのみ</option>
@@ -144,7 +159,7 @@
                     </select>
                 </div>
                 <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_bg">🇧🇬 ブルガリア (.бг/.бг)</label>
+                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_bg">🇧🇬 ブルガリア (.бг/.bg)</label>
                     <select id="idn-bg" class="idn-select rule-select" data-country="bg">
                         <option value="0" data-i18n-opt="idn_0_s">両方</option>
                         <option value="1" data-i18n-opt="idn_1_s">IDNのみ</option>
@@ -152,7 +167,7 @@
                     </select>
                 </div>
                 <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_eu">🇪🇺 欧州連合 (.ею/.еу)</label>
+                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_eu">🇪🇺 欧州連合 (.ею/.eu)</label>
                     <select id="idn-eu" class="idn-select rule-select" data-country="eu">
                         <option value="0" data-i18n-opt="idn_0_s">両方</option>
                         <option value="1" data-i18n-opt="idn_1_s">IDNのみ</option>
@@ -160,7 +175,7 @@
                     </select>
                 </div>
                 <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_kz">🇰🇿 カザフスタン (.қаз/.кз)</label>
+                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_kz">🇰🇿 カザフスタン (.қаз/.kz)</label>
                     <select id="idn-kz" class="idn-select rule-select" data-country="kz">
                         <option value="0" data-i18n-opt="idn_0_s">両方</option>
                         <option value="1" data-i18n-opt="idn_1_s">IDNのみ</option>
@@ -168,7 +183,7 @@
                     </select>
                 </div>
                 <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_mk">🇲🇰 北マケドニア (.мкд/.мк)</label>
+                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_mk">🇲🇰 北マケドニア (.мкд/.mk)</label>
                     <select id="idn-mk" class="idn-select rule-select" data-country="mk">
                         <option value="0" data-i18n-opt="idn_0_s">両方</option>
                         <option value="1" data-i18n-opt="idn_1_s">IDNのみ</option>
@@ -176,7 +191,7 @@
                     </select>
                 </div>
                 <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_mn">🇲🇳 モンゴル (.мон/.мн)</label>
+                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_mn">🇲🇳 モンゴル (.мон/.mn)</label>
                     <select id="idn-mn" class="idn-select rule-select" data-country="mn">
                         <option value="0" data-i18n-opt="idn_0_s">両方</option>
                         <option value="1" data-i18n-opt="idn_1_s">IDNのみ</option>
@@ -184,7 +199,7 @@
                     </select>
                 </div>
                 <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_ru">🇷🇺 ロシア (.рф/.ру)</label>
+                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_ru">🇷🇺 ロシア (.рф/.ru)</label>
                     <select id="idn-ru" class="idn-select rule-select" data-country="ru">
                         <option value="0" data-i18n-opt="idn_0_s">両方</option>
                         <option value="1" data-i18n-opt="idn_1_s">IDNのみ</option>
@@ -192,7 +207,7 @@
                     </select>
                 </div>
                 <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_rs">🇷🇸 セルビア (.срб/.рс)</label>
+                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_rs">🇷🇸 セルビア (.срб/.rs)</label>
                     <select id="idn-rs" class="idn-select rule-select" data-country="rs">
                         <option value="0" data-i18n-opt="idn_0_s">両方</option>
                         <option value="1" data-i18n-opt="idn_1_s">IDNのみ</option>
@@ -200,7 +215,7 @@
                     </select>
                 </div>
                 <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_ua">🇺🇦 ウクライナ (.укр/.уа)</label>
+                    <label class="text-sm font-medium text-gray-700" data-i18n="lbl_ua">🇺🇦 ウクライナ (.укр/.ua)</label>
                     <select id="idn-ua" class="idn-select rule-select" data-country="ua">
                         <option value="0" data-i18n-opt="idn_0_s">両方</option>
                         <option value="1" data-i18n-opt="idn_1_s">IDNのみ</option>
@@ -210,24 +225,15 @@
             </div>
         </div>
 
-        <div class="bg-gray-50 p-5 rounded-lg border border-gray-200 mb-6">
-            <h2 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2" data-i18n="paramTitle">独自キリル文字のラテン文字翻字パターン設定</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4" id="settings-container">
-                <!-- 動的に生成されます -->
-            </div>
-        </div>
-
         <div class="mb-8">
-            <h2 class="text-lg font-semibold text-gray-700 mb-2" data-i18n="tableTitle">リアルタイム変換確認表</h2>
-            <div class="overflow-x-auto">
-                <table id="status-table">
-                    <thead>
+            <h2 class="text-lg font-semibold text-gray-700 mb-2" data-i18n="tableTitle">現在の言語×規格に基づく置換規則表</h2>
+            <div class="overflow-x-auto max-h-[400px] border border-gray-200 rounded-lg">
+                <table id="status-table" class="w-full">
+                    <thead class="sticky top-0 z-10 shadow-sm">
                         <tr>
                             <th data-i18n="tableH1">キリル文字</th>
-                            <th data-i18n="tableH2">現在の設定</th>
-                            <th data-i18n="tableH3">文字数</th>
-                            <th data-i18n="tableH4">対応ccTLD</th>
-                            <th data-i18n="tableH5">処理結果</th>
+                            <th data-i18n="tableH2">規格に基づくラテン転写</th>
+                            <th data-i18n="tableH5">ATRAS上の処理挙動</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -260,262 +266,334 @@
             ja: {
                 appTitle: "ATRAS Slavic Cyrillic Simulator",
                 backBtn: "戻る",
-                subtitle: "スラブ諸語のキリル文字に特化したccTLD文章置換シミュレータ",
-                presetTitle: "一括設定",
-                selectLangLbl: "1. 対象言語",
-                selectIdnLbl: "2. IDN ccTLD",
-                selectMethLbl: "3. 翻字形式",
-                paramTitle: "独自キリル文字のラテン文字翻字パターン設定",
+                subtitle: "国際転写規格に完全準拠したスラブ語派ccTLD置換シミュレータ",
+                presetTitle: "一括変換設定",
+                selectLangLbl: "1. 対象言語", selectIdnLbl: "2. IDN ccTLD", selectMethLbl: "3. 国際規格の選択",
                 idnIndivTitle: "国別 IDN ccTLD 設定 (IDN ccTLD / ラテン文字翻字ccTLD)",
-                lang_all: "すべて", lang_ru: "ロシア語", lang_uk: "ウクライナ語", lang_be: "ベラルーシ語", lang_bg: "ブルガリア語", lang_sr: "セルビア語", lang_mk: "マケドニア語",
+                lang_ru: "ロシア語", lang_uk: "ウクライナ語", lang_be: "ベラルーシ語", lang_bg: "ブルガリア語", lang_sr: "セルビア語", lang_mk: "マケドニア語", lang_all: "すべて",
                 idn_0: "両方使用する", idn_1: "IDNのみ使用", idn_2: "通常のみ使用", idn_custom: "カスタム",
                 idn_0_s: "両方", idn_1_s: "IDNのみ", idn_2_s: "通常のみ",
-                lbl_by: "🇧🇾 ベラルーシ (.бел/.би)", lbl_bg: "🇧🇬 ブルガリア (.бг/.бг)", lbl_eu: "🇪🇺 欧州連合 (.ею/.еу)", 
-                lbl_kz: "🇰🇿 カザフスタン (.қаз/.кз)", lbl_mk: "🇲🇰 北マケドニア (.мкд/.мк)", lbl_mn: "🇲🇳 モンゴル (.мон/.мн)", 
-                lbl_ru: "🇷🇺 ロシア (.рф/.ру)", lbl_rs: "🇷🇸 セルビア (.срб/.рс)", lbl_ua: "🇺🇦 ウクライナ (.укр/.уа)",
-                meth_0: "英米式 / ALA-LC (視覚的隔離を優先)", meth_1: "学術式 / ISO 9 (j系・c系の統一)", meth_2: "単音化 / 結合優先 (連鎖の最大化)",
-                o_shch_0: "shch (ALA-LC: 4文字)", o_shch_1: "sc (ISO 9: 2文字)", o_shch_2: "ss (純粋音韻: 2文字)", o_shch_3: "st (ブルガリア音韻: 2文字)",
-                o_ch_0: "ch (ALA-LC: 2文字)", o_ch_1: "cz (ポーランド風: 2文字)", o_ch_2: "c (ISO 9: 1文字)",
-                o_sh_0: "sh (ALA-LC: 2文字)", o_sh_1: "s (ISO 9: 1文字)",
-                o_kh_0: "kh (ALA-LC: 2文字)", o_kh_1: "h (ISO 9: 1文字)", o_kh_2: "x (IPA: 1文字)",
-                o_ts_0: "ts (ALA-LC: 2文字)", o_ts_1: "c (ISO 9: 1文字)", o_ts_2: "z (ドイツ語式: 1文字)",
-                o_zh_0: "zh (ALA-LC: 2文字)", o_zh_1: "z (ISO 9: 1文字)", o_zh_2: "j (フランス式: 1文字)",
-                o_yu_0: "yu (ALA-LC: 2文字)", o_yu_1: "ju (ISO 9: 2文字)", o_yu_2: "u (単一母音化: 1文字)",
-                o_ya_0: "ya (ALA-LC: 2文字)", o_ya_1: "ja (ISO 9: 2文字)", o_ya_2: "a (単一母音化: 1文字)",
-                o_yo_0: "yo (ALA-LC: 2文字)", o_yo_1: "jo (ISO 9: 2文字)", o_yo_2: "e (正書法簡略化: 1文字)",
-                o_ye_0: "ye (ALA-LC: 2文字)", o_ye_1: "je (ISO 9: 2文字)", o_ye_2: "e (純粋母音化: 1文字)",
-                o_yi_0: "yi (ALA-LC: 2文字)", o_yi_1: "ji (ISO 9: 2文字)", o_yi_2: "i (純粋母音化: 1文字)",
-                o_g_0: "h (ウクライナ/ベラルーシ: 1文字)", o_g_1: "g (標準: 1文字)",
-                o_w_0: "w (ベラルーシ音韻: 1文字)", o_w_1: "u (母音化: 1文字)",
-                o_bg_a_0: "a (ブルガリア音韻: 1文字)", o_bg_a_1: "u (発音重視: 1文字)", o_bg_a_2: "- (無視: 1文字)",
-                o_dj_0: "dj (二重音字: 2文字)", o_dj_1: "d (単音化: 1文字)",
-                o_lj_0: "lj (二重音字: 2文字)", o_lj_1: "l (単音化: 1文字)",
-                o_nj_0: "nj (二重音字: 2文字)", o_nj_1: "n (単音化: 1文字)",
-                o_tc_0: "c (ISO 9: 1文字)", o_tc_1: "ch (英米式: 2文字)",
-                o_dzh_0: "dzh (英米式: 3文字)", o_dzh_1: "dz (二重音字: 2文字)", o_dzh_2: "j (単音化: 1文字)",
-                o_gj_0: "gj (二重音字: 2文字)", o_gj_1: "g (単音化: 1文字)",
-                o_dz_0: "dz (二重音字: 2文字)", o_dz_1: "z (単音化: 1文字)",
-                o_kj_0: "kj (二重音字: 2文字)", o_kj_1: "k (単音化: 1文字)",
-                tableTitle: "リアルタイム変換確認表",
-                tableH1: "キリル文字", tableH2: "現在の設定", tableH3: "文字数", tableH4: "対応ccTLD", tableH5: "処理結果",
+                lbl_by: "🇧🇾 ベラルーシ (.бел/.by)", lbl_bg: "🇧🇬 ブルガリア (.бг/.bg)", lbl_eu: "🇪🇺 欧州連合 (.ею/.eu)", 
+                lbl_kz: "🇰🇿 カザフスタン (.қаз/.kz)", lbl_mk: "🇲🇰 北マケドニア (.мкд/.mk)", lbl_mn: "🇲🇳 モンゴル (.мон/.mn)", 
+                lbl_ru: "🇷🇺 ロシア (.рф/.ru)", lbl_rs: "🇷🇸 セルビア (.срб/.rs)", lbl_ua: "🇺🇦 ウクライナ (.укр/.ua)",
+                meth_iso9: "ISO 9:1995 (厳密な1対1・記号付加)", meth_alalc: "ALA-LC (英米式目録規則)", meth_gost: "GOST 7.79-2000 System B",
+                tableTitle: "現在の言語×規格に基づく置換規則表", tableH1: "キリル文字", tableH2: "規格に基づくラテン転写", tableH5: "ATRAS上の処理挙動",
                 inputLabel: "入力テキスト:", inputPlaceholder: "文章を入力してください",
-                resultLabel: "結果 (破線の下線をクリックしてバリエーションを選択可能):",
-                outputLabel: "最終出力テキスト:",
+                resultLabel: "結果 (破線の下線をクリックしてバリエーションを選択可能):", outputLabel: "最終出力テキスト:",
                 copyBtn: "テキストをコピー", copiedBtn: "コピーしました！",
-                tbResSingle: "単独で国旗に置換", tbResKept: "のまま保持 (連鎖事故防止のため隔離)", tbResChain: "として周囲と結合",
-                none: "なし", chars: "文字"
+                tbResSingle: "単独で国旗に確定置換", tbResKept: "のまま保護（規格制約による隔離）", tbResChain: "として周囲の文字と自由に結合",
+                tbResShch: "🇸🇭🇨🇭に確定置換"
             },
             en: {
                 appTitle: "ATRAS Slavic Cyrillic Simulator", backBtn: "Back",
-                subtitle: "ccTLD Simulator specialized for Slavic Cyrillic alphabets",
-                presetTitle: "Quick Presets",
-                selectLangLbl: "1. Target Language", selectIdnLbl: "2. IDN ccTLD Usage", selectMethLbl: "3. Transliteration Format",
-                paramTitle: "Unique Cyrillic Transliteration Settings", idnIndivTitle: "Per-Country IDN Settings (IDN ccTLD / Transliterated ccTLD)",
-                lang_all: "All", lang_ru: "Russian", lang_uk: "Ukrainian", lang_be: "Belarusian", lang_bg: "Bulgarian", lang_sr: "Serbian", lang_mk: "Macedonian",
+                subtitle: "Strictly standard-compliant ccTLD simulator for Slavic languages",
+                presetTitle: "Batch Settings",
+                selectLangLbl: "1. Target Language", selectIdnLbl: "2. IDN ccTLD Usage", selectMethLbl: "3. Transliteration Standard",
+                idnIndivTitle: "Per-Country IDN Settings (IDN ccTLD / Transliterated ccTLD)",
+                lang_ru: "Russian", lang_uk: "Ukrainian", lang_be: "Belarusian", lang_bg: "Bulgarian", lang_sr: "Serbian", lang_mk: "Macedonian", lang_all: "All",
                 idn_0: "Use Both", idn_1: "IDN Only", idn_2: "Standard Only", idn_custom: "Custom",
                 idn_0_s: "Both", idn_1_s: "IDN Only", idn_2_s: "Standard Only",
-                lbl_by: "🇧🇾 Belarus (.бел/.би)", lbl_bg: "🇧🇬 Bulgaria (.бг/.бг)", lbl_eu: "🇪🇺 EU (.ею/.еу)", 
-                lbl_kz: "🇰🇿 Kazakhstan (.қаз/.кз)", lbl_mk: "🇲🇰 N. Macedonia (.мкд/.мк)", lbl_mn: "🇲🇳 Mongolia (.мон/.мн)", 
-                lbl_ru: "🇷🇺 Russia (.рф/.ру)", lbl_rs: "🇷🇸 Serbia (.срб/.рс)", lbl_ua: "🇺🇦 Ukraine (.укр/.уа)",
-                meth_0: "ALA-LC (Prioritize Visual Isolation)", meth_1: "ISO 9 (Unify j/c series)", meth_2: "Single Phoneme (Maximize Chaining)",
-                o_shch_0: "shch (ALA-LC: 4)", o_shch_1: "sc (ISO: 2)", o_shch_2: "ss (Phonetic: 2)", o_shch_3: "st (BG: 2)",
-                o_ch_0: "ch (ALA-LC: 2)", o_ch_1: "cz (Polish: 2)", o_ch_2: "c (ISO: 1)",
-                o_sh_0: "sh (ALA-LC: 2)", o_sh_1: "s (ISO: 1)",
-                o_kh_0: "kh (ALA-LC: 2)", o_kh_1: "h (ISO: 1)", o_kh_2: "x (IPA: 1)",
-                o_ts_0: "ts (ALA-LC: 2)", o_ts_1: "c (ISO: 1)", o_ts_2: "z (German: 1)",
-                o_zh_0: "zh (ALA-LC: 2)", o_zh_1: "z (ISO: 1)", o_zh_2: "j (French: 1)",
-                o_yu_0: "yu (ALA-LC: 2)", o_yu_1: "ju (ISO: 2)", o_yu_2: "u (Single: 1)",
-                o_ya_0: "ya (ALA-LC: 2)", o_ya_1: "ja (ISO: 2)", o_ya_2: "a (Single: 1)",
-                o_yo_0: "yo (ALA-LC: 2)", o_yo_1: "jo (ISO: 2)", o_yo_2: "e (Single: 1)",
-                o_ye_0: "ye (ALA-LC: 2)", o_ye_1: "je (ISO: 2)", o_ye_2: "e (Single: 1)",
-                o_yi_0: "yi (ALA-LC: 2)", o_yi_1: "ji (ISO: 2)", o_yi_2: "i (Single: 1)",
-                o_g_0: "h (UK/BE: 1)", o_g_1: "g (Standard: 1)",
-                o_w_0: "w (Belarusian: 1)", o_w_1: "u (Vowel: 1)",
-                o_bg_a_0: "a (BG Schwa: 1)", o_bg_a_1: "u (Phonetic: 1)", o_bg_a_2: "- (Ignore: 1)",
-                o_dj_0: "dj (Digraph: 2)", o_dj_1: "d (Single: 1)",
-                o_lj_0: "lj (Digraph: 2)", o_lj_1: "l (Single: 1)",
-                o_nj_0: "nj (Digraph: 2)", o_nj_1: "n (Single: 1)",
-                o_tc_0: "c (ISO: 1)", o_tc_1: "ch (ALA-LC: 2)",
-                o_dzh_0: "dzh (ALA-LC: 3)", o_dzh_1: "dz (Digraph: 2)", o_dzh_2: "j (Single: 1)",
-                o_gj_0: "gj (Digraph: 2)", o_gj_1: "g (Single: 1)",
-                o_dz_0: "dz (Digraph: 2)", o_dz_1: "z (Single: 1)",
-                o_kj_0: "kj (Digraph: 2)", o_kj_1: "k (Single: 1)",
-                tableTitle: "Real-time Conversion Matrix",
-                tableH1: "Cyrillic", tableH2: "Format", tableH3: "Length", tableH4: "ccTLD", tableH5: "Result",
+                lbl_by: "🇧🇾 Belarus (.бел/.by)", lbl_bg: "🇧🇬 Bulgaria (.бг/.bg)", lbl_eu: "🇪🇺 EU (.ею/.eu)", 
+                lbl_kz: "🇰🇿 Kazakhstan (.қаз/.kz)", lbl_mk: "🇲🇰 N. Macedonia (.мкд/.mk)", lbl_mn: "🇲🇳 Mongolia (.мон/.mn)", 
+                lbl_ru: "🇷🇺 Russia (.рф/.ru)", lbl_rs: "🇷🇸 Serbia (.срб/.rs)", lbl_ua: "🇺🇦 Ukraine (.укр/.ua)",
+                meth_iso9: "ISO 9:1995 (Strict 1-to-1)", meth_alalc: "ALA-LC (Digraphs)", meth_gost: "GOST 7.79-2000 System B",
+                tableTitle: "Current Mapping Rules", tableH1: "Cyrillic", tableH2: "Standard Transliteration", tableH5: "ATRAS Behavior",
                 inputLabel: "Input Text:", inputPlaceholder: "Enter text here",
-                resultLabel: "Result (Click dashed underlines for variations):",
-                outputLabel: "Final Output:", copyBtn: "Copy Text", copiedBtn: "Copied!",
-                tbResSingle: "Isolated Flag", tbResKept: "Kept as is (Isolated)", tbResChain: "Ready to chain", none: "None", chars: "chars"
+                resultLabel: "Result (Click dashed underlines for variations):", outputLabel: "Final Output:",
+                copyBtn: "Copy Text", copiedBtn: "Copied!",
+                tbResSingle: "Isolated Flag Replacement", tbResKept: "Kept as Cyrillic (Protected by rule)", tbResChain: "Chains with adjacent characters",
+                tbResShch: "Replaced with 🇸🇭🇨🇭"
             },
             de: {
                 appTitle: "ATRAS Slavic Cyrillic Simulator", backBtn: "Zurück",
-                subtitle: "ccTLD-Simulator spezialisiert auf slawisch-kyrillische Alphabete",
-                presetTitle: "Schnell-Voreinstellungen",
-                selectLangLbl: "1. Zielsprache", selectIdnLbl: "2. IDN ccTLD", selectMethLbl: "3. Transliterationsformat",
-                paramTitle: "Einzigartige kyrillische Transliterationseinstellungen", idnIndivTitle: "Länderspezifische IDN Einstellungen (IDN ccTLD / Transliterierte ccTLD)",
-                lang_all: "Alle", lang_ru: "Russisch", lang_uk: "Ukrainisch", lang_be: "Weißrussisch", lang_bg: "Bulgarisch", lang_sr: "Serbisch", lang_mk: "Mazedonisch",
+                subtitle: "Streng standardisierter ccTLD-Simulator für slawische Sprachen",
+                presetTitle: "Haupteinstellungen",
+                selectLangLbl: "1. Zielsprache", selectIdnLbl: "2. IDN ccTLD", selectMethLbl: "3. Transliterationsstandard",
+                idnIndivTitle: "Länderspezifische IDN Einstellungen (IDN ccTLD / Transliterierte ccTLD)",
+                lang_ru: "Russisch", lang_uk: "Ukrainisch", lang_be: "Weißrussisch", lang_bg: "Bulgarisch", lang_sr: "Serbisch", lang_mk: "Mazedonisch", lang_all: "Alle",
                 idn_0: "Beide nutzen", idn_1: "Nur IDN", idn_2: "Nur Standard", idn_custom: "Benutzerdefiniert",
                 idn_0_s: "Beide", idn_1_s: "Nur IDN", idn_2_s: "Nur Standard",
-                lbl_by: "🇧🇾 Belarus (.бел/.би)", lbl_bg: "🇧🇬 Bulgarien (.бг/.бг)", lbl_eu: "🇪🇺 EU (.ею/.еу)", 
-                lbl_kz: "🇰🇿 Kasachstan (.қаз/.кз)", lbl_mk: "🇲🇰 N. Mazedonien (.мкд/.мк)", lbl_mn: "🇲🇳 Mongolei (.мон/.мн)", 
-                lbl_ru: "🇷🇺 Russland (.рф/.ру)", lbl_rs: "🇷🇸 Serbien (.срб/.рс)", lbl_ua: "🇺🇦 Ukraine (.укр/.уа)",
-                meth_0: "ALA-LC (Priorisiert Isolierung)", meth_1: "ISO 9 (Vereinheitlicht j/c)", meth_2: "Einzelphonem (Verkettung)",
-                o_shch_0: "shch (ALA-LC: 4)", o_shch_1: "sc (ISO: 2)", o_shch_2: "ss (Phon: 2)", o_shch_3: "st (BG: 2)",
-                o_ch_0: "ch (ALA-LC: 2)", o_ch_1: "cz (Polnisch: 2)", o_ch_2: "c (ISO: 1)",
-                o_sh_0: "sh (ALA-LC: 2)", o_sh_1: "s (ISO: 1)",
-                o_kh_0: "kh (ALA-LC: 2)", o_kh_1: "h (ISO: 1)", o_kh_2: "x (IPA: 1)",
-                o_ts_0: "ts (ALA-LC: 2)", o_ts_1: "c (ISO: 1)", o_ts_2: "z (Deutsch: 1)",
-                o_zh_0: "zh (ALA-LC: 2)", o_zh_1: "z (ISO: 1)", o_zh_2: "j (Franz.: 1)",
-                o_yu_0: "yu (ALA-LC: 2)", o_yu_1: "ju (ISO: 2)", o_yu_2: "u (Einzel: 1)",
-                o_ya_0: "ya (ALA-LC: 2)", o_ya_1: "ja (ISO: 2)", o_ya_2: "a (Einzel: 1)",
-                o_yo_0: "yo (ALA-LC: 2)", o_yo_1: "jo (ISO: 2)", o_yo_2: "e (Einzel: 1)",
-                o_ye_0: "ye (ALA-LC: 2)", o_ye_1: "je (ISO: 2)", o_ye_2: "e (Einzel: 1)",
-                o_yi_0: "yi (ALA-LC: 2)", o_yi_1: "ji (ISO: 2)", o_yi_2: "i (Einzel: 1)",
-                o_g_0: "h (UK/BE: 1)", o_g_1: "g (Standard: 1)",
-                o_w_0: "w (Weißrussisch: 1)", o_w_1: "u (Vokal: 1)",
-                o_bg_a_0: "a (BG Schwa: 1)", o_bg_a_1: "u (Phonetisch: 1)", o_bg_a_2: "- (Ignorieren: 1)",
-                o_dj_0: "dj (Digraph: 2)", o_dj_1: "d (Einzel: 1)",
-                o_lj_0: "lj (Digraph: 2)", o_lj_1: "l (Einzel: 1)",
-                o_nj_0: "nj (Digraph: 2)", o_nj_1: "n (Einzel: 1)",
-                o_tc_0: "c (ISO: 1)", o_tc_1: "ch (ALA-LC: 2)",
-                o_dzh_0: "dzh (ALA-LC: 3)", o_dzh_1: "dz (Digraph: 2)", o_dzh_2: "j (Einzel: 1)",
-                o_gj_0: "gj (Digraph: 2)", o_gj_1: "g (Einzel: 1)",
-                o_dz_0: "dz (Digraph: 2)", o_dz_1: "z (Einzel: 1)",
-                o_kj_0: "kj (Digraph: 2)", o_kj_1: "k (Einzel: 1)",
-                tableTitle: "Echtzeit-Konvertierungsmatrix",
-                tableH1: "Kyrillisch", tableH2: "Format", tableH3: "Länge", tableH4: "ccTLD", tableH5: "Ergebnis",
+                lbl_by: "🇧🇾 Belarus (.бел/.by)", lbl_bg: "🇧🇬 Bulgarien (.бг/.bg)", lbl_eu: "🇪🇺 EU (.ею/.eu)", 
+                lbl_kz: "🇰🇿 Kasachstan (.қаз/.kz)", lbl_mk: "🇲🇰 N. Mazedonien (.мкд/.mk)", lbl_mn: "🇲🇳 Mongolei (.мон/.mn)", 
+                lbl_ru: "🇷🇺 Russland (.рф/.ru)", lbl_rs: "🇷🇸 Serbien (.срб/.rs)", lbl_ua: "🇺🇦 Ukraine (.укр/.ua)",
+                meth_iso9: "ISO 9:1995 (Streng 1-zu-1)", meth_alalc: "ALA-LC", meth_gost: "GOST 7.79-2000 System B",
+                tableTitle: "Aktuelle Zuordnungsregeln", tableH1: "Kyrillisch", tableH2: "Standard-Transliteration", tableH5: "ATRAS Verhalten",
                 inputLabel: "Eingabetext:", inputPlaceholder: "Text eingeben",
-                resultLabel: "Ergebnis (Klicken für Varianten):",
-                outputLabel: "Endgültige Ausgabe:", copyBtn: "Text kopieren", copiedBtn: "Kopiert!",
-                tbResSingle: "Isolierte Flagge", tbResKept: "Beibehalten", tbResChain: "Bereit zur Verkettung", none: "Keine", chars: "Zchn"
+                resultLabel: "Ergebnis (Klicken für Varianten):", outputLabel: "Endgültige Ausgabe:",
+                copyBtn: "Text kopieren", copiedBtn: "Kopiert!",
+                tbResSingle: "Isolierte Flagge", tbResKept: "Als Kyrillisch beibehalten (Regelschutz)", tbResChain: "Verkettung mit Nachbarzeichen",
+                tbResShch: "Ersetzt durch 🇸🇭🇨🇭"
+            },
+            ru: {
+                appTitle: "ATRAS Slavic Cyrillic Simulator", backBtn: "Назад",
+                subtitle: "Симулятор ccTLD, строго соответствующий стандартам транслитерации",
+                presetTitle: "Настройки транслитерации",
+                selectLangLbl: "1. Язык", selectIdnLbl: "2. IDN ccTLD", selectMethLbl: "3. Стандарт",
+                idnIndivTitle: "Настройки IDN ccTLD (IDN ccTLD / Транслит ccTLD)",
+                lang_ru: "Русский", lang_uk: "Украинский", lang_be: "Белорусский", lang_bg: "Болгарский", lang_sr: "Сербский", lang_mk: "Македонский", lang_all: "Все",
+                idn_0: "Оба", idn_1: "Только IDN", idn_2: "Только стандарт", idn_custom: "Пользовательские",
+                idn_0_s: "Оба", idn_1_s: "IDN", idn_2_s: "Стандарт",
+                lbl_by: "🇧🇾 Беларусь (.бел/.by)", lbl_bg: "🇧🇬 Болгария (.бг/.bg)", lbl_eu: "🇪🇺 ЕС (.ею/.eu)", 
+                lbl_kz: "🇰🇿 Казахстан (.қаз/.kz)", lbl_mk: "🇲🇰 С. Македония (.мкд/.mk)", lbl_mn: "🇲🇳 Монголия (.мон/.mn)", 
+                lbl_ru: "🇷🇺 Россия (.рф/.ru)", lbl_rs: "🇷🇸 Сербия (.срб/.rs)", lbl_ua: "🇺🇦 Украина (.укр/.ua)",
+                meth_iso9: "ISO 9:1995 (строго 1 к 1)", meth_alalc: "ALA-LC", meth_gost: "ГОСТ 7.79-2000 (Система Б)",
+                tableTitle: "Текущие правила маппинга", tableH1: "Кириллица", tableH2: "Транслитерация", tableH5: "Результат ATRAS",
+                inputLabel: "Текст:", inputPlaceholder: "Введите текст",
+                resultLabel: "Результат:", outputLabel: "Итоговый текст:",
+                copyBtn: "Копировать", copiedBtn: "Скопировано!",
+                tbResSingle: "Заменено на флаг", tbResKept: "Без изменений (защита)", tbResChain: "Связывается с соседними",
+                tbResShch: "Заменено на 🇸🇭🇨🇭"
+            },
+            uk: {
+                appTitle: "ATRAS Slavic Cyrillic Simulator", backBtn: "Назад",
+                subtitle: "Симулятор ccTLD за міжнародними стандартами",
+                presetTitle: "Налаштування транслітерації",
+                selectLangLbl: "1. Мова", selectIdnLbl: "2. IDN ccTLD", selectMethLbl: "3. Стандарт",
+                idnIndivTitle: "Налаштування IDN ccTLD (IDN ccTLD / Трансліт ccTLD)",
+                lang_ru: "Російська", lang_uk: "Українська", lang_be: "Білоруська", lang_bg: "Болгарська", lang_sr: "Сербська", lang_mk: "Македонська", lang_all: "Усі",
+                idn_0: "Обидва", idn_1: "Тільки IDN", idn_2: "Тільки стандарт", idn_custom: "Користувацькі",
+                idn_0_s: "Обидва", idn_1_s: "IDN", idn_2_s: "Стандарт",
+                lbl_by: "🇧🇾 Білорусь (.бел/.by)", lbl_bg: "🇧🇬 Болгарія (.бг/.bg)", lbl_eu: "🇪🇺 ЄС (.ею/.eu)", 
+                lbl_kz: "🇰🇿 Казахстан (.қаз/.kz)", lbl_mk: "🇲🇰 Пн. Македонія (.мкд/.mk)", lbl_mn: "🇲🇳 Монголія (.мон/.mn)", 
+                lbl_ru: "🇷🇺 Росія (.рф/.ru)", lbl_rs: "🇷🇸 Сербія (.срб/.rs)", lbl_ua: "🇺🇦 Україна (.укр/.ua)",
+                meth_iso9: "ISO 9:1995", meth_alalc: "ALA-LC", meth_gost: "ГОСТ 7.79-2000",
+                tableTitle: "Поточні правила", tableH1: "Кирилиця", tableH2: "Транслітерація", tableH5: "Результат ATRAS",
+                inputLabel: "Текст:", inputPlaceholder: "Введіть текст",
+                resultLabel: "Результат:", outputLabel: "Підсумковий текст:",
+                copyBtn: "Копіювати", copiedBtn: "Скопійовано!",
+                tbResSingle: "Замінено на прапор", tbResKept: "Без змін (захист)", tbResChain: "Зв'язується з сусідніми",
+                tbResShch: "Замінено на 🇸🇭🇨🇭"
+            },
+            be: {
+                appTitle: "ATRAS Slavic Cyrillic Simulator", backBtn: "Назад",
+                subtitle: "Сімулятар ccTLD па міжнародных стандартах",
+                presetTitle: "Налады",
+                selectLangLbl: "1. Мова", selectIdnLbl: "2. IDN ccTLD", selectMethLbl: "3. Стандарт",
+                idnIndivTitle: "Налады IDN (IDN ccTLD / Трансліт ccTLD)",
+                lang_ru: "Руская", lang_uk: "Украінская", lang_be: "Беларуская", lang_bg: "Балгарская", lang_sr: "Сербская", lang_mk: "Македонская", lang_all: "Усе",
+                idn_0: "Абодва", idn_1: "Толькі IDN", idn_2: "Толькі стандарт", idn_custom: "Карыстальніцкія",
+                idn_0_s: "Абодва", idn_1_s: "IDN", idn_2_s: "Стандарт",
+                lbl_by: "🇧🇾 Беларусь (.бел/.by)", lbl_bg: "🇧🇬 Балгарыя (.бг/.bg)", lbl_eu: "🇪🇺 ЕС (.ею/.eu)", 
+                lbl_kz: "🇰🇿 Казахстан (.қаз/.kz)", lbl_mk: "🇲🇰 Паўночная Македонія (.мкд/.mk)", lbl_mn: "🇲🇳 Манголія (.мон/.mn)", 
+                lbl_ru: "🇷🇺 Расія (.рф/.ru)", lbl_rs: "🇷🇸 Сербія (.срб/.rs)", lbl_ua: "🇺🇦 Украіна (.укр/.ua)",
+                meth_iso9: "ISO 9:1995", meth_alalc: "ALA-LC", meth_gost: "ГОСТ 7.79-2000",
+                tableTitle: "Бягучыя правілы", tableH1: "Кірыліца", tableH2: "Транслітарацыя", tableH5: "Вынік ATRAS",
+                inputLabel: "Тэкст:", inputPlaceholder: "Увядзіце тэкст",
+                resultLabel: "Вынік:", outputLabel: "Выніковы тэкст:",
+                copyBtn: "Капіяваць", copiedBtn: "Скапіявана!",
+                tbResSingle: "Сцяг", tbResKept: "Без змен", tbResChain: "Звязваецца",
+                tbResShch: "Заменена на 🇸🇭🇨🇭"
+            },
+            bg: {
+                appTitle: "ATRAS Slavic Cyrillic Simulator", backBtn: "Назад",
+                subtitle: "Симулатор ccTLD по международни стандарти",
+                presetTitle: "Настройки",
+                selectLangLbl: "1. Език", selectIdnLbl: "2. IDN ccTLD", selectMethLbl: "3. Стандарт",
+                idnIndivTitle: "Настройки IDN (IDN ccTLD / Транслит ccTLD)",
+                lang_ru: "Руски", lang_uk: "Украински", lang_be: "Беларуски", lang_bg: "Български", lang_sr: "Сръбски", lang_mk: "Македонски", lang_all: "Всички",
+                idn_0: "Двете", idn_1: "Само IDN", idn_2: "Само стандарт", idn_custom: "По избор",
+                idn_0_s: "Двете", idn_1_s: "IDN", idn_2_s: "Стандарт",
+                lbl_by: "🇧🇾 Беларус (.бел/.by)", lbl_bg: "🇧🇬 България (.бг/.bg)", lbl_eu: "🇪🇺 ЕС (.ею/.eu)", 
+                lbl_kz: "🇰🇿 Казахстан (.қаз/.kz)", lbl_mk: "🇲🇰 С. Македония (.мкд/.mk)", lbl_mn: "🇲🇳 Монголия (.мон/.mn)", 
+                lbl_ru: "🇷🇺 Русия (.рф/.ru)", lbl_rs: "🇷🇸 Сърбия (.срб/.rs)", lbl_ua: "🇺🇦 Украйна (.укр/.ua)",
+                meth_iso9: "ISO 9:1995", meth_alalc: "ALA-LC", meth_gost: "ГОСТ 7.79-2000",
+                tableTitle: "Текущи правила", tableH1: "Кирилица", tableH2: "Транслитерация", tableH5: "Резултат ATRAS",
+                inputLabel: "Текст:", inputPlaceholder: "Въведете текст",
+                resultLabel: "Резултат:", outputLabel: "Краен текст:",
+                copyBtn: "Копиране", copiedBtn: "Копирано!",
+                tbResSingle: "Флаг", tbResKept: "Без промяна", tbResChain: "Свързва се",
+                tbResShch: "Заменено с 🇸🇭🇨🇭"
+            },
+            mk: {
+                appTitle: "ATRAS Slavic Cyrillic Simulator", backBtn: "Назад",
+                subtitle: "Симулатор ccTLD според меѓународни стандарди",
+                presetTitle: "Поставки",
+                selectLangLbl: "1. Јазик", selectIdnLbl: "2. IDN ccTLD", selectMethLbl: "3. Стандард",
+                idnIndivTitle: "Поставки IDN (IDN ccTLD / Транслит ccTLD)",
+                lang_ru: "Руски", lang_uk: "Украински", lang_be: "Белоруски", lang_bg: "Бугарски", lang_sr: "Српски", lang_mk: "Македонски", lang_all: "Сите",
+                idn_0: "Двете", idn_1: "Само IDN", idn_2: "Само стандард", idn_custom: "Прилагодено",
+                idn_0_s: "Двете", idn_1_s: "IDN", idn_2_s: "Стандард",
+                lbl_by: "🇧🇾 Белорусија (.бел/.by)", lbl_bg: "🇧🇬 Бугарија (.бг/.bg)", lbl_eu: "🇪🇺 ЕУ (.ею/.eu)", 
+                lbl_kz: "🇰🇿 Казахстан (.қаз/.kz)", lbl_mk: "🇲🇰 Македонија (.мкд/.mk)", lbl_mn: "🇲🇳 Монголија (.мон/.mn)", 
+                lbl_ru: "🇷🇺 Русија (.рф/.ru)", lbl_rs: "🇷🇸 Србија (.срб/.rs)", lbl_ua: "🇺🇦 Украина (.укр/.ua)",
+                meth_iso9: "ISO 9:1995", meth_alalc: "ALA-LC", meth_gost: "GOST 7.79-2000",
+                tableTitle: "Тековни правила", tableH1: "Кирилица", tableH2: "Транслитерација", tableH5: "Резултат ATRAS",
+                inputLabel: "Текст:", inputPlaceholder: "Внесете текст",
+                resultLabel: "Резултат:", outputLabel: "Конечен текст:",
+                copyBtn: "Копирај", copiedBtn: "Копирано!",
+                tbResSingle: "Знаме", tbResKept: "Без промени", tbResChain: "Се поврзува",
+                tbResShch: "Заменето со 🇸🇭🇨🇭"
+            },
+            sr_cyrl: {
+                appTitle: "ATRAS Slavic Cyrillic Simulator", backBtn: "Назад",
+                subtitle: "Симулатор ccTLD према међународним стандардима",
+                presetTitle: "Подешавања",
+                selectLangLbl: "1. Језик", selectIdnLbl: "2. IDN ccTLD", selectMethLbl: "3. Стандард",
+                idnIndivTitle: "Подешавања IDN (IDN ccTLD / Транслит ccTLD)",
+                lang_ru: "Руски", lang_uk: "Украјински", lang_be: "Белоруски", lang_bg: "Бугарски", lang_sr: "Српски", lang_mk: "Македонски", lang_all: "Све",
+                idn_0: "Оба", idn_1: "Само IDN", idn_2: "Само стандард", idn_custom: "Прилагођено",
+                idn_0_s: "Оба", idn_1_s: "IDN", idn_2_s: "Стандард",
+                lbl_by: "🇧🇾 Белорусија (.бел/.by)", lbl_bg: "🇧🇬 Бугарска (.бг/.bg)", lbl_eu: "🇪🇺 ЕУ (.ею/.eu)", 
+                lbl_kz: "🇰🇿 Казахстан (.қаз/.kz)", lbl_mk: "🇲🇰 Македонија (.мкд/.mk)", lbl_mn: "🇲🇳 Монголија (.мон/.mn)", 
+                lbl_ru: "🇷🇺 Русија (.рф/.ru)", lbl_rs: "🇷🇸 Србија (.срб/.rs)", lbl_ua: "🇺🇦 Украјина (.укр/.ua)",
+                meth_iso9: "ISO 9:1995", meth_alalc: "ALA-LC", meth_gost: "GOST 7.79-2000",
+                tableTitle: "Тренутна правила", tableH1: "Ћирилица", tableH2: "Транслитерација", tableH5: "Резултат ATRAS",
+                inputLabel: "Текст:", inputPlaceholder: "Унесите текст",
+                resultLabel: "Резултат:", outputLabel: "Коначни текст:",
+                copyBtn: "Копирај", copiedBtn: "Копирано!",
+                tbResSingle: "Застава", tbResKept: "Без промена", tbResChain: "Повезује се",
+                tbResShch: "Замењено са 🇸🇭🇨🇭"
+            },
+            sr_latn: {
+                appTitle: "ATRAS Slavic Cyrillic Simulator", backBtn: "Nazad",
+                subtitle: "Simulator ccTLD prema međunarodnim standardima",
+                presetTitle: "Podešavanja",
+                selectLangLbl: "1. Jezik", selectIdnLbl: "2. IDN ccTLD", selectMethLbl: "3. Standard",
+                idnIndivTitle: "Podešavanja IDN (IDN ccTLD / Translit ccTLD)",
+                lang_ru: "Ruski", lang_uk: "Ukrajinski", lang_be: "Beloruski", lang_bg: "Bugarski", lang_sr: "Srpski", lang_mk: "Makedonski", lang_all: "Sve",
+                idn_0: "Oba", idn_1: "Samo IDN", idn_2: "Samo standard", idn_custom: "Prilagođeno",
+                idn_0_s: "Oba", idn_1_s: "IDN", idn_2_s: "Standard",
+                lbl_by: "🇧🇾 Belorusija (.бел/.by)", lbl_bg: "🇧🇬 Bugarska (.бг/.bg)", lbl_eu: "🇪🇺 EU (.ею/.eu)", 
+                lbl_kz: "🇰🇿 Kazahstan (.қаз/.kz)", lbl_mk: "🇲🇰 Makedonija (.мкд/.mk)", lbl_mn: "🇲🇳 Mongolija (.мон/.mn)", 
+                lbl_ru: "🇷🇺 Rusija (.рф/.ru)", lbl_rs: "🇷🇸 Srbija (.срб/.rs)", lbl_ua: "🇺🇦 Ukrajina (.укр/.ua)",
+                meth_iso9: "ISO 9:1995", meth_alalc: "ALA-LC", meth_gost: "GOST 7.79-2000",
+                tableTitle: "Trenutna pravila", tableH1: "Ćirilica", tableH2: "Transliteracija", tableH5: "Rezultat ATRAS",
+                inputLabel: "Tekst:", inputPlaceholder: "Unesite tekst",
+                resultLabel: "Rezultat:", outputLabel: "Konačni tekst:",
+                copyBtn: "Kopiraj", copiedBtn: "Kopirano!",
+                tbResSingle: "Zastava", tbResKept: "Bez promena", tbResChain: "Povezuje se",
+                tbResShch: "Zamenjeno sa 🇸🇭🇨🇭"
+            },
+            sh_cyrl: {
+                appTitle: "ATRAS Slavic Cyrillic Simulator", backBtn: "Назад", subtitle: "Симулатор ccTLD према међународним стандардима",
+                presetTitle: "Подешавања", selectLangLbl: "1. Језик", selectIdnLbl: "2. IDN ccTLD", selectMethLbl: "3. Стандард",
+                idnIndivTitle: "Подешавања IDN (IDN ccTLD / Транслит ccTLD)",
+                lang_ru: "Руски", lang_uk: "Украјински", lang_be: "Белоруски", lang_bg: "Бугарски", lang_sr: "Српскохрватски", lang_mk: "Македонски", lang_all: "Све",
+                idn_0: "Оба", idn_1: "Само IDN", idn_2: "Само стандард", idn_custom: "Прилагођено",
+                idn_0_s: "Оба", idn_1_s: "IDN", idn_2_s: "Стандард",
+                lbl_by: "🇧🇾 Белорусија (.бел/.by)", lbl_bg: "🇧🇬 Бугарска (.бг/.bg)", lbl_eu: "🇪🇺 ЕУ (.ею/.eu)", 
+                lbl_kz: "🇰🇿 Казахстан (.қаз/.kz)", lbl_mk: "🇲🇰 Македонија (.мкд/.mk)", lbl_mn: "🇲🇳 Монголија (.мон/.mn)", 
+                lbl_ru: "🇷🇺 Русија (.рф/.ru)", lbl_rs: "🇷🇸 Србија/Хрв (.срб/.rs)", lbl_ua: "🇺🇦 Украјина (.укр/.ua)",
+                meth_iso9: "ISO 9:1995", meth_alalc: "ALA-LC", meth_gost: "GOST 7.79-2000",
+                tableTitle: "Тренутна правила", tableH1: "Ћирилица", tableH2: "Транслитерација", tableH5: "Резултат ATRAS",
+                inputLabel: "Текст:", inputPlaceholder: "Унесите текст",
+                resultLabel: "Резултат:", outputLabel: "Коначни текст:",
+                copyBtn: "Копирај", copiedBtn: "Копирано!",
+                tbResSingle: "Застава", tbResKept: "Без промена", tbResChain: "Повезује се", tbResShch: "Замењено са 🇸🇭🇨🇭"
+            },
+            sh_latn: {
+                appTitle: "ATRAS Slavic Cyrillic Simulator", backBtn: "Nazad", subtitle: "Simulator ccTLD prema međunarodnim standardima",
+                presetTitle: "Podešavanja", selectLangLbl: "1. Jezik", selectIdnLbl: "2. IDN ccTLD", selectMethLbl: "3. Standard",
+                idnIndivTitle: "Podešavanja IDN (IDN ccTLD / Translit ccTLD)",
+                lang_ru: "Ruski", lang_uk: "Ukrajinski", lang_be: "Beloruski", lang_bg: "Bugarski", lang_sr: "Srpskohrvatski", lang_mk: "Makedonski", lang_all: "Sve",
+                idn_0: "Oba", idn_1: "Samo IDN", idn_2: "Samo standard", idn_custom: "Prilagođeno",
+                idn_0_s: "Oba", idn_1_s: "IDN", idn_2_s: "Standard",
+                lbl_by: "🇧🇾 Belorusija (.бел/.by)", lbl_bg: "🇧🇬 Bugarska (.бг/.bg)", lbl_eu: "🇪🇺 EU (.ею/.eu)", 
+                lbl_kz: "🇰🇿 Kazahstan (.қаз/.kz)", lbl_mk: "🇲🇰 Makedonija (.мкд/.mk)", lbl_mn: "🇲🇳 Mongolija (.мон/.mn)", 
+                lbl_ru: "🇷🇺 Rusija (.рф/.ru)", lbl_rs: "🇷🇸 Srbija/Hrv (.срб/.rs)", lbl_ua: "🇺🇦 Ukrajina (.укр/.ua)",
+                meth_iso9: "ISO 9:1995", meth_alalc: "ALA-LC", meth_gost: "GOST 7.79-2000",
+                tableTitle: "Trenutna pravila", tableH1: "Ćirilica", tableH2: "Transliteracija", tableH5: "Rezultat ATRAS",
+                inputLabel: "Tekst:", inputPlaceholder: "Unesite tekst",
+                resultLabel: "Rezultat:", outputLabel: "Konačni tekst:",
+                copyBtn: "Kopiraj", copiedBtn: "Kopirano!",
+                tbResSingle: "Zastava", tbResKept: "Bez promena", tbResChain: "Povezuje se", tbResShch: "Zamenjeno sa 🇸🇭🇨🇭"
             },
             is_cyrl: {
-                appTitle: "Словјанскы ATRAS Симулятор", backBtn: "Назад",
-                subtitle: "ccTLD симулятор за словјанске кирилске ѩзыкы",
-                presetTitle: "Брзе настройкы",
-                selectLangLbl: "1. Цєлевы ѩзык", selectIdnLbl: "2. IDN ccTLD", selectMethLbl: "3. Метод транслитерациє",
-                paramTitle: "Уникалне настройкы транслитерациє", idnIndivTitle: "Локалне IDN настройкы (IDN ccTLD / Транслитерована ccTLD)",
-                lang_all: "Всє", lang_ru: "Русскы ѩзык", lang_uk: "Украинскы ѩзык", lang_be: "Бєлорускы ѩзык", lang_bg: "Болгарскы ѩзык", lang_sr: "Србскы ѩзык", lang_mk: "Македонскы ѩзык",
+                appTitle: "ATRAS Slavic Cyrillic Simulator", backBtn: "Назад",
+                subtitle: "ccTLD симулятор за словјанске кирилске ѩзыкы по стандардам",
+                presetTitle: "Главне настройкы",
+                selectLangLbl: "1. Цєлевы ѩзык", selectIdnLbl: "2. IDN ccTLD", selectMethLbl: "3. Стандарт транслитерациє",
+                idnIndivTitle: "Локалне IDN настройкы (IDN ccTLD / Транслитерована ccTLD)",
+                lang_ru: "Русскы", lang_uk: "Украинскы", lang_be: "Бєлорускы", lang_bg: "Болгарскы", lang_sr: "Србскы", lang_mk: "Македонскы", lang_all: "Всє",
                 idn_0: "Оба", idn_1: "Толко IDN", idn_2: "Толко Стандарт", idn_custom: "Ручно",
                 idn_0_s: "Оба", idn_1_s: "IDN", idn_2_s: "Стандарт",
-                lbl_by: "🇧🇾 Бєлорусиѩ (.бел/.би)", lbl_bg: "🇧🇬 Болгариѩ (.бг/.бг)", lbl_eu: "🇪🇺 ЕУ (.ею/.еу)", 
-                lbl_kz: "🇰🇿 Казахскы (.қаз/.кз)", lbl_mk: "🇲🇰 Македониѩ (.мкд/.мк)", lbl_mn: "🇲🇳 Монголиѩ (.мон/.мн)", 
-                lbl_ru: "🇷🇺 Россиѩ (.рф/.ру)", lbl_rs: "🇷🇸 Србиѩ (.срб/.рс)", lbl_ua: "🇺🇦 Украина (.укр/.уа)",
-                meth_0: "ALA-LC (Визуална Изолациѩ)", meth_1: "ISO 9 (Академичны)", meth_2: "Єдин Звук (Максимална Веза)",
-                o_shch_0: "shch (ALA: 4)", o_shch_1: "sc (ISO: 2)", o_shch_2: "ss (Звук: 2)", o_shch_3: "st (BG: 2)",
-                o_ch_0: "ch (ALA: 2)", o_ch_1: "cz (Полскы: 2)", o_ch_2: "c (ISO: 1)",
-                o_sh_0: "sh (ALA: 2)", o_sh_1: "s (ISO: 1)",
-                o_kh_0: "kh (ALA: 2)", o_kh_1: "h (ISO: 1)", o_kh_2: "x (IPA: 1)",
-                o_ts_0: "ts (ALA: 2)", o_ts_1: "c (ISO: 1)", o_ts_2: "z (Нємскы: 1)",
-                o_zh_0: "zh (ALA: 2)", o_zh_1: "z (ISO: 1)", o_zh_2: "j (Фр.: 1)",
-                o_yu_0: "yu (ALA: 2)", o_yu_1: "ju (ISO: 2)", o_yu_2: "u (Гласк: 1)",
-                o_ya_0: "ya (ALA: 2)", o_ya_1: "ja (ISO: 2)", o_ya_2: "a (Гласк: 1)",
-                o_yo_0: "yo (ALA: 2)", o_yo_1: "jo (ISO: 2)", o_yo_2: "e (Гласк: 1)",
-                o_ye_0: "ye (ALA: 2)", o_ye_1: "je (ISO: 2)", o_ye_2: "e (Гласк: 1)",
-                o_yi_0: "yi (ALA: 2)", o_yi_1: "ji (ISO: 2)", o_yi_2: "i (Гласк: 1)",
-                o_g_0: "h (UK/BE: 1)", o_g_1: "g (Стандарт: 1)",
-                o_w_0: "w (Бєл.: 1)", o_w_1: "u (Гласк: 1)",
-                o_bg_a_0: "a (BG Шва: 1)", o_bg_a_1: "u (Звук: 1)", o_bg_a_2: "- (Нич: 1)",
-                o_dj_0: "dj (Диграф: 2)", o_dj_1: "d (Єдин: 1)",
-                o_lj_0: "lj (Диграф: 2)", o_lj_1: "l (Єдин: 1)",
-                o_nj_0: "nj (Диграф: 2)", o_nj_1: "n (Єдин: 1)",
-                o_tc_0: "c (ISO: 1)", o_tc_1: "ch (ALA: 2)",
-                o_dzh_0: "dzh (ALA: 3)", o_dzh_1: "dz (Диграф: 2)", o_dzh_2: "j (Єдин: 1)",
-                o_gj_0: "gj (Диграф: 2)", o_gj_1: "g (Єдин: 1)",
-                o_dz_0: "dz (Диграф: 2)", o_dz_1: "z (Єдин: 1)",
-                o_kj_0: "kj (Диграф: 2)", o_kj_1: "k (Єдин: 1)",
-                tableTitle: "Матрица конверсиє",
-                tableH1: "Кирилица", tableH2: "Метод", tableH3: "Долгост", tableH4: "ccTLD", tableH5: "Резултат",
+                lbl_by: "🇧🇾 Бєлорусиѩ (.бел/.by)", lbl_bg: "🇧🇬 Болгариѩ (.бг/.bg)", lbl_eu: "🇪🇺 ЕУ (.ею/.eu)", 
+                lbl_kz: "🇰🇿 Казахскы (.қаз/.kz)", lbl_mk: "🇲🇰 Македониѩ (.мкд/.mk)", lbl_mn: "🇲🇳 Монголиѩ (.мон/.mn)", 
+                lbl_ru: "🇷🇺 Россиѩ (.рф/.ru)", lbl_rs: "🇷🇸 Србиѩ (.срб/.rs)", lbl_ua: "🇺🇦 Украина (.укр/.ua)",
+                meth_iso9: "ISO 9:1995 (1-на-1)", meth_alalc: "ALA-LC", meth_gost: "GOST 7.79-2000 System B",
+                tableTitle: "Матрица правил", tableH1: "Кирилица", tableH2: "Стандартна транслитерациѩ", tableH5: "Резултат ATRAS",
                 inputLabel: "Входны текст:", inputPlaceholder: "Впишите текст",
-                resultLabel: "Резултат:",
-                outputLabel: "Финалны текст:", copyBtn: "Копировати", copiedBtn: "Скопировано!",
-                tbResSingle: "Флаг", tbResKept: "Оставјено", tbResChain: "Веза", none: "Нич", chars: "зн."
+                resultLabel: "Резултат:", outputLabel: "Финалны текст:",
+                copyBtn: "Копировати", copiedBtn: "Скопировано!",
+                tbResSingle: "Изолированы Флаг", tbResKept: "Оставјено ꙗко кирилица (Защита)", tbResChain: "Свободна веза",
+                tbResShch: "Замєнєно на 🇸🇭🇨🇭"
             },
             is_latn: {
                 appTitle: "ATRAS Slavic Cyrillic Simulator", backBtn: "Nazad",
-                subtitle: "ccTLD simujator za slovjanske kirilske języky",
-                presetTitle: "Brze nastrojky",
-                selectLangLbl: "1. Cělevy język", selectIdnLbl: "2. IDN ccTLD", selectMethLbl: "3. Metod transliteracije",
-                paramTitle: "Unikalne nastrojky transliteracije", idnIndivTitle: "Lokalne IDN nastrojky (IDN ccTLD / Transliterovana ccTLD)",
-                lang_all: "Vse", lang_ru: "Russky język", lang_uk: "Ukrainsky język", lang_be: "Bělorusky język", lang_bg: "Bolgarsky język", lang_sr: "Srbsky język", lang_mk: "Makedonsky język",
+                subtitle: "ccTLD simujator za slovjanske kirilske języky po standardam",
+                presetTitle: "Glavne nastrojky",
+                selectLangLbl: "1. Cělevy język", selectIdnLbl: "2. IDN ccTLD", selectMethLbl: "3. Standard transliteracije",
+                idnIndivTitle: "Lokalne IDN nastrojky (IDN ccTLD / Transliterovana ccTLD)",
+                lang_ru: "Russky", lang_uk: "Ukrainsky", lang_be: "Bělorusky", lang_bg: "Bolgarsky", lang_sr: "Srbsky", lang_mk: "Makedonsky", lang_all: "Vse",
                 idn_0: "Oba", idn_1: "Tolko IDN", idn_2: "Tolko Standart", idn_custom: "Ručno",
                 idn_0_s: "Oba", idn_1_s: "IDN", idn_2_s: "Standart",
-                lbl_by: "🇧🇾 Bělorusija (.бел/.би)", lbl_bg: "🇧🇬 Bolgarija (.бг/.бг)", lbl_eu: "🇪🇺 EU (.ею/.еу)", 
-                lbl_kz: "🇰🇿 Kazahsky (.қаз/.кз)", lbl_mk: "🇲🇰 Makedonija (.мкд/.мк)", lbl_mn: "🇲🇳 Mongolija (.мон/.мн)", 
-                lbl_ru: "🇷🇺 Rossija (.рф/.ру)", lbl_rs: "🇷🇸 Srbija (.срб/.рс)", lbl_ua: "🇺🇦 Ukraina (.укр/.уа)",
-                meth_0: "ALA-LC (Vizualna Izolacija)", meth_1: "ISO 9 (Akademičny)", meth_2: "Jedin Zvuk (Maksimalna Veza)",
-                o_shch_0: "shch (ALA: 4)", o_shch_1: "sc (ISO: 2)", o_shch_2: "ss (Zvuk: 2)", o_shch_3: "st (BG: 2)",
-                o_ch_0: "ch (ALA: 2)", o_ch_1: "cz (Polsky: 2)", o_ch_2: "c (ISO: 1)",
-                o_sh_0: "sh (ALA: 2)", o_sh_1: "s (ISO: 1)",
-                o_kh_0: "kh (ALA: 2)", o_kh_1: "h (ISO: 1)", o_kh_2: "x (IPA: 1)",
-                o_ts_0: "ts (ALA: 2)", o_ts_1: "c (ISO: 1)", o_ts_2: "z (Němsky: 1)",
-                o_zh_0: "zh (ALA: 2)", o_zh_1: "z (ISO: 1)", o_zh_2: "j (Fr.: 1)",
-                o_yu_0: "yu (ALA: 2)", o_yu_1: "ju (ISO: 2)", o_yu_2: "u (Glask: 1)",
-                o_ya_0: "ya (ALA: 2)", o_ya_1: "ja (ISO: 2)", o_ya_2: "a (Glask: 1)",
-                o_yo_0: "yo (ALA: 2)", o_yo_1: "jo (ISO: 2)", o_yo_2: "e (Glask: 1)",
-                o_ye_0: "ye (ALA: 2)", o_ye_1: "je (ISO: 2)", o_ye_2: "e (Glask: 1)",
-                o_yi_0: "yi (ALA: 2)", o_yi_1: "ji (ISO: 2)", o_yi_2: "i (Glask: 1)",
-                o_g_0: "h (UK/BE: 1)", o_g_1: "g (Standart: 1)",
-                o_w_0: "w (Běl.: 1)", o_w_1: "u (Glask: 1)",
-                o_bg_a_0: "a (BG Šva: 1)", o_bg_a_1: "u (Zvuk: 1)", o_bg_a_2: "- (Nič: 1)",
-                o_dj_0: "dj (Digraf: 2)", o_dj_1: "d (Jedin: 1)",
-                o_lj_0: "lj (Digraph: 2)", o_lj_1: "l (Jedin: 1)",
-                o_nj_0: "nj (Digraph: 2)", o_nj_1: "n (Jedin: 1)",
-                o_tc_0: "c (ISO: 1)", o_tc_1: "ch (ALA: 2)",
-                o_dzh_0: "dzh (ALA: 3)", o_dzh_1: "dz (Digraph: 2)", o_dzh_2: "j (Jedin: 1)",
-                o_gj_0: "gj (Digraph: 2)", o_gj_1: "g (Jedin: 1)",
-                o_dz_0: "dz (Digraph: 2)", o_dz_1: "z (Jedin: 1)",
-                o_kj_0: "kj (Digraph: 2)", o_kj_1: "k (Jedin: 1)",
-                tableTitle: "Matrica konversije",
-                tableH1: "Kirilica", tableH2: "Metod", tableH3: "Dolgost", tableH4: "ccTLD", tableH5: "Rezultat",
+                lbl_by: "🇧🇾 Bělorusija (.бел/.by)", lbl_bg: "🇧🇬 Bolgarija (.бг/.bg)", lbl_eu: "🇪🇺 EU (.ею/.eu)", 
+                lbl_kz: "🇰🇿 Kazahsky (.қаз/.kz)", lbl_mk: "🇲🇰 Makedonija (.мкд/.mk)", lbl_mn: "🇲🇳 Mongolija (.мон/.mn)", 
+                lbl_ru: "🇷🇺 Rossija (.рф/.ru)", lbl_rs: "🇷🇸 Srbija (.срб/.rs)", lbl_ua: "🇺🇦 Ukraina (.укр/.ua)",
+                meth_iso9: "ISO 9:1995 (1-na-1)", meth_alalc: "ALA-LC", meth_gost: "GOST 7.79-2000 System B",
+                tableTitle: "Matrica pravìl", tableH1: "Kirilica", tableH2: "Standardna transliteracija", tableH5: "Rezultat ATRAS",
                 inputLabel: "Vhodny tekst:", inputPlaceholder: "Vpišite tekst",
-                resultLabel: "Rezultat:",
-                outputLabel: "Finalny tekst:", copyBtn: "Kopirovati", copiedBtn: "Skopirovano!",
-                tbResSingle: "Flag", tbResKept: "Ostavjeno", tbResChain: "Veza", none: "Nič", chars: "zn."
+                resultLabel: "Rezultat:", outputLabel: "Finalny tekst:",
+                copyBtn: "Kopirovati", copiedBtn: "Skopirovano!",
+                tbResSingle: "Izolirovany Flag", tbResKept: "Ostavjeno jako kirilica (Zaščita)", tbResChain: "Svobodna veza",
+                tbResShch: "Zaměněno na 🇸🇭🇨🇭"
             }
+        };
+
+        const scriptPairs = {
+            'sr_latn': 'sr_cyrl', 'sr_cyrl': 'sr_latn',
+            'sh_latn': 'sh_cyrl', 'sh_cyrl': 'sh_latn',
+            'is_latn': 'is_cyrl', 'is_cyrl': 'is_latn'
+        };
+
+        const langLabels = {
+            'sr_latn': 'Srpski', 'sr_cyrl': 'Српски',
+            'sh_latn': 'Srpskohrvatski', 'sh_cyrl': 'Српскохрватски',
+            'is_latn': 'Medžuslovjanski', 'is_cyrl': 'Меджусловјански'
         };
 
         let currentLang = 'ja';
 
-        const langConfigs = {
-            all: { specials: ['щ', 'ч', 'ш', 'х', 'ц', 'ж', 'ю', 'я', 'ё', 'е', 'є', 'ї', 'г', 'ў', 'ъ', 'ђ', 'љ', 'њ', 'ћ', 'џ', 'ѓ', 'ѕ', 'ќ'], base: {'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'з': 'z', 'и': 'i', 'й': 'j', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'ъ': '-', 'ы': 'y', 'ь': "'", 'э': 'e', 'ґ': 'g', 'е': 'e', 'і': 'i', 'ј': 'j'} },
-            ru: { specials: ['щ','ч','ш','х','ц','ж','ю','я','ё','е'], base: {'а':'a','б':'b','в':'v','г':'g','д':'d','з':'z','и':'i','й':'j','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','ъ':'-','ы':'y','ь':"'",'э':'e'} },
-            uk: { specials: ['щ','ч','ш','х','ц','ж','ю','я','є','ї','г'], base: {'а':'a','б':'b','в':'v','ґ':'g','д':'d','е':'e','з':'z','и':'y','і':'i','й':'j','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','ь':"'"} },
-            be: { specials: ['ч','ш','х','ц','ж','ю','я','ё','е','ў'], base: {'а':'a','б':'b','в':'v','г':'h','д':'d','з':'z','і':'i','й':'j','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','ы':'y','ь':"'",'э':'e'} },
-            bg: { specials: ['щ','ч','ш','х','ц','ж','ю','я','ъ'], base: {'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','з':'z','и':'i','й':'j','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','ь':"'"} },
-            sr: { specials: ['ч','ш','х','ц','ж','ђ','љ','њ','ћ','џ'], base: {'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','з':'z','и':'i','ј':'j','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f'} },
-            mk: { specials: ['ч','ш','х','ц','ж','ѓ','ѕ','љ','њ','ќ','џ'], base: {'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','з':'z','и':'i','ј':'j','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f'} }
+        const alphabets = {
+            all: 'абвгґдеєёжзѕиіїйјкќлљмнњопрстћуўфхцчџшщъыьэюя',
+            ru: 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя',
+            uk: 'абвгґдеєжзиіїйклмнопрстуфхцчшщьюя',
+            be: 'абвгдеёжзійклмнопрстуўфхцчшыьэюя',
+            bg: 'абвгдежзийклмнопрстуфхцчшщъьюя',
+            sr: 'абвгдђежзијклљмнњопрстћуфхцчџш',
+            mk: 'абвгдѓежзѕијклљмнњопрстќуфхцчџш'
         };
 
-        const charOptions = {
-            'щ': [ {val:'shch', key:'o_shch_0'}, {val:'sc', key:'o_shch_1'}, {val:'ss', key:'o_shch_2'}, {val:'st', key:'o_shch_3'} ],
-            'ч': [ {val:'ch', key:'o_ch_0'}, {val:'cz', key:'o_ch_1'}, {val:'c', key:'o_ch_2'} ],
-            'ш': [ {val:'sh', key:'o_sh_0'}, {val:'s', key:'o_sh_1'} ],
-            'х': [ {val:'kh', key:'o_kh_0'}, {val:'h', key:'o_kh_1'}, {val:'x', key:'o_kh_2'} ],
-            'ц': [ {val:'ts', key:'o_ts_0'}, {val:'c', key:'o_ts_1'}, {val:'z', key:'o_ts_2'} ],
-            'ж': [ {val:'zh', key:'o_zh_0'}, {val:'z', key:'o_zh_1'}, {val:'j', key:'o_zh_2'} ],
-            'ю': [ {val:'yu', key:'o_yu_0'}, {val:'ju', key:'o_yu_1'}, {val:'u', key:'o_yu_2'} ],
-            'я': [ {val:'ya', key:'o_ya_0'}, {val:'ja', key:'o_ya_1'}, {val:'a', key:'o_ya_2'} ],
-            'ё': [ {val:'yo', key:'o_yo_0'}, {val:'jo', key:'o_yo_1'}, {val:'e', key:'o_yo_2'} ],
-            'е': [ {val:'ye', key:'o_ye_0'}, {val:'je', key:'o_ye_1'}, {val:'e', key:'o_ye_2'} ],
-            'є': [ {val:'ye', key:'o_ye_0'}, {val:'je', key:'o_ye_1'}, {val:'e', key:'o_ye_2'} ], 
-            'ї': [ {val:'yi', key:'o_yi_0'}, {val:'ji', key:'o_yi_1'}, {val:'i', key:'o_yi_2'} ],
-            'г': [ {val:'h', key:'o_g_0'}, {val:'g', key:'o_g_1'} ],
-            'ў': [ {val:'w', key:'o_w_0'}, {val:'u', key:'o_w_1'} ],
-            'ъ': [ {val:'a', key:'o_bg_a_0'}, {val:'u', key:'o_bg_a_1'}, {val:'-', key:'o_bg_a_2'} ],
-            'ђ': [ {val:'dj', key:'o_dj_0'}, {val:'d', key:'o_dj_1'} ],
-            'љ': [ {val:'lj', key:'o_lj_0'}, {val:'l', key:'o_lj_1'} ],
-            'њ': [ {val:'nj', key:'o_nj_0'}, {val:'n', key:'o_nj_1'} ],
-            'ћ': [ {val:'c', key:'o_tc_0'}, {val:'ch', key:'o_tc_1'} ],
-            'џ': [ {val:'dzh', key:'o_dzh_0'}, {val:'dz', key:'o_dzh_1'}, {val:'j', key:'o_dzh_2'} ],
-            'ѓ': [ {val:'gj', key:'o_gj_0'}, {val:'g', key:'o_gj_1'} ],
-            'ѕ': [ {val:'dz', key:'o_dz_0'}, {val:'z', key:'o_dz_1'} ],
-            'ќ': [ {val:'kj', key:'o_kj_0'}, {val:'k', key:'o_kj_1'} ],
+        const translitRules = {
+            iso9: {
+                base: {'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ж':'ž','з':'z','и':'i','й':'j','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'h','ц':'c','ч':'č','ш':'š','щ':'ŝ','ъ':'"','ы':'y','ь':"'",'э':'è','ю':'û','я':'â','ё':'ë'},
+                uk: {'ґ':'g̀','є':'ê','і':'ì','ї':'ï'},
+                be: {'і':'ì','ў':'ŭ','э':'è'},
+                bg: {'ъ':'″'},
+                sr: {'ђ':'đ','ј':'j','љ':'l̂','њ':'n̂','ћ':'ć','џ':'d̂'},
+                mk: {'ѓ':'ǵ','ѕ':'ẑ','ј':'j','љ':'l̂','њ':'n̂','ќ':'ḱ','џ':'d̂'}
+            },
+            alalc: {
+                base: {'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ж':'zh','з':'z','и':'i','й':'i','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'kh','ц':'ts','ч':'ch','ш':'sh','щ':'shch','ъ':'"','ы':'y','ь':"'",'э':'e','ю':'iu','я':'ia','ё':'ë'},
+                uk: {'г':'h','ґ':'g','є':'ie','и':'y','і':'i','ї':'ï'},
+                be: {'г':'h','ё':'io','і':'i','ў':'w','э':'e'},
+                bg: {'ъ':'ŭ','ь':'i','щ':'sht'},
+                sr: {'ђ':'đ','ј':'j','љ':'lj','њ':'nj','ћ':'ć','џ':'dzh'},
+                mk: {'ѓ':'ǵ','ѕ':'dz','ј':'j','љ':'lj','њ':'nj','ќ':'ḱ','џ':'dzh'}
+            },
+            gost: {
+                base: {'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ж':'zh','з':'z','и':'i','й':'j','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'x','ц':'c','ч':'ch','ш':'sh','щ':'shh','ъ':'`','ы':"y'",'ь':'`','э':"e'",'ю':'yu','я':'ya','ё':'yo'},
+                uk: {'ґ':"g'",'є':'ye','и':"i'",'і':'i','ї':'yi'},
+                be: {'і':'i','ў':"u'",'э':"e'"},
+                bg: {'ъ':"a'",'ь':'`','щ':'sht'},
+                mk: {'ѓ':"g'",'ѕ':'z','ј':'j','љ':"l'",'њ':"n'",'ќ':"k'",'џ':'dh'},
+                sr: {'ђ':"d'",'ј':'j','љ':"l'",'њ':"n'",'ћ':"c'",'џ':'dh'}
+            }
         };
 
         const masterCctldFlags = {
             "ac": "🇦🇨", "ad": "🇦🇩", "ae": "🇦🇪", "af": "🇦🇫", "ag": "🇦🇬", "ai": "🇦🇮", "al": "🇦🇱", "am": "🇦🇲", "ao": "🇦🇴", "aq": "🇦🇶", "ar": "🇦🇷", "as": "🇦🇸", "at": "🇦🇹", "au": "🇦🇺", "aw": "🇦🇼", "ax": "🇦🇽", "az": "🇦🇿",
-            "ba": "🇧🇦", "bb": "🇧🇧", "bd": "🇧🇩", "be": "🇧🇪", "bf": "🇧🇫", "bg": "🇧🇬", "bh": "🇧🇭", "bi": "🇧🇮", "bj": "🇧🇯", "bm": "🇧🇲", "bn": "🇧🇳", "bo": "🇧🇴", "br": "🇧🇷", "bs": "🇧🇸", "bt": "🇧🇹", "bw": "🇧🇼", "by": "🇧🇾", "bz": "🇧🇿",
+            "ba": "🇧🇦", "bb": "🇧🇧", "bd": "🇧🇩", "be": "🇧🇪", "bf": "🇧🇫", "bg": "🇧🇬", "bh": "🇧🇭", "bi": "🇧🇮", "bj": "🇧🇯", "bm": "🇧🇲", "bn": "🇧🇳", "bo": "🇧🇴", "br": "🇧🇷", "bs": "🇧🇸", "bt": "🇧🇹", "bv": "🇧🇻", "bw": "🇧🇼", "by": "🇧🇾", "bz": "🇧🇿",
             "ca": "🇨🇦", "cc": "🇨🇨", "cd": "🇨🇩", "cf": "🇨🇫", "cg": "🇨🇬", "ch": "🇨🇭", "ci": "🇨🇮", "ck": "🇨🇰", "cl": "🇨🇱", "cm": "🇨🇲", "cn": "🇨🇳", "co": "🇨🇴", "cr": "🇨🇷", "cu": "🇨🇺", "cv": "🇨🇻", "cw": "🇨🇼", "cx": "🇨🇽", "cy": "🇨🇾", "cz": "🇨🇿",
             "de": "🇩🇪", "dj": "🇩🇯", "dk": "🇩🇰", "dm": "🇩🇲", "do": "🇩🇴", "dz": "🇩🇿",
             "ec": "🇪🇨", "ee": "🇪🇪", "eg": "🇪🇬", "er": "🇪🇷", "es": "🇪🇸", "et": "🇪🇹", "eu": "🇪🇺",
@@ -553,53 +631,57 @@
             "ua": { cyr: "укр", lat: "ua", flag: "🇺🇦" }
         };
 
-        function renderSettings() {
-            const lang = document.getElementById('targetLang').value;
-            const method = parseInt(document.getElementById('translitMethod').value, 10);
-            const container = document.getElementById('settings-container');
-            container.innerHTML = '';
+        function getCharMapping(char, lang, std) {
+            const lowerChar = char.toLowerCase();
+            const rules = translitRules[std];
             
-            langConfigs[lang].specials.forEach(char => {
-                const group = document.createElement('div');
-                group.className = 'setting-group';
-                
-                const label = document.createElement('label');
-                label.className = 'text-sm font-medium text-gray-700';
-                label.textContent = char.toUpperCase() + ' (' + charOptions[char][0].val + ')';
-                
-                const select = document.createElement('select');
-                select.className = 'rule-select';
-                select.dataset.char = char;
-                
-                charOptions[char].forEach((opt, idx) => {
-                    const option = document.createElement('option');
-                    option.value = opt.val;
-                    option.dataset.i18nOpt = opt.key;
-                    option.textContent = translations[currentLang][opt.key] || opt.label; 
-                    select.appendChild(option);
-                });
-                
-                select.selectedIndex = method < select.options.length ? method : select.options.length - 1;
-                select.addEventListener('change', () => {
-                    updateTable();
-                    processAtras();
-                });
-                
-                group.appendChild(label);
-                group.appendChild(select);
-                container.appendChild(group);
-            });
-            updateTable();
-            processAtras();
+            if (lang === 'all') {
+                for (let l of ['ru', 'uk', 'be', 'bg', 'sr', 'mk']) {
+                    if (rules[l] && rules[l][lowerChar]) return rules[l][lowerChar];
+                }
+            } else {
+                if (rules[lang] && rules[lang][lowerChar]) return rules[lang][lowerChar];
+            }
+            if (rules.base[lowerChar]) return rules.base[lowerChar];
+            return lowerChar;
+        }
+
+        function evaluateTransliteration(char, latResult, activeLatinFlags) {
+            const t = translations[currentLang] || translations['ja'];
+            const hasNonAlpha = /[^a-z]/i.test(latResult);
+
+            if (hasNonAlpha) {
+                return { lat: latResult, isolated: true, flag: null, kept: true, reason: t.tbResKept };
+            }
+            
+            // ALA-LC の「shch」特例 (🇸🇭🇨🇭に置換)
+            if (latResult === 'shch') {
+                const s1 = activeLatinFlags['sh'] || '';
+                const s2 = activeLatinFlags['ch'] || '';
+                if (s1 && s2) {
+                    return { lat: 'shch', isolated: true, flag: s1 + s2, kept: false, reason: t.tbResShch || '🇸🇭🇨🇭に確定置換' };
+                }
+            }
+
+            if (latResult.length === 1) {
+                return { lat: latResult, isolated: false, flag: null, kept: false, reason: t.tbResChain };
+            }
+            if (latResult.length === 2) {
+                if (activeLatinFlags[latResult]) {
+                    return { lat: latResult, isolated: true, flag: activeLatinFlags[latResult], kept: false, reason: t.tbResSingle };
+                } else {
+                    return { lat: latResult, isolated: true, flag: null, kept: true, reason: t.tbResKept };
+                }
+            }
+            return { lat: latResult, isolated: true, flag: null, kept: true, reason: t.tbResKept };
         }
 
         function updateTable() {
+            const lang = document.getElementById('targetLang').value;
+            const std = document.getElementById('translitMethod').value;
             const tbody = document.querySelector('#status-table tbody');
             tbody.innerHTML = '';
-            const t = translations[currentLang] || translations['ja'];
-            const activeLang = document.getElementById('targetLang').value;
-
-            // Compute active Latin flags just for the table display logic
+            
             const activeLatinFlags = { ...masterCctldFlags };
             Object.keys(idnMap).forEach(country => {
                 const sel = document.getElementById('idn-' + country);
@@ -608,125 +690,108 @@
                 }
             });
 
-            langConfigs[activeLang].specials.forEach(char => {
-                const selectEl = document.querySelector(`.rule-select[data-char="${char}"]`);
-                if(!selectEl) return;
-                const val = selectEl.value;
-                const len = val.length;
-                const flag = activeLatinFlags[val] || null;
+            const currentAlphabet = alphabets[lang];
+
+            for (let i=0; i<currentAlphabet.length; i++) {
+                const char = currentAlphabet[i];
+                const latResult = getCharMapping(char, lang, std);
+                const evalData = evaluateTransliteration(char, latResult, activeLatinFlags);
 
                 const tr = document.createElement('tr');
-                
-                const tdChar = document.createElement('td');
-                tdChar.textContent = char.toUpperCase() + ', ' + char;
-                tr.appendChild(tdChar);
-
-                const tdVal = document.createElement('td');
-                tdVal.textContent = val;
-                tr.appendChild(tdVal);
-
-                const tdLen = document.createElement('td');
-                tdLen.textContent = len + ' ' + t.chars;
-                tr.appendChild(tdLen);
-
-                const tdFlag = document.createElement('td');
-                tdFlag.textContent = flag ? flag : t.none;
-                tr.appendChild(tdFlag);
+                const tdChar = document.createElement('td'); tdChar.textContent = char.toUpperCase() + ', ' + char; tr.appendChild(tdChar);
+                const tdVal = document.createElement('td'); tdVal.textContent = latResult; tr.appendChild(tdVal);
 
                 const tdResult = document.createElement('td');
-                if (len >= 2) {
-                    if (flag) {
-                        tdResult.innerHTML = `<span class="flag-converted">${flag}</span> ${t.tbResSingle}`;
-                    } else {
-                        tdResult.innerHTML = `<span class="cyrillic-kept">${char}</span> ${t.tbResKept}`;
-                    }
+                if (evalData.kept) {
+                    tdResult.innerHTML = `<span class="cyrillic-kept">${char}</span> <span class="text-xs text-gray-500 ml-1">${evalData.reason}</span>`;
+                } else if (evalData.flag) {
+                    tdResult.innerHTML = `<span class="flag-converted">${evalData.flag}</span> <span class="text-xs text-gray-500 ml-1">${evalData.reason}</span>`;
                 } else {
-                    tdResult.innerHTML = `<span class="chain-ready">${val}</span> ${t.tbResChain}`;
+                    tdResult.innerHTML = `<span class="chain-ready">${latResult}</span> <span class="text-xs text-gray-500 ml-1">${evalData.reason}</span>`;
                 }
                 tr.appendChild(tdResult);
-
                 tbody.appendChild(tr);
-            });
+            }
         }
 
         function applyLanguage(lang, label) {
             currentLang = lang;
             document.getElementById('currentLangLabel').textContent = label;
 
+            let baseLangForMenu = lang;
+            if (lang === 'sr_latn') baseLangForMenu = 'sr_cyrl';
+            if (lang === 'sh_latn') baseLangForMenu = 'sh_cyrl';
+            if (lang === 'is_latn') baseLangForMenu = 'is_cyrl';
+
             document.querySelectorAll('.lang-option').forEach(btn => {
-                if(btn.dataset.lang === lang) {
-                    btn.classList.add('selected');
-                } else {
-                    btn.classList.remove('selected');
-                }
+                btn.classList.toggle('selected', btn.dataset.lang === baseLangForMenu);
             });
+
+            const toggleBtn = document.getElementById('scriptToggleBtn');
+            if (scriptPairs[lang]) {
+                toggleBtn.classList.remove('hidden');
+            } else {
+                toggleBtn.classList.add('hidden');
+            }
 
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.dataset.i18n;
-                if (translations[lang][key]) {
-                    el.innerHTML = translations[lang][key];
-                }
+                if (translations[lang][key]) el.innerHTML = translations[lang][key];
             });
 
             document.querySelectorAll('option[data-i18n-opt], label[data-i18n-opt]').forEach(el => {
                 const key = el.dataset.i18nOpt || el.dataset.i18n;
-                if (key && translations[lang][key]) {
-                    el.textContent = translations[lang][key];
-                }
+                if (key && translations[lang][key]) el.textContent = translations[lang][key];
             });
 
             document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
                 const key = el.dataset.i18nPlaceholder;
-                if (translations[lang][key]) {
-                    el.placeholder = translations[lang][key];
-                }
+                if (translations[lang][key]) el.placeholder = translations[lang][key];
             });
 
-            // Update dynamically generated labels in individual IDN settings
             Object.keys(idnMap).forEach(k => {
                 const lbl = document.querySelector(`[data-i18n="lbl_${k}"]`);
                 if(lbl && translations[lang][`lbl_${k}`]) lbl.textContent = translations[lang][`lbl_${k}`];
             });
 
-            renderSettings();
+            updateTable();
+            processAtras();
         }
 
-        document.getElementById('targetLang').addEventListener('change', renderSettings);
-        document.getElementById('translitMethod').addEventListener('change', renderSettings);
+        document.getElementById('scriptToggleBtn').addEventListener('click', () => {
+            if (scriptPairs[currentLang]) {
+                const targetLang = scriptPairs[currentLang];
+                applyLanguage(targetLang, langLabels[targetLang]);
+            }
+        });
+
+        document.getElementById('targetLang').addEventListener('change', () => { updateTable(); processAtras(); });
+        document.getElementById('translitMethod').addEventListener('change', () => { updateTable(); processAtras(); });
         document.getElementById('inputText').addEventListener('input', processAtras);
 
         document.getElementById('globalIdnSetting').addEventListener('change', (e) => {
             const val = e.target.value;
             if (val !== "custom") {
                 document.querySelectorAll('.idn-select').forEach(sel => sel.value = val);
-                renderSettings();
+                updateTable(); processAtras();
             }
         });
 
         document.querySelectorAll('.idn-select').forEach(sel => {
             sel.addEventListener('change', () => {
                 document.getElementById('globalIdnSetting').value = "custom";
-                renderSettings();
+                updateTable(); processAtras();
             });
         });
 
         const langSelectorBtn = document.getElementById('langSelectorBtn');
         const langSelectorContainer = document.getElementById('langSelector');
-
-        langSelectorBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            langSelectorContainer.classList.toggle('active');
-        });
-
-        document.addEventListener('click', () => {
-            langSelectorContainer.classList.remove('active');
-        });
+        langSelectorBtn.addEventListener('click', (e) => { e.stopPropagation(); langSelectorContainer.classList.toggle('active'); });
+        document.addEventListener('click', () => { langSelectorContainer.classList.remove('active'); });
 
         document.querySelectorAll('.lang-option').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                applyLanguage(btn.dataset.lang, btn.dataset.label);
-                langSelectorContainer.classList.remove('active');
+                e.stopPropagation(); applyLanguage(btn.dataset.lang, btn.dataset.label); langSelectorContainer.classList.remove('active');
             });
         });
 
@@ -743,10 +808,8 @@
             currentSelections = [];
             
             const activeLang = document.getElementById('targetLang').value;
-            const charList = langConfigs[activeLang].specials;
-            const baseMap = langConfigs[activeLang].base;
+            const std = document.getElementById('translitMethod').value;
 
-            // Build active flags based on IDN settings
             const activeLatinFlags = { ...masterCctldFlags };
             const activeCyrillicFlags = {};
 
@@ -754,21 +817,13 @@
                 const sel = document.getElementById('idn-' + country);
                 const val = sel ? sel.value : "0";
                 const data = idnMap[country];
-                
                 if (val === "1") {
                     delete activeLatinFlags[data.lat];
                     activeCyrillicFlags[data.cyr] = data.flag;
                 } else if (val === "2") {
-                    // Do nothing to latin, don't add Cyrillic
                 } else {
                     activeCyrillicFlags[data.cyr] = data.flag;
                 }
-            });
-
-            const transMap = {};
-            charList.forEach(char => {
-                const sel = document.querySelector(`.rule-select[data-char="${char}"]`);
-                if(sel) transMap[char] = sel.value;
             });
 
             const tokens = [];
@@ -784,21 +839,11 @@
                         currentNonWord = "";
                     }
                     
-                    const lowerC = c.toLowerCase();
-                    let lat = lowerC;
-                    if (transMap[lowerC]) {
-                        lat = transMap[lowerC];
-                    } else if (baseMap[lowerC]) {
-                        lat = baseMap[lowerC];
-                    } else {
-                        lat = c; 
-                    }
-                    
-                    const isolated = lat.length >= 2;
-                    const flag = isolated ? (activeLatinFlags[lat] || null) : null;
+                    const lat = getCharMapping(c, activeLang, std);
+                    const evalData = evaluateTransliteration(c, lat, activeLatinFlags);
                     
                     currentWordNodes.push({
-                        char: c, lat: lat, isolated: isolated, flag: flag
+                        char: c, lat: evalData.lat, isolated: evalData.isolated, flag: evalData.flag, kept: evalData.kept
                     });
                 } else {
                     if (currentWordNodes.length > 0) {
@@ -820,23 +865,17 @@
                         let missed = false;
                         const unconvCyr = unconvertedList.map(n => n.char).join('').toLowerCase();
                         
-                        // Check for missed IDN Cyrillic flags
                         for (let idn of Object.keys(activeCyrillicFlags)) {
-                            if (unconvCyr.includes(idn)) {
-                                missed = true; break;
-                            }
+                            if (unconvCyr.includes(idn)) { missed = true; break; }
                         }
 
                         if (!missed) {
                             for (let i = 0; i < unconvertedList.length - 1; i++) {
                                 const n1 = unconvertedList[i];
                                 const n2 = unconvertedList[i + 1];
-                                if (n2.index === n1.index + 1) {
+                                if (n2.index === n1.index + 1 && !n1.kept && !n2.kept) {
                                     const pair = (n1.lat + n2.lat).toLowerCase();
-                                    if (activeLatinFlags[pair]) {
-                                        missed = true;
-                                        break;
-                                    }
+                                    if (activeLatinFlags[pair]) { missed = true; break; }
                                 }
                             }
                         }
@@ -858,7 +897,7 @@
 
                     search(currentPrefix + node.char, nodeIndex + 1, [...unconvertedList, node]);
 
-                    if (nodeIndex + 1 < nodes.length && !nodes[nodeIndex + 1].isolated) {
+                    if (nodeIndex + 1 < nodes.length && !nodes[nodeIndex + 1].isolated && !nodes[nodeIndex + 1].kept) {
                         const nextNode = nodes[nodeIndex + 1];
                         const pair = (node.lat + nextNode.lat).toLowerCase();
                         if (activeLatinFlags[pair]) {
@@ -967,8 +1006,7 @@
             }, 2000);
         });
 
-        // 初期化実行
-        renderSettings(); 
+        updateTable();
         applyLanguage('ja', '日本語');
     </script>
 </body>
