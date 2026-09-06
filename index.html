@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Portfolio</title>
+
+    <!-- ファビコン設定 -->
+    <link rel="icon" type="image/png" href="favicon.png">
+
     <style>
         * {
             box-sizing: border-box;
@@ -39,7 +43,7 @@
             margin-bottom: 1.5rem;
         }
 
-        /* ボタングループ（CSS Gridに変更） */
+        /* リンクボタングループ：CSS Gridにより横幅・高さを均一に配置 */
         .nav-links { 
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -72,7 +76,7 @@
             font-weight: normal;
             margin-top: 8px;
             letter-spacing: 0.05em;
-            word-break: keep-all; /* 絵文字の不自然な分割を防ぐ */
+            word-break: keep-all; /* 国旗絵文字の分割・崩れを防止 */
         }
 
         /* 平面作品セクション用スタイル */
@@ -96,7 +100,7 @@
             aspect-ratio: 4 / 3;
             background-color: #eef2f5;
             border-radius: 10px;
-            overflow: hidden; /* 画像がなくてもはみ出さない */
+            overflow: hidden; /* 画像読み込みエラー時でも枠崩れを防止 */
             box-shadow: 0 2px 5px rgba(0,0,0,0.08);
             border: 1px solid #eef2f5;
         }
@@ -114,7 +118,7 @@
             overflow-wrap: break-word;
         }
 
-        /* モバイル対応 */
+        /* スマートフォン向けレスポンシブスタイル */
         @media (max-width: 600px) {
             .container {
                 width: 92%;
