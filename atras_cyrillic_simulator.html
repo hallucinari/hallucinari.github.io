@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Cyrillic ATRAS Engine (Multilingual & ATRAS-ified)</title>
+    <title>ATRAS Slavic-Cyrillic Simulator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #f3f4f6; }
@@ -23,105 +23,43 @@
             word-spacing: normal;
         }
         
-        .word-container { 
-            position: relative; 
-            display: inline-block; 
-            margin: 0; 
-        }
-        
+        .word-container { position: relative; display: inline-block; margin: 0; }
         .dropdown {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            background-color: white;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-            z-index: 10;
-            min-width: 100%;
-            max-height: 250px;
-            overflow-y: auto;
-            white-space: nowrap;
+            display: none; position: absolute; top: 100%; left: 0;
+            background-color: white; border: 1px solid #ccc; border-radius: 6px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 10;
+            min-width: 100%; max-height: 250px; overflow-y: auto; white-space: nowrap;
         }
         .word-container.active .dropdown { display: block; }
-        .dropdown-item { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f3f4f6; font-size: 1.25rem; letter-spacing: normal; }
+        .dropdown-item { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f3f4f6; font-size: 1.25rem; }
         .dropdown-item:last-child { border-bottom: none; }
         .dropdown-item:hover { background-color: #e5e7eb; }
         
-        .selected-word {
-            cursor: pointer;
-            padding: 0; 
-            border-radius: 2px;
-            transition: all 0.2s;
-        }
+        .selected-word { cursor: pointer; padding: 0; border-radius: 2px; transition: all 0.2s; }
         .selected-word:hover { background-color: #e5e7eb; }
-        .has-variants { 
-            border-bottom: 2px dashed #3b82f6; 
-            padding-bottom: 2px;
-        }
+        .has-variants { border-bottom: 2px dashed #3b82f6; padding-bottom: 2px; }
 
-        .lang-selector-container {
-            position: relative;
-            display: inline-block;
-        }
+        .lang-selector-container { position: relative; display: inline-block; }
         .lang-selector-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background-color: white;
-            border: 1px solid #d1d5db;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            color: #374151;
-            cursor: pointer;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            display: flex; align-items: center; gap: 0.5rem; background-color: white;
+            border: 1px solid #d1d5db; padding: 0.5rem 1rem; border-radius: 0.5rem;
+            font-size: 0.875rem; color: #374151; cursor: pointer; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             transition: all 0.2s;
         }
-        .lang-selector-btn:hover {
-            background-color: #f9fafb;
-            border-color: #9ca3af;
-        }
+        .lang-selector-btn:hover { background-color: #f9fafb; border-color: #9ca3af; }
         .lang-menu {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 110%;
-            background-color: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.5rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            z-index: 50;
-            min-width: 150px;
-            overflow: hidden;
+            display: none; position: absolute; right: 0; top: 110%; background-color: white;
+            border: 1px solid #e5e7eb; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 50; min-width: 200px; overflow: hidden;
         }
-        .lang-selector-container.active .lang-menu {
-            display: block;
-        }
+        .lang-selector-container.active .lang-menu { display: block; }
         .lang-option {
-            display: block;
-            width: 100%;
-            text-align: left;
-            padding: 0.75rem 1rem;
-            font-size: 0.875rem;
-            color: #4b5563;
-            border-bottom: 1px solid #f3f4f6;
-            cursor: pointer;
-            transition: background-color 0.15s;
+            display: block; width: 100%; text-align: left; padding: 0.75rem 1rem;
+            font-size: 0.875rem; color: #4b5563; border-bottom: 1px solid #f3f4f6; cursor: pointer;
         }
-        .lang-option:last-child {
-            border-bottom: none;
-        }
-        .lang-option:hover {
-            background-color: #f3f4f6;
-            color: #111827;
-        }
-        .lang-option.selected {
-            background-color: #eff6ff;
-            color: #1d4ed8;
-            font-weight: 600;
-        }
+        .lang-option:last-child { border-bottom: none; }
+        .lang-option:hover { background-color: #f3f4f6; color: #111827; }
+        .lang-option.selected { background-color: #eff6ff; color: #1d4ed8; font-weight: 600; }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8 text-gray-800 flex flex-col items-center">
@@ -148,116 +86,45 @@
                 <button class="lang-option selected" data-lang="ja" data-label="日本語">日本語</button>
                 <button class="lang-option" data-lang="en" data-label="English">English</button>
                 <button class="lang-option" data-lang="de" data-label="Deutsch">Deutsch</button>
-                <button class="lang-option" data-lang="ru" data-label="ру́сский">Ру́сский</button>
-                <button class="lang-option" data-lang="atras_en" data-label="E🇳🇬🇱🇮🇸🇭">E🇳🇬🇱🇮🇸🇭</button>
-                <button class="lang-option" data-lang="atras_de" data-label="D🇪🇺ts🇨🇭">D🇪🇺ts🇨🇭</button>
-                <button class="lang-option" data-lang="atras_ru" data-label="🇷🇺🇸🇸🇰🇮й">🇷🇺🇸🇸🇰🇮й</button>
+                <button class="lang-option" data-lang="is_cyrl" data-label="Меджусловјански">Меджусловјански (Interslavic)</button>
+                <button class="lang-option" data-lang="is_latn" data-label="Medžuslovjanski">Medžuslovjanski (Interslavic)</button>
             </div>
         </div>
     </div>
 
     <div class="w-full max-w-6xl bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8">
-        <h1 class="text-3xl font-bold mb-2 text-center text-blue-600" data-i18n="appTitle">ATRAS Cyrillic Simulator</h1>
-        <p class="text-center text-gray-500 mb-8" data-i18n="subtitle">キリル文字に翻字したccTLDで文章を置換します</p>
+        <h1 class="text-3xl font-bold mb-2 text-center text-blue-600" data-i18n="appTitle">ATRAS Slavic Cyrillic Simulator</h1>
+        <p class="text-center text-gray-500 mb-8" data-i18n="subtitle">スラブ諸語のキリル文字に特化したccTLD文章置換エンジン</p>
 
         <div class="bg-indigo-50 border border-indigo-100 p-5 rounded-lg mb-6">
             <h2 class="text-base font-bold text-indigo-900 mb-3" data-i18n="presetTitle">一括設定</h2>
-            <div class="flex flex-wrap gap-3">
-                <button id="preset-alalc" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition shadow-sm" data-i18n="preset1">
-                    英米式 / ALA-LC 準拠 (視覚的隔離を優先)
-                </button>
-                <button id="preset-iso9" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition shadow-sm" data-i18n="preset2">
-                    学術式 / ISO 9 拡張 (j系・c系の統一)
-                </button>
-                <button id="preset-chain" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700 transition shadow-sm" data-i18n="preset3">
-                    単音化 / 結合優先 (1文字化による連鎖の最大化)
-                </button>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <div class="flex flex-col w-full sm:w-1/2">
+                    <label class="text-sm font-medium text-gray-700 mb-1" data-i18n="selectLangLbl">1. 対象言語</label>
+                    <select id="targetLang" class="rule-select">
+                        <option value="ru" data-i18n-opt="lang_ru">ロシア語 (Russian)</option>
+                        <option value="uk" data-i18n-opt="lang_uk">ウクライナ語 (Ukrainian)</option>
+                        <option value="be" data-i18n-opt="lang_be">ベラルーシ語 (Belarusian)</option>
+                        <option value="bg" data-i18n-opt="lang_bg">ブルガリア語 (Bulgarian)</option>
+                        <option value="sr" data-i18n-opt="lang_sr">セルビア語 (Serbian)</option>
+                        <option value="mk" data-i18n-opt="lang_mk">マケドニア語 (Macedonian)</option>
+                    </select>
+                </div>
+                <div class="flex flex-col w-full sm:w-1/2">
+                    <label class="text-sm font-medium text-gray-700 mb-1" data-i18n="selectMethLbl">2. 翻字形式</label>
+                    <select id="translitMethod" class="rule-select">
+                        <option value="0" data-i18n-opt="meth_0">英米式 / ALA-LC (視覚的隔離を優先)</option>
+                        <option value="1" data-i18n-opt="meth_1">学術式 / ISO 9 (j系・c系の統一)</option>
+                        <option value="2" data-i18n-opt="meth_2">単音化 / 結合優先 (連鎖の最大化)</option>
+                    </select>
+                </div>
             </div>
         </div>
 
         <div class="bg-gray-50 p-5 rounded-lg border border-gray-200 mb-6">
             <h2 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2" data-i18n="paramTitle">独自キリル文字のラテン文字翻字パターン設定</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4" id="settings-container">
-                <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700" data-i18n="labelShch">Щ (shch)</label>
-                    <select id="opt-shch" class="rule-select" data-char="щ">
-                        <option value="shch" data-i18n-opt="shch1">shch (ALA-LC/英米式: 4文字)</option>
-                        <option value="sc" data-i18n-opt="shch2">sc (ISO 9 拡張式: 2文字)</option>
-                        <option value="ss" data-i18n-opt="shch3">ss (純粋音韻/長子音: 2文字)</option>
-                        <option value="st" data-i18n-opt="shch4">st (ブルガリア音韻: 2文字)</option>
-                    </select>
-                </div>
-                <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700" data-i18n="labelCh">Ч (ch)</label>
-                    <select id="opt-ch" class="rule-select" data-char="ч">
-                        <option value="ch" data-i18n-opt="ch1">ch (ALA-LC/英米式: 2文字)</option>
-                        <option value="cz" data-i18n-opt="ch2">cz (ポーランド風翻字: 2文字)</option>
-                        <option value="c" data-i18n-opt="ch3">c (ISO 9/学術ベース: 1文字)</option>
-                    </select>
-                </div>
-                <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700" data-i18n="labelSh">Ш (sh)</label>
-                    <select id="opt-sh" class="rule-select" data-char="ш">
-                        <option value="sh" data-i18n-opt="sh1">sh (ALA-LC/英米式: 2文字)</option>
-                        <option value="s" data-i18n-opt="sh2">s (ISO 9/学術ベース: 1文字)</option>
-                    </select>
-                </div>
-                <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700" data-i18n="labelKh">Х (kh)</label>
-                    <select id="opt-kh" class="rule-select" data-char="х">
-                        <option value="kh" data-i18n-opt="kh1">kh (ALA-LC/英米式: 2文字)</option>
-                        <option value="h" data-i18n-opt="kh2">h (ISO 9/学術ベース: 1文字)</option>
-                        <option value="x" data-i18n-opt="kh3">x (字形/IPAベース: 1文字)</option>
-                    </select>
-                </div>
-                <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700" data-i18n="labelTs">Ц (ts)</label>
-                    <select id="opt-ts" class="rule-select" data-char="ц">
-                        <option value="ts" data-i18n-opt="ts1">ts (ALA-LC/英米式: 2文字)</option>
-                        <option value="c" data-i18n-opt="ts2">c (ISO 9/学術ベース: 1文字)</option>
-                        <option value="z" data-i18n-opt="ts3">z (ドイツ語式翻字: 1文字)</option>
-                    </select>
-                </div>
-                <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700" data-i18n="labelZh">Ж (zh)</label>
-                    <select id="opt-zh" class="rule-select" data-char="ж">
-                        <option value="zh" data-i18n-opt="zh1">zh (ALA-LC/英米式: 2文字)</option>
-                        <option value="z" data-i18n-opt="zh2">z (ISO 9/学術ベース: 1文字)</option>
-                        <option value="j" data-i18n-opt="zh3">j (フランス式/IPA: 1文字)</option>
-                    </select>
-                </div>
-                <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700" data-i18n="labelYu">Ю (yu)</label>
-                    <select id="opt-yu" class="rule-select" data-char="ю">
-                        <option value="yu" data-i18n-opt="yu1">yu (ALA-LC/英米式: 2文字)</option>
-                        <option value="ju" data-i18n-opt="yu2">ju (ISO 9/学術ベース: 2文字)</option>
-                        <option value="u" data-i18n-opt="yu3">u (単一母音化: 1文字)</option>
-                    </select>
-                </div>
-                <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700" data-i18n="labelYa">Я (ya)</label>
-                    <select id="opt-ya" class="rule-select" data-char="я">
-                        <option value="ya" data-i18n-opt="ya1">ya (ALA-LC/英米式: 2文字)</option>
-                        <option value="ja" data-i18n-opt="ya2">ja (ISO 9/学術ベース: 2文字)</option>
-                        <option value="a" data-i18n-opt="ya3">a (単一母音化: 1文字)</option>
-                    </select>
-                </div>
-                <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700" data-i18n="labelYo">Ё (yo)</label>
-                    <select id="opt-yo" class="rule-select" data-char="ё">
-                        <option value="yo" data-i18n-opt="yo1">yo (ALA-LC/英米式: 2文字)</option>
-                        <option value="jo" data-i18n-opt="yo2">jo (ISO 9/学術ベース: 2文字)</option>
-                        <option value="e" data-i18n-opt="yo3">e (正書法簡略化: 1文字)</option>
-                    </select>
-                </div>
-                <div class="setting-group">
-                    <label class="text-sm font-medium text-gray-700" data-i18n="labelYe">Е (ye)</label>
-                    <select id="opt-ye" class="rule-select" data-char="е">
-                        <option value="ye" data-i18n-opt="ye1">ye (ALA-LC/英米式: 2文字)</option>
-                        <option value="je" data-i18n-opt="ye2">je (ISO 9/学術ベース: 2文字)</option>
-                        <option value="e" data-i18n-opt="ye3">e (純粋母音化: 1文字)</option>
-                    </select>
-                </div>
+                <!-- 動的に生成されます -->
             </div>
         </div>
 
@@ -268,10 +135,10 @@
                     <thead>
                         <tr>
                             <th data-i18n="tableH1">キリル文字</th>
-                            <th data-i18n="tableH2">現在のラテン翻字設定</th>
+                            <th data-i18n="tableH2">現在の設定</th>
                             <th data-i18n="tableH3">文字数</th>
                             <th data-i18n="tableH4">対応ccTLD</th>
-                            <th data-i18n="tableH5">最終的な処理結果</th>
+                            <th data-i18n="tableH5">処理結果</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -282,7 +149,7 @@
 
         <div class="mb-6">
             <label for="inputText" class="block text-sm font-medium text-gray-700 mb-2" data-i18n="inputLabel">入力テキスト (キリル文字):</label>
-            <textarea id="inputText" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-lg" placeholder="文章を入力してください (例: Все люди рождаются свободными и равными)" data-i18n-placeholder="inputPlaceholder"></textarea>
+            <textarea id="inputText" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-lg" placeholder="文章を入力してください" data-i18n-placeholder="inputPlaceholder"></textarea>
             <div class="mt-3 flex justify-end">
                 <button id="processBtn" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition font-semibold shadow-sm" data-i18n="processBtn">国旗(ccTLD)へ置換を実行</button>
             </div>
@@ -290,12 +157,12 @@
 
         <div class="mb-6">
             <label class="block text-sm font-medium text-gray-700 mb-2" data-i18n="resultLabel">結果 (破線の下線をクリックしてバリエーションを選択可能):</label>
-            <div id="outputArea" class="w-full p-4 min-h-[100px] border border-gray-300 rounded-md bg-gray-50 text-2xl leading-relaxed whitespace-pre-wrap"></div>
+            <div id="outputArea" class="w-full p-4 min-h-[100px] border border-gray-300 rounded-md bg-gray-50 text-2xl leading-relaxed whitespace-pre-wrap tracking-normal"></div>
         </div>
 
         <div class="mb-6">
             <label for="finalText" class="block text-sm font-medium text-gray-700 mb-2" data-i18n="outputLabel">最終出力テキスト:</label>
-            <textarea id="finalText" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-xl" readonly></textarea>
+            <textarea id="finalText" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-xl tracking-normal" readonly></textarea>
             <div class="mt-3 flex justify-end">
                 <button id="copyBtn" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition font-semibold shadow-sm" data-i18n="copyBtn">テキストをコピー</button>
             </div>
@@ -305,302 +172,235 @@
     <script>
         const translations = {
             ja: {
-                appTitle: "ATRAS Cyrillic Simulator",
+                appTitle: "ATRAS Slavic Cyrillic Simulator",
                 backBtn: "戻る",
-                subtitle: "キリル文字に翻字したccTLDで文章を置換します",
+                subtitle: "スラブ諸語のキリル文字に特化したccTLD文章置換エンジン",
                 presetTitle: "一括設定",
-                preset1: "英米式 / ALA-LC 準拠 (視覚的隔離を優先)",
-                preset2: "学術式 / ISO 9 拡張 (j系・c系の統一)",
-                preset3: "単音化 / 結合優先 (1文字化による連鎖の最大化)",
+                selectLangLbl: "1. 対象言語",
+                selectMethLbl: "2. 翻字形式",
                 paramTitle: "独自キリル文字のラテン文字翻字パターン設定",
-                labelShch: "Щ (shch)", labelCh: "Ч (ch)", labelSh: "Ш (sh)", labelKh: "Х (kh)", labelTs: "Ц (ts)", labelZh: "Ж (zh)", labelYu: "Ю (yu)", labelYa: "Я (ya)", labelYo: "Ё (yo)", labelYe: "Е (ye)",
-                shch1: "shch (ALA-LC/英米式: 4文字)", shch2: "sc (ISO 9 拡張式: 2文字)", shch3: "ss (純粋音韻/長子音: 2文字)", shch4: "st (ブルガリア音韻: 2文字)",
-                ch1: "ch (ALA-LC/英米式: 2文字)", ch2: "cz (ポーランド風翻字: 2文字)", ch3: "c (ISO 9/学術ベース: 1文字)",
-                sh1: "sh (ALA-LC/英米式: 2文字)", sh2: "s (ISO 9/学術ベース: 1文字)",
-                kh1: "kh (ALA-LC/英米式: 2文字)", kh2: "h (ISO 9/学術ベース: 1文字)", kh3: "x (字形/IPAベース: 1文字)",
-                ts1: "ts (ALA-LC/英米式: 2文字)", ts2: "c (ISO 9/学術ベース: 1文字)", ts3: "z (ドイツ語式翻字: 1文字)",
-                zh1: "zh (ALA-LC/英米式: 2文字)", zh2: "z (ISO 9/学術ベース: 1文字)", zh3: "j (フランス式/IPA: 1文字)",
-                yu1: "yu (ALA-LC/英米式: 2文字)", yu2: "ju (ISO 9/学術ベース: 2文字)", yu3: "u (単一母音化: 1文字)",
-                ya1: "ya (ALA-LC/英米式: 2文字)", ya2: "ja (ISO 9/学術ベース: 2文字)", ya3: "a (単一母音化: 1文字)",
-                yo1: "yo (ALA-LC/英米式: 2文字)", yo2: "jo (ISO 9/学術ベース: 2文字)", yo3: "e (正書法簡略化: 1文字)",
-                ye1: "ye (ALA-LC/英米式: 2文字)", ye2: "je (ISO 9/学術ベース: 2文字)", ye3: "e (純粋母音化: 1文字)",
+                lang_ru: "ロシア語", lang_uk: "ウクライナ語", lang_be: "ベラルーシ語", lang_bg: "ブルガリア語", lang_sr: "セルビア語", lang_mk: "マケドニア語",
+                meth_0: "英米式 / ALA-LC (視覚的隔離を優先)", meth_1: "学術式 / ISO 9 (j系・c系の統一)", meth_2: "単音化 / 結合優先 (連鎖の最大化)",
+                o_shch_0: "shch (ALA-LC: 4文字)", o_shch_1: "sc (ISO 9: 2文字)", o_shch_2: "ss (純粋音韻: 2文字)", o_shch_3: "st (ブルガリア音韻: 2文字)",
+                o_ch_0: "ch (ALA-LC: 2文字)", o_ch_1: "cz (ポーランド風: 2文字)", o_ch_2: "c (ISO 9: 1文字)",
+                o_sh_0: "sh (ALA-LC: 2文字)", o_sh_1: "s (ISO 9: 1文字)",
+                o_kh_0: "kh (ALA-LC: 2文字)", o_kh_1: "h (ISO 9: 1文字)", o_kh_2: "x (IPA: 1文字)",
+                o_ts_0: "ts (ALA-LC: 2文字)", o_ts_1: "c (ISO 9: 1文字)", o_ts_2: "z (ドイツ語式: 1文字)",
+                o_zh_0: "zh (ALA-LC: 2文字)", o_zh_1: "z (ISO 9: 1文字)", o_zh_2: "j (フランス式: 1文字)",
+                o_yu_0: "yu (ALA-LC: 2文字)", o_yu_1: "ju (ISO 9: 2文字)", o_yu_2: "u (単一母音化: 1文字)",
+                o_ya_0: "ya (ALA-LC: 2文字)", o_ya_1: "ja (ISO 9: 2文字)", o_ya_2: "a (単一母音化: 1文字)",
+                o_yo_0: "yo (ALA-LC: 2文字)", o_yo_1: "jo (ISO 9: 2文字)", o_yo_2: "e (正書法簡略化: 1文字)",
+                o_ye_0: "ye (ALA-LC: 2文字)", o_ye_1: "je (ISO 9: 2文字)", o_ye_2: "e (純粋母音化: 1文字)",
+                o_yi_0: "yi (ALA-LC: 2文字)", o_yi_1: "ji (ISO 9: 2文字)", o_yi_2: "i (純粋母音化: 1文字)",
+                o_g_0: "h (ウクライナ/ベラルーシ: 1文字)", o_g_1: "g (標準: 1文字)",
+                o_w_0: "w (ベラルーシ音韻: 1文字)", o_w_1: "u (母音化: 1文字)",
+                o_bg_a_0: "a (ブルガリア音韻: 1文字)", o_bg_a_1: "u (発音重視: 1文字)", o_bg_a_2: "- (無視: 1文字)",
+                o_dj_0: "dj (二重音字: 2文字)", o_dj_1: "d (単音化: 1文字)",
+                o_lj_0: "lj (二重音字: 2文字)", o_lj_1: "l (単音化: 1文字)",
+                o_nj_0: "nj (二重音字: 2文字)", o_nj_1: "n (単音化: 1文字)",
+                o_tc_0: "c (ISO 9: 1文字)", o_tc_1: "ch (英米式: 2文字)",
+                o_dzh_0: "dzh (英米式: 3文字)", o_dzh_1: "dz (二重音字: 2文字)", o_dzh_2: "j (単音化: 1文字)",
+                o_gj_0: "gj (二重音字: 2文字)", o_gj_1: "g (単音化: 1文字)",
+                o_dz_0: "dz (二重音字: 2文字)", o_dz_1: "z (単音化: 1文字)",
+                o_kj_0: "kj (二重音字: 2文字)", o_kj_1: "k (単音化: 1文字)",
                 tableTitle: "リアルタイム変換確認表",
-                tableH1: "キリル文字", tableH2: "現在のラテン翻字設定", tableH3: "文字数", tableH4: "対応ccTLD", tableH5: "最終的な処理結果",
-                inputLabel: "入力テキスト (キリル文字):",
-                inputPlaceholder: "文章を入力してください (例: Все люди рождаются свободными и равными)",
+                tableH1: "キリル文字", tableH2: "現在の設定", tableH3: "文字数", tableH4: "対応ccTLD", tableH5: "処理結果",
+                inputLabel: "入力テキスト:",
+                inputPlaceholder: "文章を入力してください",
                 processBtn: "国旗(ccTLD)へ置換を実行",
                 resultLabel: "結果 (破線の下線をクリックしてバリエーションを選択可能):",
                 outputLabel: "最終出力テキスト:",
                 copyBtn: "テキストをコピー",
                 copiedBtn: "コピーしました！",
-                tbResSingle: "単独で国旗に置換",
-                tbResKept: "のまま保持 (連鎖事故防止のため隔離)",
-                tbResChain: "として周囲の文字と自由に結合",
-                none: "──", chars: "文字"
+                tbResSingle: "単独で国旗に置換", tbResKept: "のまま保持 (連鎖事故防止のため隔離)", tbResChain: "として周囲と結合",
+                none: "なし", chars: "文字"
             },
             en: {
-                appTitle: "ATRAS Cyrillic Simulator",
-                backBtn: "Back",
-                subtitle: "Replaces text with ccTLDs transliterated to Cyrillic",
+                appTitle: "Slavic ATRAS Cyrillic Simulator", backBtn: "Back",
+                subtitle: "ccTLD Replacer specialized for Slavic Cyrillic alphabets",
                 presetTitle: "Quick Presets",
-                preset1: "ALA-LC (Prioritizes Visual Isolation)",
-                preset2: "ISO 9 Extended (Unifies j-series and c-series)",
-                preset3: "Single Phoneme (Maximizes Chaining)",
-                paramTitle: "Transliteration Pattern Settings",
-                labelShch: "Щ (shch)", labelCh: "Ч (ch)", labelSh: "Ш (sh)", labelKh: "Х (kh)", labelTs: "Ц (ts)", labelZh: "Ж (zh)", labelYu: "Ю (yu)", labelYa: "Я (ya)", labelYo: "Ё (yo)", labelYe: "Е (ye)",
-                shch1: "shch (ALA-LC: 4 chars)", shch2: "sc (ISO 9 Ext: 2 chars)", shch3: "ss (Phonetic: 2 chars)", shch4: "st (Bulgarian: 2 chars)",
-                ch1: "ch (ALA-LC: 2 chars)", ch2: "cz (Polish style: 2 chars)", ch3: "c (ISO 9: 1 char)",
-                sh1: "sh (ALA-LC: 2 chars)", sh2: "s (ISO 9: 1 char)",
-                kh1: "kh (ALA-LC: 2 chars)", kh2: "h (ISO 9: 1 char)", kh3: "x (IPA: 1 char)",
-                ts1: "ts (ALA-LC: 2 chars)", ts2: "c (ISO 9: 1 char)", ts3: "z (German style: 1 char)",
-                zh1: "zh (ALA-LC: 2 chars)", zh2: "z (ISO 9: 1 char)", zh3: "j (French style: 1 char)",
-                yu1: "yu (ALA-LC: 2 chars)", yu2: "ju (ISO 9: 2 chars)", yu3: "u (Single Vowel: 1 char)",
-                ya1: "ya (ALA-LC: 2 chars)", ya2: "ja (ISO 9: 2 chars)", ya3: "a (Single Vowel: 1 char)",
-                yo1: "yo (ALA-LC: 2 chars)", yo2: "jo (ISO 9: 2 chars)", yo3: "e (Simplified: 1 char)",
-                ye1: "ye (ALA-LC: 2 chars)", ye2: "je (ISO 9: 2 chars)", ye3: "e (Pure Vowel: 1 char)",
+                selectLangLbl: "1. Target Language", selectMethLbl: "2. Transliteration Format",
+                paramTitle: "Unique Cyrillic Transliteration Settings",
+                lang_ru: "Russian", lang_uk: "Ukrainian", lang_be: "Belarusian", lang_bg: "Bulgarian", lang_sr: "Serbian", lang_mk: "Macedonian",
+                meth_0: "ALA-LC (Prioritize Visual Isolation)", meth_1: "ISO 9 (Unify j/c series)", meth_2: "Single Phoneme (Maximize Chaining)",
+                o_shch_0: "shch (ALA-LC: 4)", o_shch_1: "sc (ISO: 2)", o_shch_2: "ss (Phonetic: 2)", o_shch_3: "st (BG: 2)",
+                o_ch_0: "ch (ALA-LC: 2)", o_ch_1: "cz (Polish: 2)", o_ch_2: "c (ISO: 1)",
+                o_sh_0: "sh (ALA-LC: 2)", o_sh_1: "s (ISO: 1)",
+                o_kh_0: "kh (ALA-LC: 2)", o_kh_1: "h (ISO: 1)", o_kh_2: "x (IPA: 1)",
+                o_ts_0: "ts (ALA-LC: 2)", o_ts_1: "c (ISO: 1)", o_ts_2: "z (German: 1)",
+                o_zh_0: "zh (ALA-LC: 2)", o_zh_1: "z (ISO: 1)", o_zh_2: "j (French: 1)",
+                o_yu_0: "yu (ALA-LC: 2)", o_yu_1: "ju (ISO: 2)", o_yu_2: "u (Single: 1)",
+                o_ya_0: "ya (ALA-LC: 2)", o_ya_1: "ja (ISO: 2)", o_ya_2: "a (Single: 1)",
+                o_yo_0: "yo (ALA-LC: 2)", o_yo_1: "jo (ISO: 2)", o_yo_2: "e (Single: 1)",
+                o_ye_0: "ye (ALA-LC: 2)", o_ye_1: "je (ISO: 2)", o_ye_2: "e (Single: 1)",
+                o_yi_0: "yi (ALA-LC: 2)", o_yi_1: "ji (ISO: 2)", o_yi_2: "i (Single: 1)",
+                o_g_0: "h (UK/BE: 1)", o_g_1: "g (Standard: 1)",
+                o_w_0: "w (Belarusian: 1)", o_w_1: "u (Vowel: 1)",
+                o_bg_a_0: "a (BG Schwa: 1)", o_bg_a_1: "u (Phonetic: 1)", o_bg_a_2: "- (Ignore: 1)",
+                o_dj_0: "dj (Digraph: 2)", o_dj_1: "d (Single: 1)",
+                o_lj_0: "lj (Digraph: 2)", o_lj_1: "l (Single: 1)",
+                o_nj_0: "nj (Digraph: 2)", o_nj_1: "n (Single: 1)",
+                o_tc_0: "c (ISO: 1)", o_tc_1: "ch (ALA-LC: 2)",
+                o_dzh_0: "dzh (ALA-LC: 3)", o_dzh_1: "dz (Digraph: 2)", o_dzh_2: "j (Single: 1)",
+                o_gj_0: "gj (Digraph: 2)", o_gj_1: "g (Single: 1)",
+                o_dz_0: "dz (Digraph: 2)", o_dz_1: "z (Single: 1)",
+                o_kj_0: "kj (Digraph: 2)", o_kj_1: "k (Single: 1)",
                 tableTitle: "Real-time Conversion Matrix",
-                tableH1: "Cyrillic", tableH2: "Transliteration", tableH3: "Length", tableH4: "ccTLD", tableH5: "Final Behavior",
-                inputLabel: "Input Text (Cyrillic):",
-                inputPlaceholder: "Enter text here (e.g., Все люди рождаются свободными и равными)",
-                processBtn: "Generate Flags (ccTLD)",
-                resultLabel: "Result (Click dashed underlines to select variations):",
-                outputLabel: "Final Output Text:",
-                copyBtn: "Copy Text",
-                copiedBtn: "Copied!",
-                tbResSingle: "Isolated Flag Replacement",
-                tbResKept: "Kept as is (Isolated to prevent chain accidents)",
-                tbResChain: "Ready to chain with adjacent characters",
-                none: "──", chars: "chars"
+                tableH1: "Cyrillic", tableH2: "Format", tableH3: "Length", tableH4: "ccTLD", tableH5: "Result",
+                inputLabel: "Input Text:", inputPlaceholder: "Enter text here",
+                processBtn: "Generate Flags (ccTLD)", resultLabel: "Result (Click dashed underlines for variations):",
+                outputLabel: "Final Output:", copyBtn: "Copy Text", copiedBtn: "Copied!",
+                tbResSingle: "Isolated Flag", tbResKept: "Kept as is (Isolated)", tbResChain: "Ready to chain", none: "None", chars: "chars"
             },
             de: {
-                appTitle: "ATRAS Cyrillic Simulator",
-                backBtn: "Zurück",
-                subtitle: "Ersetzt Text durch in Kyrillisch transliterierte ccTLDs",
+                appTitle: "Slavic ATRAS Cyrillic Simulator", backBtn: "Zurück",
+                subtitle: "ccTLD-Ersetzer spezialisiert auf slawisch-kyrillische Alphabete",
                 presetTitle: "Schnell-Voreinstellungen",
-                preset1: "ALA-LC (Priorisiert visuelle Isolierung)",
-                preset2: "ISO 9 Erweitert (Vereinheitlicht j- und c-Reihen)",
-                preset3: "Einzelphonem (Maximiert Verkettungen)",
-                paramTitle: "Einstellungen für Transliterationsmuster",
-                labelShch: "Щ (shch)", labelCh: "Ч (ch)", labelSh: "Ш (sh)", labelKh: "Х (kh)", labelTs: "Ц (ts)", labelZh: "Ж (zh)", labelYu: "Ю (yu)", labelYa: "Я (ya)", labelYo: "Ё (yo)", labelYe: "Е (ye)",
-                shch1: "shch (ALA-LC: 4 Zchn)", shch2: "sc (ISO 9 Ext: 2 Zchn)", shch3: "ss (Phonetisch: 2 Zchn)", shch4: "st (Bulgarisch: 2 Zchn)",
-                ch1: "ch (ALA-LC: 2 Zchn)", ch2: "cz (Polnisch: 2 Zchn)", ch3: "c (ISO 9: 1 Zchn)",
-                sh1: "sh (ALA-LC: 2 Zchn)", sh2: "s (ISO 9: 1 Zchn)",
-                kh1: "kh (ALA-LC: 2 Zchn)", kh2: "h (ISO 9: 1 Zchn)", kh3: "x (IPA: 1 Zchn)",
-                ts1: "ts (ALA-LC: 2 Zchn)", ts2: "c (ISO 9: 1 Zchn)", ts3: "z (Deutsch: 1 Zchn)",
-                zh1: "zh (ALA-LC: 2 Zchn)", zh2: "z (ISO 9: 1 Zchn)", zh3: "j (Französisch: 1 Zchn)",
-                yu1: "yu (ALA-LC: 2 Zchn)", yu2: "ju (ISO 9: 2 Zchn)", yu3: "u (Einzelvokal: 1 Zchn)",
-                ya1: "ya (ALA-LC: 2 Zchn)", ya2: "ja (ISO 9: 2 Zchn)", ya3: "a (Einzelvokal: 1 Zchn)",
-                yo1: "yo (ALA-LC: 2 Zchn)", yo2: "jo (ISO 9: 2 Zchn)", yo3: "e (Vereinfacht: 1 Zchn)",
-                ye1: "ye (ALA-LC: 2 Zchn)", ye2: "je (ISO 9: 2 Zchn)", ye3: "e (Reiner Vokal: 1 Zchn)",
+                selectLangLbl: "1. Zielsprache", selectMethLbl: "2. Transliterationsformat",
+                paramTitle: "Einzigartige kyrillische Transliterationseinstellungen",
+                lang_ru: "Russisch", lang_uk: "Ukrainisch", lang_be: "Weißrussisch", lang_bg: "Bulgarisch", lang_sr: "Serbisch", lang_mk: "Mazedonisch",
+                meth_0: "ALA-LC (Priorisiert Isolierung)", meth_1: "ISO 9 (Vereinheitlicht j/c)", meth_2: "Einzelphonem (Verkettung)",
+                o_shch_0: "shch (ALA-LC: 4)", o_shch_1: "sc (ISO: 2)", o_shch_2: "ss (Phon: 2)", o_shch_3: "st (BG: 2)",
+                o_ch_0: "ch (ALA-LC: 2)", o_ch_1: "cz (Polnisch: 2)", o_ch_2: "c (ISO: 1)",
+                o_sh_0: "sh (ALA-LC: 2)", o_sh_1: "s (ISO: 1)",
+                o_kh_0: "kh (ALA-LC: 2)", o_kh_1: "h (ISO: 1)", o_kh_2: "x (IPA: 1)",
+                o_ts_0: "ts (ALA-LC: 2)", o_ts_1: "c (ISO: 1)", o_ts_2: "z (Deutsch: 1)",
+                o_zh_0: "zh (ALA-LC: 2)", o_zh_1: "z (ISO: 1)", o_zh_2: "j (Franz.: 1)",
+                o_yu_0: "yu (ALA-LC: 2)", o_yu_1: "ju (ISO: 2)", o_yu_2: "u (Einzel: 1)",
+                o_ya_0: "ya (ALA-LC: 2)", o_ya_1: "ja (ISO: 2)", o_ya_2: "a (Einzel: 1)",
+                o_yo_0: "yo (ALA-LC: 2)", o_yo_1: "jo (ISO: 2)", o_yo_2: "e (Einzel: 1)",
+                o_ye_0: "ye (ALA-LC: 2)", o_ye_1: "je (ISO: 2)", o_ye_2: "e (Einzel: 1)",
+                o_yi_0: "yi (ALA-LC: 2)", o_yi_1: "ji (ISO: 2)", o_yi_2: "i (Einzel: 1)",
+                o_g_0: "h (UK/BE: 1)", o_g_1: "g (Standard: 1)",
+                o_w_0: "w (Weißrussisch: 1)", o_w_1: "u (Vokal: 1)",
+                o_bg_a_0: "a (BG Schwa: 1)", o_bg_a_1: "u (Phonetisch: 1)", o_bg_a_2: "- (Ignorieren: 1)",
+                o_dj_0: "dj (Digraph: 2)", o_dj_1: "d (Einzel: 1)",
+                o_lj_0: "lj (Digraph: 2)", o_lj_1: "l (Einzel: 1)",
+                o_nj_0: "nj (Digraph: 2)", o_nj_1: "n (Einzel: 1)",
+                o_tc_0: "c (ISO: 1)", o_tc_1: "ch (ALA-LC: 2)",
+                o_dzh_0: "dzh (ALA-LC: 3)", o_dzh_1: "dz (Digraph: 2)", o_dzh_2: "j (Einzel: 1)",
+                o_gj_0: "gj (Digraph: 2)", o_gj_1: "g (Einzel: 1)",
+                o_dz_0: "dz (Digraph: 2)", o_dz_1: "z (Einzel: 1)",
+                o_kj_0: "kj (Digraph: 2)", o_kj_1: "k (Einzel: 1)",
                 tableTitle: "Echtzeit-Konvertierungsmatrix",
-                tableH1: "Kyrillisch", tableH2: "Transliteration", tableH3: "Länge", tableH4: "ccTLD", tableH5: "Letztes Verhalten",
-                inputLabel: "Eingabetext (Kyrillisch):",
-                inputPlaceholder: "Text eingeben (z.B. Все люди рождаются свободными и равными)",
-                processBtn: "Flaggen (ccTLD) generieren",
-                resultLabel: "Ergebnis (Klicken für Varianten):",
-                outputLabel: "Endgültiger Ausgabetext:",
-                copyBtn: "Text kopieren",
-                copiedBtn: "Kopiert!",
-                tbResSingle: "Isolierte Flaggenersetzung",
-                tbResKept: "Beibehalten (Isoliert um Kettenunfälle zu vermeiden)",
-                tbResChain: "Bereit zur Verkettung mit Nachbarzeichen",
-                none: "──", chars: "Zchn"
+                tableH1: "Kyrillisch", tableH2: "Format", tableH3: "Länge", tableH4: "ccTLD", tableH5: "Ergebnis",
+                inputLabel: "Eingabetext:", inputPlaceholder: "Text eingeben",
+                processBtn: "Flaggen (ccTLD) generieren", resultLabel: "Ergebnis (Klicken für Varianten):",
+                outputLabel: "Endgültige Ausgabe:", copyBtn: "Text kopieren", copiedBtn: "Kopiert!",
+                tbResSingle: "Isolierte Flagge", tbResKept: "Beibehalten", tbResChain: "Bereit zur Verkettung", none: "Keine", chars: "Zchn"
             },
-            ru: {
-                appTitle: "ATRAS Cyrillic Simulator",
-                backBtn: "Назад",
-                subtitle: "Заменяет текст на ccTLD, транслитерированные на кириллицу",
-                presetTitle: "Быстрые настройки",
-                preset1: "ALA-LC (Приоритет визуальной изоляции)",
-                preset2: "ISO 9 (Объединение рядов j и c)",
-                preset3: "Одиночные фонемы (Максимизация цепочек)",
-                paramTitle: "Настройки шаблонов транслитерации",
-                labelShch: "Щ (shch)", labelCh: "Ч (ch)", labelSh: "Ш (sh)", labelKh: "Х (kh)", labelTs: "Ц (ts)", labelZh: "Ж (zh)", labelYu: "Ю (yu)", labelYa: "Я (ya)", labelYo: "Ё (yo)", labelYe: "Е (ye)",
-                shch1: "shch (ALA-LC: 4 симв)", shch2: "sc (ISO 9 Ext: 2 симв)", shch3: "ss (Фонетич: 2 симв)", shch4: "st (Болгарский: 2 симв)",
-                ch1: "ch (ALA-LC: 2 симв)", ch2: "cz (Польский стиль: 2 симв)", ch3: "c (ISO 9: 1 симв)",
-                sh1: "sh (ALA-LC: 2 симв)", sh2: "s (ISO 9: 1 симв)",
-                kh1: "kh (ALA-LC: 2 симв)", kh2: "h (ISO 9: 1 симв)", kh3: "x (IPA: 1 симв)",
-                ts1: "ts (ALA-LC: 2 симв)", ts2: "c (ISO 9: 1 симв)", ts3: "z (Немецкий стиль: 1 симв)",
-                zh1: "zh (ALA-LC: 2 симв)", zh2: "z (ISO 9: 1 симв)", zh3: "j (Фр. стиль: 1 симв)",
-                yu1: "yu (ALA-LC: 2 симв)", yu2: "ju (ISO 9: 2 симв)", yu3: "u (Один гласный: 1 симв)",
-                ya1: "ya (ALA-LC: 2 симв)", ya2: "ja (ISO 9: 2 симв)", ya3: "a (Один гласный: 1 симв)",
-                yo1: "yo (ALA-LC: 2 симв)", yo2: "jo (ISO 9: 2 симв)", yo3: "e (Упрощено: 1 симв)",
-                ye1: "ye (ALA-LC: 2 симв)", ye2: "je (ISO 9: 2 симв)", ye3: "e (Чистый гласный: 1 симв)",
-                tableTitle: "Матрица конвертации в реальном времени",
-                tableH1: "Кириллица", tableH2: "Транслитерация", tableH3: "Длина", tableH4: "ccTLD", tableH5: "Конечное поведение",
-                inputLabel: "Ввод текста (Кириллица):",
-                inputPlaceholder: "Введите текст (например, Все люди рождаются свободными и равными)",
-                processBtn: "Генерировать флаги (ccTLD)",
-                resultLabel: "Результат (Нажмите для выбора вариантов):",
-                outputLabel: "Итоговый текст:",
-                copyBtn: "Копировать текст",
-                copiedBtn: "Скопировано!",
-                tbResSingle: "Изолированная замена на флаг",
-                tbResKept: "Оставлено (Изолировано для пред. ошибок в цепочках)",
-                tbResChain: "Готово к сцеплению с соседними символами",
-                none: "──", chars: "симв"
+            is_cyrl: {
+                appTitle: "Словјанскы ATRAS Симулятор", backBtn: "Назад",
+                subtitle: "ccTLD симулятор за словјанске кирилске ѩзыкы",
+                presetTitle: "Брзе настройкы",
+                selectLangLbl: "1. Цєлевы ѩзык", selectMethLbl: "2. Метод транслитерациє",
+                paramTitle: "Уникалне настройкы транслитерациє",
+                lang_ru: "Русскы ѩзык", lang_uk: "Украинскы ѩзык", lang_be: "Бєлорускы ѩзык", lang_bg: "Болгарскы ѩзык", lang_sr: "Србскы ѩзык", lang_mk: "Македонскы ѩзык",
+                meth_0: "ALA-LC (Визуална Изолациѩ)", meth_1: "ISO 9 (Академичны)", meth_2: "Єдин Звук (Максимална Веза)",
+                o_shch_0: "shch (ALA: 4)", o_shch_1: "sc (ISO: 2)", o_shch_2: "ss (Звук: 2)", o_shch_3: "st (BG: 2)",
+                o_ch_0: "ch (ALA: 2)", o_ch_1: "cz (Полскы: 2)", o_ch_2: "c (ISO: 1)",
+                o_sh_0: "sh (ALA: 2)", o_sh_1: "s (ISO: 1)",
+                o_kh_0: "kh (ALA: 2)", o_kh_1: "h (ISO: 1)", o_kh_2: "x (IPA: 1)",
+                o_ts_0: "ts (ALA: 2)", o_ts_1: "c (ISO: 1)", o_ts_2: "z (Нємскы: 1)",
+                o_zh_0: "zh (ALA: 2)", o_zh_1: "z (ISO: 1)", o_zh_2: "j (Фр.: 1)",
+                o_yu_0: "yu (ALA: 2)", o_yu_1: "ju (ISO: 2)", o_yu_2: "u (Гласк: 1)",
+                o_ya_0: "ya (ALA: 2)", o_ya_1: "ja (ISO: 2)", o_ya_2: "a (Гласк: 1)",
+                o_yo_0: "yo (ALA: 2)", o_yo_1: "jo (ISO: 2)", o_yo_2: "e (Гласк: 1)",
+                o_ye_0: "ye (ALA: 2)", o_ye_1: "je (ISO: 2)", o_ye_2: "e (Гласк: 1)",
+                o_yi_0: "yi (ALA: 2)", o_yi_1: "ji (ISO: 2)", o_yi_2: "i (Гласк: 1)",
+                o_g_0: "h (UK/BE: 1)", o_g_1: "g (Стандарт: 1)",
+                o_w_0: "w (Бєл.: 1)", o_w_1: "u (Гласк: 1)",
+                o_bg_a_0: "a (BG Шва: 1)", o_bg_a_1: "u (Звук: 1)", o_bg_a_2: "- (Нич: 1)",
+                o_dj_0: "dj (Диграф: 2)", o_dj_1: "d (Єдин: 1)",
+                o_lj_0: "lj (Диграф: 2)", o_lj_1: "l (Єдин: 1)",
+                o_nj_0: "nj (Диграф: 2)", o_nj_1: "n (Єдин: 1)",
+                o_tc_0: "c (ISO: 1)", o_tc_1: "ch (ALA: 2)",
+                o_dzh_0: "dzh (ALA: 3)", o_dzh_1: "dz (Диграф: 2)", o_dzh_2: "j (Єдин: 1)",
+                o_gj_0: "gj (Диграф: 2)", o_gj_1: "g (Єдин: 1)",
+                o_dz_0: "dz (Диграф: 2)", o_dz_1: "z (Єдин: 1)",
+                o_kj_0: "kj (Диграф: 2)", o_kj_1: "k (Єдин: 1)",
+                tableTitle: "Матрица конверсиє",
+                tableH1: "Кирилица", tableH2: "Метод", tableH3: "Долгост", tableH4: "ccTLD", tableH5: "Резултат",
+                inputLabel: "Входны текст:", inputPlaceholder: "Впишите текст",
+                processBtn: "Генерировати флагы", resultLabel: "Резултат:",
+                outputLabel: "Финалны текст:", copyBtn: "Копировати", copiedBtn: "Скопировано!",
+                tbResSingle: "Флаг", tbResKept: "Оставјено", tbResChain: "Веза", none: "Нич", chars: "зн."
             },
-            atras_en: {
-                appTitle: "A🇹🇷🇦🇸 🇨🇾r🇮🇱🇱🇮c S🇮🇲u🇱🇦🇹🇴r",
-                backBtn: "B🇦🇨k",
-                subtitle: "🇷🇪🇵🇱🇦🇨🇪🇸 text wi🇹🇭 🇨🇨🇹🇱Ds 🇹🇷ans🇱🇮t🇪🇷🇦🇹ed 🇹🇴 🇨🇾r🇮🇱🇱🇮c",
-                presetTitle: "Qui🇨🇰 P🇷🇪🇸🇪ts",
-                preset1: "A🇱🇦-🇱🇨 (🇵🇷🇮🇴r🇮🇹iz🇪🇸 V🇮🇸🇺🇦l I🇸🇴l🇦🇹🇮🇴n)",
-                preset2: "I🇸🇴 9 Exten🇩🇪d (U🇳🇮🇫🇮🇪🇸 j-s🇪🇷i🇪🇸 and c-s🇪🇷i🇪🇸)",
-                preset3: "S🇮🇳🇬🇱e 🇵🇭o🇳🇪🇲🇪 (M🇦🇽🇮🇲iz🇪🇸 🇨🇭🇦🇮🇳🇮🇳🇬)",
-                paramTitle: "🇹🇷ans🇱🇮t🇪🇷🇦🇹🇮🇴n P🇦🇹t🇪🇷n S🇪🇹t🇮🇳🇬🇸",
-                labelShch: "Щ (🇸🇭🇨🇭)", labelCh: "Ч (🇨🇭)", labelSh: "Ш (🇸🇭)", labelKh: "Х (🇰🇭)", labelTs: "Ц (ts)", labelZh: "Ж (zh)", labelYu: "Ю (yu)", labelYa: "Я (ya)", labelYo: "Ё (yo)", labelYe: "Е (🇾🇪)",
-                shch1: "🇸🇭🇨🇭 (A🇱🇦-🇱🇨: 4 🇨🇭a🇷🇸)", shch2: "🇸🇨 (I🇸🇴 9 Ext: 2 🇨🇭a🇷🇸)", shch3: "🇸🇸 (🇵🇭o🇳🇪tic: 2 🇨🇭a🇷🇸)", shch4: "st (Bul🇬🇦rian: 2 🇨🇭a🇷🇸)",
-                ch1: "🇨🇭 (A🇱🇦-🇱🇨: 2 🇨🇭a🇷🇸)", ch2: "cz (Po🇱🇮🇸🇭: 2 🇨🇭a🇷🇸)", ch3: "c (I🇸🇴 9: 1 🇨🇭a🇷🇸)",
-                sh1: "🇸🇭 (A🇱🇦-🇱🇨: 2 🇨🇭a🇷🇸)", sh2: "s (I🇸🇴 9: 1 🇨🇭a🇷🇸)",
-                kh1: "🇰🇭 (A🇱🇦-🇱🇨: 2 🇨🇭a🇷🇸)", kh2: "h (I🇸🇴 9: 1 🇨🇭a🇷🇸)", kh3: "x (I🇵🇦: 1 🇨🇭a🇷🇸)",
-                ts1: "ts (A🇱🇦-🇱🇨: 2 🇨🇭a🇷🇸)", ts2: "c (I🇸🇴 9: 1 🇨🇭a🇷🇸)", ts3: "z (G🇪🇷🇲🇦n: 1 🇨🇭a🇷🇸)",
-                zh1: "zh (A🇱🇦-🇱🇨: 2 🇨🇭a🇷🇸)", zh2: "z (I🇸🇴 9: 1 🇨🇭a🇷🇸)", zh3: "j (F🇷🇪n🇨🇭: 1 🇨🇭a🇷🇸)",
-                yu1: "yu (A🇱🇦-🇱🇨: 2 🇨🇭a🇷🇸)", yu2: "ju (I🇸🇴 9: 2 🇨🇭a🇷🇸)", yu3: "u (Vowel: 1 🇨🇭a🇷🇸)",
-                ya1: "ya (A🇱🇦-🇱🇨: 2 🇨🇭a🇷🇸)", ya2: "ja (I🇸🇴 9: 2 🇨🇭a🇷🇸)", ya3: "a (Vowel: 1 🇨🇭a🇷🇸)",
-                yo1: "yo (A🇱🇦-🇱🇨: 2 🇨🇭a🇷🇸)", yo2: "🇯🇴 (I🇸🇴 9: 2 🇨🇭a🇷🇸)", yo3: "e (S🇮🇲🇵🇱e: 1 🇨🇭a🇷🇸)",
-                ye1: "🇾🇪 (A🇱🇦-🇱🇨: 2 🇨🇭a🇷🇸)", ye2: "🇯🇪 (I🇸🇴 9: 2 🇨🇭a🇷🇸)", ye3: "e (Vowel: 1 🇨🇭a🇷🇸)",
-                tableTitle: "🇷🇪🇦🇱-ti🇲🇪 🇨🇴nv🇪🇷s🇮🇴n M🇦🇹rix",
-                tableH1: "🇨🇾r🇮🇱🇱🇮c", tableH2: "🇹🇷ans🇱🇮t🇪🇷🇦🇹🇮🇴n", tableH3: "Le🇳🇬🇹🇭", tableH4: "🇨🇨🇹🇱D", tableH5: "F🇮🇳🇦🇱 🇧🇪hav🇮🇴r",
-                inputLabel: "🇮🇳put Text (🇨🇾r🇮🇱🇱🇮c):",
-                inputPlaceholder: "Ent🇪🇷 text he🇷🇪 (e.g., Все люди рождаются свободными и равными)",
-                processBtn: "🇬🇪n🇪🇷🇦🇹e F🇱🇦🇬🇸 (🇨🇨🇹🇱D)",
-                resultLabel: "R🇪🇸u🇱🇹 (C🇱🇮🇨🇰 d🇦🇸hed und🇪🇷l🇮🇳🇪🇸 🇹🇴 🇸🇪l🇪🇨t v🇦🇷i🇦🇹🇮🇴ns):",
-                outputLabel: "F🇮🇳🇦🇱 Output Text:",
-                copyBtn: "🇨🇴🇵🇾 Text",
-                copiedBtn: "🇨🇴p🇮🇪d!",
-                tbResSingle: "(I🇸🇴🇱🇦ted Fl🇦🇬 🇷🇪🇵🇱🇦🇨e🇲🇪nt)",
-                tbResKept: "🇰🇪🇵🇹 🇦🇸 🇮🇸 (I🇸🇴🇱🇦ted 🇹🇴 p🇷🇪🇻🇪nt 🇨🇭a🇮🇳 🇦🇨🇨🇨🇮🇩ents)",
-                tbResChain: "🇷🇪🇦🇩y 🇹🇴 🇨🇭a🇮🇳 wi🇹🇭 a🇩🇯🇦🇨ent 🇨🇭🇦🇷🇦🇨te🇷🇸",
-                none: "──", chars: "🇨🇭a🇷🇸"
-            },
-            atras_de: {
-                appTitle: "A🇹🇷🇦🇸 🇨🇾r🇮🇱🇱🇮c S🇮🇲u🇱🇦🇹🇴r",
-                backBtn: "Zurü🇨🇰",
-                subtitle: "🇪🇷🇸🇪🇹🇿t Text dur🇨🇭 🇮🇳 🇰🇾r🇮🇱l🇮🇸🇨🇭 🇹🇷ans🇱🇮t🇪🇷i🇪🇷te 🇨🇨🇹🇱Ds",
-                presetTitle: "S🇨🇭🇳🇪ll-Vo🇷🇪🇮🇳🇸🇹el🇱🇺n🇬🇪n",
-                preset1: "A🇱🇦-🇱🇨 (🇵🇷🇮🇴ri🇸🇮🇪🇷t v🇮🇸uelle I🇸🇴l🇮🇪🇷🇺🇳🇬)",
-                preset2: "I🇸🇴 9 E🇷🇼e🇮🇹🇪🇷t (V🇪🇷e🇮🇳he🇮🇹🇱🇮🇨🇭t j- und c-🇷🇪ihen)",
-                preset3: "E🇮🇳zel🇵🇭o🇳🇪m (M🇦🇽🇮🇲i🇪🇷t V🇪🇷k🇪🇹tun🇬🇪n)",
-                paramTitle: "E🇮🇳🇸🇹el🇱🇺n🇬🇪n für 🇹🇷ans🇱🇮t🇪🇷🇦🇹🇮🇴n🇸🇲🇺🇸t🇪🇷",
-                labelShch: "Щ (🇸🇭🇨🇭)", labelCh: "Ч (🇨🇭)", labelSh: "Ш (🇸🇭)", labelKh: "Х (🇰🇭)", labelTs: "Ц (ts)", labelZh: "Ж (zh)", labelYu: "Ю (yu)", labelYa: "Я (ya)", labelYo: "Ё (yo)", labelYe: "Е (🇾🇪)",
-                shch1: "shch (A🇱🇦-🇱🇨: 4 Zc🇭🇳)", shch2: "🇸🇨 (I🇸🇴 9 Ext: 2 Zc🇭🇳)", shch3: "ss (🇵🇭o🇳🇪t🇮🇸🇨🇭: 2 Zc🇭🇳)", shch4: "st (Bul🇬🇦r🇮🇸🇨🇭: 2 Zc🇭🇳)",
-                ch1: "🇨🇭 (A🇱🇦-🇱🇨: 2 Zc🇭🇳)", ch2: "cz (Poln🇮🇸🇨🇭: 2 Zc🇭🇳)", ch3: "c (I🇸🇴 9: 1 Zc🇭🇳)",
-                sh1: "🇸🇭 (A🇱🇦-🇱🇨: 2 Zc🇭🇳)", sh2: "s (I🇸🇴 9: 1 Zc🇭🇳)",
-                kh1: "🇰🇭 (A🇱🇦-🇱🇨: 2 Zc🇭🇳)", kh2: "h (I🇸🇴 9: 1 Zc🇭🇳)", kh3: "x (I🇵🇦: 1 Zc🇭🇳)",
-                ts1: "ts (A🇱🇦-🇱🇨: 2 Zc🇭🇳)", ts2: "c (I🇸🇴 9: 1 Zc🇭🇳)", ts3: "z (D🇪🇺ts🇨🇭: 1 Zc🇭🇳)",
-                zh1: "zh (A🇱🇦-🇱🇨: 2 Zc🇭🇳)", zh2: "z (I🇸🇴 9: 1 Zc🇭🇳)", zh3: "j (🇫🇷anzö🇸🇮s🇨🇭: 1 Zc🇭🇳)",
-                yu1: "yu (A🇱🇦-🇱🇨: 2 Zc🇭🇳)", yu2: "ju (I🇸🇴 9: 2 Zc🇭🇳)", yu3: "u (Vok🇦🇱: 1 Zc🇭🇳)",
-                ya1: "ya (A🇱🇦-🇱🇨: 2 Zc🇭🇳)", ya2: "ja (I🇸🇴 9: 2 Zc🇭🇳)", ya3: "a (Vok🇦🇱: 1 Zc🇭🇳)",
-                yo1: "yo (A🇱🇦-🇱🇨: 2 Zc🇭🇳)", yo2: "🇯🇴 (I🇸🇴 9: 2 Zc🇭🇳)", yo3: "e (E🇮🇳f🇦🇨h: 1 Zc🇭🇳)",
-                ye1: "🇾🇪 (A🇱🇦-🇱🇨: 2 Zc🇭🇳)", ye2: "🇯🇪 (I🇸🇴 9: 2 Zc🇭🇳)", ye3: "e (Vok🇦🇱: 1 Zc🇭🇳)",
-                tableTitle: "E🇨🇭🇹🇿e🇮🇹-Konv🇪🇷t🇮🇪🇷🇺🇳🇬🇸🇲🇦🇹rix",
-                tableH1: "🇰🇾r🇮🇱l🇮🇸🇨🇭", tableH2: "🇹🇷ans🇱🇮t🇪🇷🇦🇹🇮🇴n", tableH3: "Lä🇳🇬e", tableH4: "🇨🇨🇹🇱D", tableH5: "L🇪🇹zt🇪🇸 V🇪🇷h🇦🇱ten",
-                inputLabel: "E🇮🇳🇬🇦🇧🇪text (🇰🇾r🇮🇱l🇮🇸🇨🇭):",
-                inputPlaceholder: "Text e🇮🇳🇬🇪🇧🇪n (z.B. Все люди рождаются свободными и равными)",
-                processBtn: "Fl🇦🇬🇬🇪n (🇨🇨🇹🇱D) 🇬🇪n🇪🇷🇮🇪🇷🇪n",
-                resultLabel: "🇪🇷🇬🇪🇧🇳🇮🇸 (K🇱🇮c🇰🇪n für V🇦🇷ianten):",
-                outputLabel: "Endgü🇱🇹i🇬🇪r A🇺🇸🇬🇦🇧🇪text:",
-                copyBtn: "Text kop🇮🇪🇷🇪n",
-                copiedBtn: "Kop🇮🇪rt!",
-                tbResSingle: "(I🇸🇴🇱🇮🇪🇷te Fl🇦🇬🇬🇪n🇪🇷🇸🇪🇹🇿u🇳🇬)",
-                tbResKept: "🇧🇪i🇧🇪h🇦🇱ten (I🇸🇴🇱🇮🇪🇷t um K🇪🇹te🇳🇺🇳🇫älle zu v🇪🇷🇲🇪i🇩🇪n)",
-                tbResChain: "B🇪🇷e🇮🇹 zur V🇪🇷k🇪🇹tu🇳🇬 m🇮🇹 N🇦🇨hb🇦🇷zei🇨🇭en",
-                none: "──", chars: "Zc🇭🇳"
-            },
-            atras_ru: {
-                appTitle: "A🇹🇷🇦🇸 🇨🇾r🇮🇱🇱🇮c S🇮🇲u🇱🇦🇹🇴r",
-                backBtn: "🇳🇦з🇦🇩",
-                subtitle: "З🇦🇲🇾🇪ня🇾🇪т т🇾🇪к🇸🇹 🇳🇦 ccTLD, 🇹🇷ан🇸🇱🇮🇹🇾🇪ри🇷🇴🇻🇦нны🇾🇪 🇳🇦 к🇮🇷🇮🇱🇱🇮цу",
-                presetTitle: "🇧🇾с🇹🇷ы🇾🇪 🇳🇦🇸🇹🇷🇴й🇰🇮",
-                preset1: "ALA-LC (🇵🇷🇮🇴р🇮🇹🇾🇪т 🇻🇮зу🇦🇱ь🇳🇴й изоляции)",
-                preset2: "ISO 9 (Объ🇾🇪д🇮🇳🇾🇪🇳🇮🇾🇪 ря🇩🇴в j и c)",
-                preset3: "Оди🇳🇴🇨🇭ны🇾🇪 🇫🇴н🇾🇪🇲🇾 (🇲🇦кс🇮🇲изация ц🇾🇪по🇨🇭🇾🇪к)",
-                paramTitle: "🇳🇦🇸🇹🇷🇴й🇰🇮 🇸🇭абло🇳🇴в 🇹🇷ан🇸🇱🇮🇹🇾🇪рации",
-                labelShch: "Щ (shch)", labelCh: "🇨🇭 (ch)", labelSh: "🇸🇭 (sh)", labelKh: "🇰🇭 (kh)", labelTs: "Ц (ts)", labelZh: "Ж (zh)", labelYu: "Ю (yu)", labelYa: "Я (ya)", labelYo: "Ё (yo)", labelYe: "🇾🇪 (ye)",
-                shch1: "shch (ALA-LC: 4 🇸🇮🇲🇻)", shch2: "sc (ISO 9 Ext: 2 🇸🇮🇲🇻)", shch3: "ss (Фонетич: 2 🇸🇮🇲🇻)", shch4: "st (Болгарский: 2 🇸🇮🇲🇻)",
-                ch1: "ch (ALA-LC: 2 🇸🇮🇲🇻)", ch2: "cz (Польский стиль: 2 🇸🇮🇲🇻)", ch3: "c (ISO 9: 1 🇸🇮🇲🇻)",
-                sh1: "sh (ALA-LC: 2 🇸🇮🇲🇻)", sh2: "s (ISO 9: 1 🇸🇮🇲🇻)",
-                kh1: "kh (ALA-LC: 2 🇸🇮🇲🇻)", kh2: "h (ISO 9: 1 🇸🇮🇲🇻)", kh3: "x (IPA: 1 🇸🇮🇲🇻)",
-                ts1: "ts (ALA-LC: 2 🇸🇮🇲🇻)", ts2: "c (ISO 9: 1 🇸🇮🇲🇻)", ts3: "z (Немецкий стиль: 1 🇸🇮🇲🇻)",
-                zh1: "zh (ALA-LC: 2 🇸🇮🇲🇻)", zh2: "z (ISO 9: 1 🇸🇮🇲🇻)", zh3: "j (Фр. стиль: 1 🇸🇮🇲🇻)",
-                yu1: "yu (ALA-LC: 2 🇸🇮🇲🇻)", yu2: "ju (ISO 9: 2 🇸🇮🇲🇻)", yu3: "u (Один гласный: 1 🇸🇮🇲🇻)",
-                ya1: "ya (ALA-LC: 2 🇸🇮🇲🇻)", ya2: "ja (ISO 9: 2 🇸🇮🇲🇻)", ya3: "a (Один гласный: 1 🇸🇮🇲🇻)",
-                yo1: "yo (ALA-LC: 2 🇸🇮🇲🇻)", yo2: "jo (ISO 9: 2 🇸🇮🇲🇻)", yo3: "e (Упрощено: 1 🇸🇮🇲🇻)",
-                ye1: "ye (ALA-LC: 2 🇸🇮🇲🇻)", ye2: "je (ISO 9: 2 🇸🇮🇲🇻)", ye3: "e (Чистый гласный: 1 🇸🇮🇲🇻)",
-                tableTitle: "🇲🇦🇹🇷ица конв🇾🇪ртации в р🇾🇪🇦🇱ьн🇴🇲 вр🇾🇪м🇾🇪🇳🇮",
-                tableH1: "К🇮🇷🇮🇱🇱🇮ца", tableH2: "🇹🇷ан🇸🇱🇮🇹🇾🇪рация", tableH3: "Д🇱🇮🇳🇦", tableH4: "ccTLD", tableH5: "Кон🇾🇪🇨🇭🇳🇴🇾🇪 пов🇾🇪д🇾🇪🇳🇮🇾🇪",
-                inputLabel: "Ввод т🇾🇪к🇸🇹а (К🇮🇷🇮🇱🇱🇮ца):",
-                inputPlaceholder: "Вв🇾🇪д🇮🇹🇾🇪 т🇾🇪к🇸🇹 (🇳🇦🇵🇷🇮🇲🇾🇪р, Вс🇾🇪 люди 🇷🇴ждаются 🇸🇻о🇧🇴дными и ра🇻🇳ыми)",
-                processBtn: "Г🇾🇪н🇾🇪ри🇷🇴в🇦🇹ь ф🇱🇦🇬🇮 (ccTLD)",
-                resultLabel: "Р🇾🇪зульт🇦🇹 (🇳🇦жм🇮🇹🇾🇪 для вы🇧🇴ра в🇦🇷иан🇹🇴в):",
-                outputLabel: "И🇹🇴говый т🇾🇪к🇸🇹:",
-                copyBtn: "Копи🇷🇴в🇦🇹ь т🇾🇪к🇸🇹",
-                copiedBtn: "С🇨🇴пи🇷🇴в🇦🇳🇴!",
-                tbResSingle: "(Изо🇱🇮🇷🇴🇻🇦н🇳🇦я з🇦🇲🇾🇪🇳🇦 🇳🇦 фл🇦🇬)",
-                tbResKept: "О🇸🇹авл🇾🇪🇳🇴 (Изо🇱🇮🇷🇴🇻🇦🇳🇴 для 🇵🇷🇾🇪д. о🇸🇭и🇧🇴к в ц🇾🇪по🇨🇭ка🇰🇭)",
-                tbResChain: "Г🇴🇹🇴🇻🇴 к сц🇾🇪п🇱🇪🇳🇮ю с с🇴🇸🇪🇩🇳🇮🇲🇮 🇸🇮🇲🇻🇴🇱🇦🇲🇮",
-                none: "──", chars: "🇸🇮🇲🇻"
+            is_latn: {
+                appTitle: "Slovjansky ATRAS Simujator", backBtn: "Nazad",
+                subtitle: "ccTLD simujator za slovjanske kirilske języky",
+                presetTitle: "Brze nastrojky",
+                selectLangLbl: "1. Cělevy język", selectMethLbl: "2. Metod transliteracije",
+                paramTitle: "Unikalne nastrojky transliteracije",
+                lang_ru: "Russky język", lang_uk: "Ukrainsky język", lang_be: "Bělorusky język", lang_bg: "Bolgarsky język", lang_sr: "Srbsky język", lang_mk: "Makedonsky język",
+                meth_0: "ALA-LC (Vizualna Izolacija)", meth_1: "ISO 9 (Akademičny)", meth_2: "Jedin Zvuk (Maksimalna Veza)",
+                o_shch_0: "shch (ALA: 4)", o_shch_1: "sc (ISO: 2)", o_shch_2: "ss (Zvuk: 2)", o_shch_3: "st (BG: 2)",
+                o_ch_0: "ch (ALA: 2)", o_ch_1: "cz (Polsky: 2)", o_ch_2: "c (ISO: 1)",
+                o_sh_0: "sh (ALA: 2)", o_sh_1: "s (ISO: 1)",
+                o_kh_0: "kh (ALA: 2)", o_kh_1: "h (ISO: 1)", o_kh_2: "x (IPA: 1)",
+                o_ts_0: "ts (ALA: 2)", o_ts_1: "c (ISO: 1)", o_ts_2: "z (Němsky: 1)",
+                o_zh_0: "zh (ALA: 2)", o_zh_1: "z (ISO: 1)", o_zh_2: "j (Fr.: 1)",
+                o_yu_0: "yu (ALA: 2)", o_yu_1: "ju (ISO: 2)", o_yu_2: "u (Glask: 1)",
+                o_ya_0: "ya (ALA: 2)", o_ya_1: "ja (ISO: 2)", o_ya_2: "a (Glask: 1)",
+                o_yo_0: "yo (ALA: 2)", o_yo_1: "jo (ISO: 2)", o_yo_2: "e (Glask: 1)",
+                o_ye_0: "ye (ALA: 2)", o_ye_1: "je (ISO: 2)", o_ye_2: "e (Glask: 1)",
+                o_yi_0: "yi (ALA: 2)", o_yi_1: "ji (ISO: 2)", o_yi_2: "i (Glask: 1)",
+                o_g_0: "h (UK/BE: 1)", o_g_1: "g (Standart: 1)",
+                o_w_0: "w (Běl.: 1)", o_w_1: "u (Glask: 1)",
+                o_bg_a_0: "a (BG Šva: 1)", o_bg_a_1: "u (Zvuk: 1)", o_bg_a_2: "- (Nič: 1)",
+                o_dj_0: "dj (Digraf: 2)", o_dj_1: "d (Jedin: 1)",
+                o_lj_0: "lj (Digraph: 2)", o_lj_1: "l (Jedin: 1)",
+                o_nj_0: "nj (Digraph: 2)", o_nj_1: "n (Jedin: 1)",
+                o_tc_0: "c (ISO: 1)", o_tc_1: "ch (ALA: 2)",
+                o_dzh_0: "dzh (ALA: 3)", o_dzh_1: "dz (Digraph: 2)", o_dzh_2: "j (Jedin: 1)",
+                o_gj_0: "gj (Digraph: 2)", o_gj_1: "g (Jedin: 1)",
+                o_dz_0: "dz (Digraph: 2)", o_dz_1: "z (Jedin: 1)",
+                o_kj_0: "kj (Digraph: 2)", o_kj_1: "k (Jedin: 1)",
+                tableTitle: "Matrica konversije",
+                tableH1: "Kirilica", tableH2: "Metod", tableH3: "Dolgost", tableH4: "ccTLD", tableH5: "Rezultat",
+                inputLabel: "Vhodny tekst:", inputPlaceholder: "Vpišite tekst",
+                processBtn: "Generirovati flagy", resultLabel: "Rezultat:",
+                outputLabel: "Finalny tekst:", copyBtn: "Kopirovati", copiedBtn: "Skopirovano!",
+                tbResSingle: "Flag", tbResKept: "Ostavjeno", tbResChain: "Veza", none: "Nič", chars: "zn."
             }
         };
 
         let currentLang = 'ja';
 
-        function applyLanguage(lang, label) {
-            currentLang = lang;
-            document.getElementById('currentLangLabel').textContent = label;
+        const langConfigs = {
+            ru: { specials: ['щ','ч','ш','х','ц','ж','ю','я','ё','е'], base: {'а':'a','б':'b','в':'v','г':'g','д':'d','з':'z','и':'i','й':'j','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','ъ':'-','ы':'y','ь':"'",'э':'e'} },
+            uk: { specials: ['щ','ч','ш','х','ц','ж','ю','я','є','ї','г'], base: {'а':'a','б':'b','в':'v','ґ':'g','д':'d','е':'e','з':'z','и':'y','і':'i','й':'j','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','ь':"'"} },
+            be: { specials: ['ч','ш','х','ц','ж','ю','я','ё','е','ў'], base: {'а':'a','б':'b','в':'v','г':'h','д':'d','з':'z','і':'i','й':'j','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','ы':'y','ь':"'",'э':'e'} },
+            bg: { specials: ['щ','ч','ш','х','ц','ж','ю','я','ъ'], base: {'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','з':'z','и':'i','й':'j','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','ь':"'"} },
+            sr: { specials: ['ч','ш','х','ц','ж','ђ','љ','њ','ћ','џ'], base: {'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','з':'z','и':'i','ј':'j','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f'} },
+            mk: { specials: ['ч','ш','х','ц','ж','ѓ','ѕ','љ','њ','ќ','џ'], base: {'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','з':'z','и':'i','ј':'j','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f'} }
+        };
 
-            document.querySelectorAll('.lang-option').forEach(btn => {
-                if(btn.dataset.lang === lang) {
-                    btn.classList.add('selected');
-                } else {
-                    btn.classList.remove('selected');
-                }
-            });
-
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.dataset.i18n;
-                if (translations[lang][key]) {
-                    el.innerHTML = translations[lang][key];
-                }
-            });
-
-            document.querySelectorAll('option[data-i18n-opt]').forEach(el => {
-                const key = el.dataset.i18nOpt;
-                if (translations[lang][key]) {
-                    el.textContent = translations[lang][key];
-                }
-            });
-
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-                const key = el.dataset.i18nPlaceholder;
-                if (translations[lang][key]) {
-                    el.placeholder = translations[lang][key];
-                }
-            });
-
-            updateTable();
-        }
-
-        const langSelectorBtn = document.getElementById('langSelectorBtn');
-        const langSelectorContainer = document.getElementById('langSelector');
-
-        langSelectorBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            langSelectorContainer.classList.toggle('active');
-        });
-
-        document.addEventListener('click', () => {
-            langSelectorContainer.classList.remove('active');
-        });
-
-        document.querySelectorAll('.lang-option').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                applyLanguage(btn.dataset.lang, btn.dataset.label);
-                langSelectorContainer.classList.remove('active');
-            });
-        });
+        const charOptions = {
+            'щ': [ {val:'shch', key:'o_shch_0'}, {val:'sc', key:'o_shch_1'}, {val:'ss', key:'o_shch_2'}, {val:'st', key:'o_shch_3'} ],
+            'ч': [ {val:'ch', key:'o_ch_0'}, {val:'cz', key:'o_ch_1'}, {val:'c', key:'o_ch_2'} ],
+            'ш': [ {val:'sh', key:'o_sh_0'}, {val:'s', key:'o_sh_1'} ],
+            'х': [ {val:'kh', key:'o_kh_0'}, {val:'h', key:'o_kh_1'}, {val:'x', key:'o_kh_2'} ],
+            'ц': [ {val:'ts', key:'o_ts_0'}, {val:'c', key:'o_ts_1'}, {val:'z', key:'o_ts_2'} ],
+            'ж': [ {val:'zh', key:'o_zh_0'}, {val:'z', key:'o_zh_1'}, {val:'j', key:'o_zh_2'} ],
+            'ю': [ {val:'yu', key:'o_yu_0'}, {val:'ju', key:'o_yu_1'}, {val:'u', key:'o_yu_2'} ],
+            'я': [ {val:'ya', key:'o_ya_0'}, {val:'ja', key:'o_ya_1'}, {val:'a', key:'o_ya_2'} ],
+            'ё': [ {val:'yo', key:'o_yo_0'}, {val:'jo', key:'o_yo_1'}, {val:'e', key:'o_yo_2'} ],
+            'е': [ {val:'ye', key:'o_ye_0'}, {val:'je', key:'o_ye_1'}, {val:'e', key:'o_ye_2'} ],
+            'є': [ {val:'ye', key:'o_ye_0'}, {val:'je', key:'o_ye_1'}, {val:'e', key:'o_ye_2'} ], 
+            'ї': [ {val:'yi', key:'o_yi_0'}, {val:'ji', key:'o_yi_1'}, {val:'i', key:'o_yi_2'} ],
+            'г': [ {val:'h', key:'o_g_0'}, {val:'g', key:'o_g_1'} ],
+            'ў': [ {val:'w', key:'o_w_0'}, {val:'u', key:'o_w_1'} ],
+            'ъ': [ {val:'a', key:'o_bg_a_0'}, {val:'u', key:'o_bg_a_1'}, {val:'-', key:'o_bg_a_2'} ],
+            'ђ': [ {val:'dj', key:'o_dj_0'}, {val:'d', key:'o_dj_1'} ],
+            'љ': [ {val:'lj', key:'o_lj_0'}, {val:'l', key:'o_lj_1'} ],
+            'њ': [ {val:'nj', key:'o_nj_0'}, {val:'n', key:'o_nj_1'} ],
+            'ћ': [ {val:'c', key:'o_tc_0'}, {val:'ch', key:'o_tc_1'} ],
+            'џ': [ {val:'dzh', key:'o_dzh_0'}, {val:'dz', key:'o_dzh_1'}, {val:'j', key:'o_dzh_2'} ],
+            'ѓ': [ {val:'gj', key:'o_gj_0'}, {val:'g', key:'o_gj_1'} ],
+            'ѕ': [ {val:'dz', key:'o_dz_0'}, {val:'z', key:'o_dz_1'} ],
+            'ќ': [ {val:'kj', key:'o_kj_0'}, {val:'k', key:'o_kj_1'} ],
+        };
 
         const cctldFlags = {
             "ac": "🇦🇨", "ad": "🇦🇩", "ae": "🇦🇪", "af": "🇦🇫", "ag": "🇦🇬", "ai": "🇦🇮", "al": "🇦🇱", "am": "🇦🇲", "ao": "🇦🇴", "aq": "🇦🇶", "ar": "🇦🇷", "as": "🇦🇸", "at": "🇦🇹", "au": "🇦🇺", "aw": "🇦🇼", "ax": "🇦🇽", "az": "🇦🇿",
@@ -630,22 +430,51 @@
             "za": "🇿🇦", "zm": "🇿🇲", "zw": "🇿🇼"
         };
 
-        const charList = ['щ', 'ч', 'ш', 'х', 'ц', 'ж', 'ю', 'я', 'ё', 'е'];
-        const baseMap = {
-            'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd',
-            'и': 'i', 'й': 'j', 'к': 'k', 'л': 'l', 'м': 'm',
-            'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's',
-            'т': 't', 'у': 'u', 'ф': 'f', 'ъ': '-', 'ы': 'y',
-            'ь': "'", 'э': 'e'
-        };
+        function renderSettings() {
+            const lang = document.getElementById('targetLang').value;
+            const method = parseInt(document.getElementById('translitMethod').value, 10);
+            const container = document.getElementById('settings-container');
+            container.innerHTML = '';
+            
+            langConfigs[lang].specials.forEach(char => {
+                const group = document.createElement('div');
+                group.className = 'setting-group';
+                
+                const label = document.createElement('label');
+                label.className = 'text-sm font-medium text-gray-700';
+                label.textContent = char.toUpperCase() + ' (' + charOptions[char][0].val + ')';
+                
+                const select = document.createElement('select');
+                select.className = 'rule-select';
+                select.dataset.char = char;
+                
+                charOptions[char].forEach((opt, idx) => {
+                    const option = document.createElement('option');
+                    option.value = opt.val;
+                    option.dataset.i18nOpt = opt.key;
+                    option.textContent = translations[currentLang][opt.key] || opt.label; 
+                    select.appendChild(option);
+                });
+                
+                select.selectedIndex = method < select.options.length ? method : select.options.length - 1;
+                select.addEventListener('change', updateTable);
+                
+                group.appendChild(label);
+                group.appendChild(select);
+                container.appendChild(group);
+            });
+            updateTable();
+        }
 
         function updateTable() {
             const tbody = document.querySelector('#status-table tbody');
             tbody.innerHTML = '';
             const t = translations[currentLang] || translations['ja'];
+            const activeLang = document.getElementById('targetLang').value;
 
-            charList.forEach(char => {
+            langConfigs[activeLang].specials.forEach(char => {
                 const selectEl = document.querySelector(`.rule-select[data-char="${char}"]`);
+                if(!selectEl) return;
                 const val = selectEl.value;
                 const len = val.length;
                 const flag = cctldFlags[val] || null;
@@ -684,50 +513,63 @@
             });
         }
 
-        document.querySelectorAll('.rule-select').forEach(select => {
-            select.addEventListener('change', updateTable);
+        function applyLanguage(lang, label) {
+            currentLang = lang;
+            document.getElementById('currentLangLabel').textContent = label;
+
+            document.querySelectorAll('.lang-option').forEach(btn => {
+                if(btn.dataset.lang === lang) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.dataset.i18n;
+                if (translations[lang][key]) {
+                    el.innerHTML = translations[lang][key];
+                }
+            });
+
+            document.querySelectorAll('option[data-i18n-opt]').forEach(el => {
+                const key = el.dataset.i18nOpt;
+                if (translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
+
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.dataset.i18nPlaceholder;
+                if (translations[lang][key]) {
+                    el.placeholder = translations[lang][key];
+                }
+            });
+
+            renderSettings();
+        }
+
+        document.getElementById('targetLang').addEventListener('change', renderSettings);
+        document.getElementById('translitMethod').addEventListener('change', renderSettings);
+
+        const langSelectorBtn = document.getElementById('langSelectorBtn');
+        const langSelectorContainer = document.getElementById('langSelector');
+
+        langSelectorBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            langSelectorContainer.classList.toggle('active');
         });
 
-        document.getElementById('preset-alalc').addEventListener('click', () => {
-            document.getElementById('opt-shch').value = 'shch';
-            document.getElementById('opt-ch').value = 'ch';
-            document.getElementById('opt-sh').value = 'sh';
-            document.getElementById('opt-kh').value = 'kh';
-            document.getElementById('opt-ts').value = 'ts';
-            document.getElementById('opt-zh').value = 'zh';
-            document.getElementById('opt-yu').value = 'yu';
-            document.getElementById('opt-ya').value = 'ya';
-            document.getElementById('opt-yo').value = 'yo';
-            document.getElementById('opt-ye').value = 'ye';
-            updateTable();
+        document.addEventListener('click', () => {
+            langSelectorContainer.classList.remove('active');
         });
 
-        document.getElementById('preset-iso9').addEventListener('click', () => {
-            document.getElementById('opt-shch').value = 'sc';
-            document.getElementById('opt-ch').value = 'c';
-            document.getElementById('opt-sh').value = 's';
-            document.getElementById('opt-kh').value = 'h';
-            document.getElementById('opt-ts').value = 'c';
-            document.getElementById('opt-zh').value = 'z';
-            document.getElementById('opt-yu').value = 'ju';
-            document.getElementById('opt-ya').value = 'ja';
-            document.getElementById('opt-yo').value = 'jo';
-            document.getElementById('opt-ye').value = 'je';
-            updateTable();
-        });
-
-        document.getElementById('preset-chain').addEventListener('click', () => {
-            document.getElementById('opt-shch').value = 'ss';
-            document.getElementById('opt-ch').value = 'c';
-            document.getElementById('opt-sh').value = 's';
-            document.getElementById('opt-kh').value = 'x';
-            document.getElementById('opt-ts').value = 'z';
-            document.getElementById('opt-zh').value = 'j';
-            document.getElementById('opt-yu').value = 'u';
-            document.getElementById('opt-ya').value = 'a';
-            document.getElementById('opt-yo').value = 'e';
-            document.getElementById('opt-ye').value = 'e';
-            updateTable();
+        document.querySelectorAll('.lang-option').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                applyLanguage(btn.dataset.lang, btn.dataset.label);
+                langSelectorContainer.classList.remove('active');
+            });
         });
 
         let currentSelections = [];
@@ -742,9 +584,14 @@
             outputArea.innerHTML = '';
             currentSelections = [];
             
+            const activeLang = document.getElementById('targetLang').value;
+            const charList = langConfigs[activeLang].specials;
+            const baseMap = langConfigs[activeLang].base;
+
             const transMap = {};
             charList.forEach(char => {
-                transMap[char] = document.querySelector(`.rule-select[data-char="${char}"]`).value;
+                const sel = document.querySelector(`.rule-select[data-char="${char}"]`);
+                if(sel) transMap[char] = sel.value;
             });
 
             const tokens = [];
@@ -766,16 +613,15 @@
                         lat = transMap[lowerC];
                     } else if (baseMap[lowerC]) {
                         lat = baseMap[lowerC];
+                    } else {
+                        lat = c; 
                     }
                     
                     const isolated = lat.length >= 2;
                     const flag = isolated ? (cctldFlags[lat] || null) : null;
                     
                     currentWordNodes.push({
-                        char: c,
-                        lat: lat,
-                        isolated: isolated,
-                        flag: flag
+                        char: c, lat: lat, isolated: isolated, flag: flag
                     });
                 } else {
                     if (currentWordNodes.length > 0) {
@@ -806,9 +652,7 @@
                                 }
                             }
                         }
-                        if (!missed) {
-                            resultsMap.set(currentPrefix, true);
-                        }
+                        if (!missed) resultsMap.set(currentPrefix, true);
                         return;
                     }
 
@@ -836,19 +680,14 @@
                 }
 
                 search("", 0, []);
-                
                 let uniqueResults = Array.from(resultsMap.keys());
-
                 uniqueResults.sort((a, b) => {
                     const flagsA = (a.match(/[\uD83C][\uDDE6-\uDDFF]/g) || []).length / 2;
                     const flagsB = (b.match(/[\uD83C][\uDDE6-\uDDFF]/g) || []).length / 2;
                     return flagsB - flagsA;
                 });
 
-                if (!uniqueResults.includes(originalWord)) {
-                    uniqueResults.push(originalWord);
-                }
-
+                if (!uniqueResults.includes(originalWord)) uniqueResults.push(originalWord);
                 return uniqueResults;
             }
 
@@ -858,7 +697,6 @@
                     currentSelections.push(token.text);
                 } else {
                     const variations = findVariations(token.nodes);
-                    
                     if (variations.length === 1) {
                         outputArea.appendChild(document.createTextNode(variations[0]));
                         currentSelections.push(variations[0]);
@@ -905,36 +743,33 @@
                     }
                 }
             });
-
             updateFinalText();
         }
 
         document.getElementById('processBtn').addEventListener('click', processAtras);
 
         document.addEventListener('click', () => {
-            document.querySelectorAll('.word-container.active').forEach(c => {
-                c.classList.remove('active');
-            });
+            document.querySelectorAll('.word-container.active').forEach(c => c.classList.remove('active'));
         });
 
         document.getElementById('copyBtn').addEventListener('click', () => {
             const finalText = document.getElementById('finalText');
             finalText.select();
             document.execCommand('copy');
-            
             const btn = document.getElementById('copyBtn');
             const originalText = btn.textContent;
             const t = translations[currentLang] || translations['ja'];
             btn.textContent = t.copiedBtn;
             btn.classList.replace('bg-green-600', 'bg-teal-600');
-            
             setTimeout(() => {
                 btn.textContent = originalText;
                 btn.classList.replace('bg-teal-600', 'bg-green-600');
             }, 2000);
         });
 
-        updateTable(); 
+        // 初期化実行
+        renderSettings(); 
+        applyLanguage('ja', '日本語');
     </script>
 </body>
 </html>
