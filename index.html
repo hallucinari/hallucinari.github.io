@@ -38,25 +38,29 @@
             font-size: 1rem;
             margin-bottom: 1.5rem;
         }
+
+        /* ボタングループ（CSS Gridに変更） */
         .nav-links { 
-            display: flex; 
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 15px; 
             margin-top: 1rem; 
             margin-bottom: 1.5rem;
         }
         .nav-links a { 
-            display: inline-block;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             text-decoration: none; 
             color: #3498db; 
             font-weight: bold; 
             border: 2px solid #3498db; 
-            padding: 12px 20px; 
+            padding: 16px; 
             border-radius: 6px; 
             transition: all 0.3s ease; 
-            overflow-wrap: anywhere;
-            word-break: break-word;
             text-align: center;
+            line-height: 1.4;
         }
         .nav-links a:hover { 
             background: #3498db; 
@@ -66,8 +70,9 @@
             display: block;
             font-size: 0.85rem;
             font-weight: normal;
-            margin-top: 4px;
+            margin-top: 8px;
             letter-spacing: 0.05em;
+            word-break: keep-all; /* 絵文字の不自然な分割を防ぐ */
         }
 
         /* 平面作品セクション用スタイル */
@@ -75,33 +80,41 @@
             margin-top: 1.5rem;
             margin-bottom: 2rem;
         }
-        .work-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #34495e;
-            margin: 0 0 1rem 0;
-            overflow-wrap: anywhere;
-            word-break: break-word;
-        }
         .work-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
+            gap: 20px;
         }
         .work-item {
-            width: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
-        .work-item img {
+        .image-wrapper {
             width: 100%;
-            height: auto;
             aspect-ratio: 4 / 3;
-            object-fit: cover;
+            background-color: #eef2f5;
             border-radius: 10px;
-            display: block;
+            overflow: hidden; /* 画像がなくてもはみ出さない */
             box-shadow: 0 2px 5px rgba(0,0,0,0.08);
             border: 1px solid #eef2f5;
         }
+        .image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .work-caption {
+            font-size: 0.95rem;
+            color: #34495e;
+            text-align: center;
+            font-weight: bold;
+            overflow-wrap: break-word;
+        }
 
+        /* モバイル対応 */
         @media (max-width: 600px) {
             .container {
                 width: 92%;
@@ -109,17 +122,11 @@
                 padding: 1.5rem;
             }
             .nav-links {
-                flex-direction: column;
-                gap: 12px;
-            }
-            .nav-links a {
-                display: block;
-                width: 100%;
-                padding: 14px 16px;
+                grid-template-columns: 1fr;
             }
             .work-grid {
                 grid-template-columns: 1fr;
-                gap: 14px;
+                gap: 24px;
             }
         }
     </style>
@@ -147,27 +154,39 @@
 
         <h2>平面作品</h2>
         <div class="work-group">
-            <div class="work-title">
-                <span class="sub-text"></span>
-            </div>
             <div class="work-grid">
-                <div class="work-item">
-                    <img src="image1.jpg" alt="D🇮🇪 Le🇮🇩en 🇩🇪s ju🇳🇬en W🇪🇷🇹🇭🇪🇷" loading="lazy">
-                </div>
-                <div class="work-item">
-                    <img src="image2.jpg" alt="Too Many Cooks" loading="lazy">
-                </div>
-                <div class="work-item">
-                    <img src="image3.jpg" alt="ネットヒア" loading="lazy">
-                </div>
-                <div class="work-item">
-                    <img src="image4.jpg" alt="我が世界の芳醇さ" loading="lazy">
-                </div>
+                <figure class="work-item">
+                    <div class="image-wrapper">
+                        <img src="image1.jpg" alt="D Le en s ju en W R TH R の平面作品" loading="lazy">
+                    </div>
+                    <figcaption class="work-caption">D🇮🇪 Le🇮🇩en 🇩🇪s ju🇳🇬en W🇪🇷🇹🇭🇪🇷</figcaption>
+                </figure>
+                
+                <figure class="work-item">
+                    <div class="image-wrapper">
+                        <img src="image2.jpg" alt="Too Many Cooks の平面作品" loading="lazy">
+                    </div>
+                    <figcaption class="work-caption">Too Many Cooks</figcaption>
+                </figure>
+                
+                <figure class="work-item">
+                    <div class="image-wrapper">
+                        <img src="image3.jpg" alt="ネットヒア の平面作品" loading="lazy">
+                    </div>
+                    <figcaption class="work-caption">ネットヒア</figcaption>
+                </figure>
+                
+                <figure class="work-item">
+                    <div class="image-wrapper">
+                        <img src="image4.jpg" alt="我が世界の芳醇さ の平面作品" loading="lazy">
+                    </div>
+                    <figcaption class="work-caption">我が世界の芳醇さ</figcaption>
+                </figure>
             </div>
         </div>
 
         <h2>その他色々</h2>
-        <div class="nav-links">
+        <div class="nav-links" style="grid-template-columns: 1fr;">
             <a href="https://linktr.ee/hallucinari" target="_blank" rel="noopener noreferrer">linktree</a>
         </div>
     </div>
