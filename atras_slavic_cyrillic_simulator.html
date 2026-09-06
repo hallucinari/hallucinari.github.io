@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Slavic ATRAS Cyrillic Simulator</title>
+    <title>ATRAS Slavic Cyrillic Simulator</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -94,7 +94,7 @@
     </div>
 
     <div class="w-full max-w-6xl bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8">
-        <h1 class="text-3xl font-bold mb-2 text-center text-blue-600" data-i18n="appTitle">Slavic ATRAS Cyrillic Simulator</h1>
+        <h1 class="text-3xl font-bold mb-2 text-center text-blue-600" data-i18n="appTitle">ATRAS Slavic Cyrillic Simulator</h1>
         <p class="text-center text-gray-500 mb-8" data-i18n="subtitle">スラブ諸語のキリル文字に特化したccTLD文章置換エンジン</p>
 
         <div class="bg-indigo-50 border border-indigo-100 p-5 rounded-lg mb-6">
@@ -103,7 +103,7 @@
                 <div class="flex flex-col w-full sm:w-1/2">
                     <label class="text-sm font-medium text-gray-700 mb-1" data-i18n="selectLangLbl">1. 対象言語</label>
                     <select id="targetLang" class="rule-select">
-                        <option value="all" data-i18n-opt="lang_all">すべて (All Slavic)</option>
+                        <option value="all" data-i18n-opt="lang_all">すべて </option>
                         <option value="ru" data-i18n-opt="lang_ru">ロシア語 (Russian)</option>
                         <option value="uk" data-i18n-opt="lang_uk">ウクライナ語 (Ukrainian)</option>
                         <option value="be" data-i18n-opt="lang_be">ベラルーシ語 (Belarusian)</option>
@@ -182,14 +182,14 @@
     <script>
         const translations = {
             ja: {
-                appTitle: "Slavic ATRAS Cyrillic Simulator",
+                appTitle: "ATRAS Slavic Cyrillic Simulator",
                 backBtn: "戻る",
                 subtitle: "スラブ諸語のキリル文字に特化したccTLD文章置換エンジン",
                 presetTitle: "一括設定",
                 selectLangLbl: "1. 対象言語",
                 selectMethLbl: "2. 翻字形式",
                 paramTitle: "独自キリル文字のラテン文字翻字パターン設定",
-                lang_all: "すべて (All Slavic)", lang_ru: "ロシア語", lang_uk: "ウクライナ語", lang_be: "ベラルーシ語", lang_bg: "ブルガリア語", lang_sr: "セルビア語", lang_mk: "マケドニア語",
+                lang_all: "すべて ", lang_ru: "ロシア語", lang_uk: "ウクライナ語", lang_be: "ベラルーシ語", lang_bg: "ブルガリア語", lang_sr: "セルビア語", lang_mk: "マケドニア語",
                 meth_0: "英米式 / ALA-LC (視覚的隔離を優先)", meth_1: "学術式 / ISO 9 (j系・c系の統一)", meth_2: "単音化 / 結合優先 (連鎖の最大化)",
                 o_shch_0: "shch (ALA-LC: 4文字)", o_shch_1: "sc (ISO 9: 2文字)", o_shch_2: "ss (純粋音韻: 2文字)", o_shch_3: "st (ブルガリア音韻: 2文字)",
                 o_ch_0: "ch (ALA-LC: 2文字)", o_ch_1: "cz (ポーランド風: 2文字)", o_ch_2: "c (ISO 9: 1文字)",
@@ -225,12 +225,12 @@
                 none: "なし", chars: "文字"
             },
             en: {
-                appTitle: "Slavic ATRAS Cyrillic Simulator", backBtn: "Back",
+                appTitle: "ATRAS Slavic Cyrillic Simulator", backBtn: "Back",
                 subtitle: "ccTLD Replacer specialized for Slavic Cyrillic alphabets",
                 presetTitle: "Quick Presets",
                 selectLangLbl: "1. Target Language", selectMethLbl: "2. Transliteration Format",
                 paramTitle: "Unique Cyrillic Transliteration Settings",
-                lang_all: "All (Pan-Slavic)", lang_ru: "Russian", lang_uk: "Ukrainian", lang_be: "Belarusian", lang_bg: "Bulgarian", lang_sr: "Serbian", lang_mk: "Macedonian",
+                lang_all: "All ", lang_ru: "Russian", lang_uk: "Ukrainian", lang_be: "Belarusian", lang_bg: "Bulgarian", lang_sr: "Serbian", lang_mk: "Macedonian",
                 meth_0: "ALA-LC (Prioritize Visual Isolation)", meth_1: "ISO 9 (Unify j/c series)", meth_2: "Single Phoneme (Maximize Chaining)",
                 o_shch_0: "shch (ALA-LC: 4)", o_shch_1: "sc (ISO: 2)", o_shch_2: "ss (Phonetic: 2)", o_shch_3: "st (BG: 2)",
                 o_ch_0: "ch (ALA-LC: 2)", o_ch_1: "cz (Polish: 2)", o_ch_2: "c (ISO: 1)",
@@ -262,12 +262,12 @@
                 tbResSingle: "Isolated Flag", tbResKept: "Kept as is (Isolated)", tbResChain: "Ready to chain", none: "None", chars: "chars"
             },
             de: {
-                appTitle: "Slavic ATRAS Cyrillic Simulator", backBtn: "Zurück",
+                appTitle: "ATRAS Slavic Cyrillic Simulator", backBtn: "Zurück",
                 subtitle: "ccTLD-Ersetzer spezialisiert auf slawisch-kyrillische Alphabete",
                 presetTitle: "Schnell-Voreinstellungen",
                 selectLangLbl: "1. Zielsprache", selectMethLbl: "2. Transliterationsformat",
                 paramTitle: "Einzigartige kyrillische Transliterationseinstellungen",
-                lang_all: "Alle (Panslawisch)", lang_ru: "Russisch", lang_uk: "Ukrainisch", lang_be: "Weißrussisch", lang_bg: "Bulgarisch", lang_sr: "Serbisch", lang_mk: "Mazedonisch",
+                lang_all: "Alle", lang_ru: "Russisch", lang_uk: "Ukrainisch", lang_be: "Weißrussisch", lang_bg: "Bulgarisch", lang_sr: "Serbisch", lang_mk: "Mazedonisch",
                 meth_0: "ALA-LC (Priorisiert Isolierung)", meth_1: "ISO 9 (Vereinheitlicht j/c)", meth_2: "Einzelphonem (Verkettung)",
                 o_shch_0: "shch (ALA-LC: 4)", o_shch_1: "sc (ISO: 2)", o_shch_2: "ss (Phon: 2)", o_shch_3: "st (BG: 2)",
                 o_ch_0: "ch (ALA-LC: 2)", o_ch_1: "cz (Polnisch: 2)", o_ch_2: "c (ISO: 1)",
@@ -304,7 +304,7 @@
                 presetTitle: "Брзе настройкы",
                 selectLangLbl: "1. Цєлевы ѩзык", selectMethLbl: "2. Метод транслитерациє",
                 paramTitle: "Уникалне настройкы транслитерациє",
-                lang_all: "Всє (Pan-slavjansky)", lang_ru: "Русскы ѩзык", lang_uk: "Украинскы ѩзык", lang_be: "Бєлорускы ѩзык", lang_bg: "Болгарскы ѩзык", lang_sr: "Србскы ѩзык", lang_mk: "Македонскы ѩзык",
+                lang_all: "Всє", lang_ru: "Русскы ѩзык", lang_uk: "Украинскы ѩзык", lang_be: "Бєлорускы ѩзык", lang_bg: "Болгарскы ѩзык", lang_sr: "Србскы ѩзык", lang_mk: "Македонскы ѩзык",
                 meth_0: "ALA-LC (Визуална Изолациѩ)", meth_1: "ISO 9 (Академичны)", meth_2: "Єдин Звук (Максимална Веза)",
                 o_shch_0: "shch (ALA: 4)", o_shch_1: "sc (ISO: 2)", o_shch_2: "ss (Звук: 2)", o_shch_3: "st (BG: 2)",
                 o_ch_0: "ch (ALA: 2)", o_ch_1: "cz (Полскы: 2)", o_ch_2: "c (ISO: 1)",
@@ -341,7 +341,7 @@
                 presetTitle: "Brze nastrojky",
                 selectLangLbl: "1. Cělevy język", selectMethLbl: "2. Metod transliteracije",
                 paramTitle: "Unikalne nastrojky transliteracije",
-                lang_all: "Vse (Pan-slavjansky)", lang_ru: "Russky język", lang_uk: "Ukrainsky język", lang_be: "Bělorusky język", lang_bg: "Bolgarsky język", lang_sr: "Srbsky język", lang_mk: "Makedonsky język",
+                lang_all: "Vse", lang_ru: "Russky język", lang_uk: "Ukrainsky język", lang_be: "Bělorusky język", lang_bg: "Bolgarsky język", lang_sr: "Srbsky język", lang_mk: "Makedonsky język",
                 meth_0: "ALA-LC (Vizualna Izolacija)", meth_1: "ISO 9 (Akademičny)", meth_2: "Jedin Zvuk (Maksimalna Veza)",
                 o_shch_0: "shch (ALA: 4)", o_shch_1: "sc (ISO: 2)", o_shch_2: "ss (Zvuk: 2)", o_shch_3: "st (BG: 2)",
                 o_ch_0: "ch (ALA: 2)", o_ch_1: "cz (Polsky: 2)", o_ch_2: "c (ISO: 1)",
