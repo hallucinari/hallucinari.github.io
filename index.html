@@ -1,195 +1,149 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Portfolio</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hallucinari Portfolio</title>
+  <link rel="icon" href="favicon.png" type="image/png">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-    <link rel="icon" type="image/png" href="favicon.png">
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #f9f9f9;
+      color: #333333;
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-        body { 
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; 
-            line-height: 1.6; 
-            margin: 0; 
-            padding: 0; 
-            background-color: #f4f7f6; 
-            color: #333;
-        }
-        .container { 
-            width: 90%; 
-            max-width: 800px; 
-            margin: 4rem auto; 
-            background: #ffffff; 
-            padding: 3rem; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
-        }
-        h2 { 
-            color: #2c3e50; 
-            border-bottom: 2px solid #3498db; 
-            padding-bottom: 0.5rem; 
-            margin-top: 2rem;
-        }
-        .container > h2:first-child {
-            margin-top: 0;
-        }
-        p {
-            font-size: 1rem;
-            margin-bottom: 1.5rem;
-        }
+    header {
+      max-width: 900px;
+      margin: 0 auto 2.5rem;
+      text-align: center;
+    }
 
-        .nav-links { 
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 15px; 
-            margin-top: 1rem; 
-            margin-bottom: 1.5rem;
-        }
-        .nav-links a { 
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-decoration: none; 
-            color: #3498db; 
-            font-weight: bold; 
-            border: 2px solid #3498db; 
-            padding: 16px; 
-            border-radius: 6px; 
-            transition: all 0.3s ease; 
-            text-align: center;
-            line-height: 1.4;
-        }
-        .nav-links a:hover { 
-            background: #3498db; 
-            color: #ffffff; 
-        }
-        .sub-text {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: normal;
-            margin-top: 8px;
-            letter-spacing: 0.05em;
-            word-break: keep-all; 
-        }
+    header h1 {
+      font-size: 2.2rem;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
 
-        .work-group {
-            margin-top: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .work-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-        .work-item {
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .image-wrapper {
-            width: 100%;
-            aspect-ratio: 4 / 3;
-            background-color: #eef2f5;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-            border: 1px solid #eef2f5;
-        }
-        .image-wrapper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-        .work-caption {
-            font-size: 0.95rem;
-            color: #34495e;
-            text-align: center;
-            font-weight: bold;
-            overflow-wrap: break-word;
-        }
+    header p {
+      color: #666666;
+      font-size: 1rem;
+    }
 
-        /* スマートフォン向けレスポンシブスタイル */
-        @media (max-width: 600px) {
-            .container {
-                width: 92%;
-                margin: 2rem auto;
-                padding: 1.5rem;
-            }
-            .nav-links {
-                grid-template-columns: 1fr;
-            }
-            .work-grid {
-                grid-template-columns: 1fr;
-                gap: 24px;
-            }
-        }
-    </style>
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card-body {
+      padding: 1rem;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #222222;
+      margin-bottom: 0.25rem;
+    }
+
+    .card-desc {
+      font-size: 0.85rem;
+      color: #777777;
+    }
+
+    footer {
+      max-width: 900px;
+      margin: 3rem auto 0;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #999999;
+      border-top: 1px solid #e5e5e5;
+      padding-top: 1.5rem;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h2>hallucinari</h2>
-        <p>なんでも作ります</p>
 
-        <h2>ATRAS Simulator</h2>
-        <div class="nav-links">
-            <a href="atras_latin_simulator.html">
-                Atras Latin Simulator
-                <span class="sub-text">A🇹🇷🇦🇸 🇱🇦t🇮🇳 🇸🇮🇲🇺🇱🇦🇹🇴r</span>
-            </a>
-            <a href="atras_japanese_simulator.html">
-                Atras Japanese Simulator
-                <span class="sub-text">A🇹🇷🇦🇸 Ja🇵🇦🇳🇪🇸🇪 🇸🇮🇲🇺🇱🇦🇹🇴r</span>
-            </a>
-            <a href="atras_slavic_cyrillic_simulator.html">
-                Atras Slavic Cyrillic Simulator
-                <span class="sub-text">A🇹🇷🇦🇸 S🇱🇦🇻🇮c 🇨🇾r🇮🇱🇱🇮c 🇸🇮🇲🇺🇱🇦🇹🇴r</span>
-            </a>
-        </div>
+  <header>
+    <h1>Hallucinari</h1>
+    <p>Selected Archive & Works</p>
+  </header>
 
-        <h2>平面作品</h2>
-        <div class="work-group">
-            <div class="work-grid">
-                <figure class="work-item">
-                    <div class="image-wrapper">
-                        <img src="images/werther.png" alt="D Le en s ju en W R TH R の平面作品" loading="lazy">
-                    </div>
-                    <figcaption class="work-caption">D🇮🇪 Le🇮🇩en 🇩🇪s ju🇳🇬en W🇪🇷🇹🇭🇪🇷</figcaption>
-                </figure>
-                
-                <figure class="work-item">
-                    <div class="image-wrapper">
-                        <img src="images/too_many_cooks.jpg" alt="Too Many Cooks の平面作品" loading="lazy">
-                    </div>
-                    <figcaption class="work-caption">Too Many Cooks</figcaption>
-                </figure>
-                
-                <figure class="work-item">
-                    <div class="image-wrapper">
-                        <img src="images/nett_hier_kennzeichen.png" alt="ネットヒア の平面作品" loading="lazy">
-                    </div>
-                    <figcaption class="work-caption">ネットヒア</figcaption>
-                </figure>
-                
-                <figure class="work-item">
-                    <div class="image-wrapper">
-                        <img src="images/我が世界の芳醇さ.jpg" alt="我が世界の芳醇さ の平面作品" loading="lazy">
-                    </div>
-                    <figcaption class="work-caption">我が世界の芳醇さ</figcaption>
-                </figure>
-            </div>
-        </div>
+  <main>
+    <section class="gallery">
 
-        <h2>その他色々</h2>
-        <div class="nav-links" style="grid-template-columns: 1fr;">
-            <a href="https://linktr.ee/hallucinari" target="_blank" rel="noopener noreferrer">linktree</a>
+      <article class="card">
+        <img src="images/nett_hier_kennzeichen.png" alt="Nett hier Kennzeichen">
+        <div class="card-body">
+          <h2 class="card-title">Nett hier Kennzeichen</h2>
+          <p class="card-desc">images/nett_hier_kennzeichen.png</p>
         </div>
-    </div>
+      </article>
+
+      <article class="card">
+        <img src="images/too_many_cooks.JPG" alt="Too Many Cooks">
+        <div class="card-body">
+          <h2 class="card-title">Too Many Cooks</h2>
+          <p class="card-desc">images/too_many_cooks.JPG</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <img src="images/werther.png" alt="Werther">
+        <div class="card-body">
+          <h2 class="card-title">Werther</h2>
+          <p class="card-desc">images/werther.png</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <img src="images/我が世界の芳醇さ.png" alt="我が世界の芳醇さ">
+        <div class="card-body">
+          <h2 class="card-title">我が世界の芳醇さ</h2>
+          <p class="card-desc">images/我が世界の芳醇さ.png</p>
+        </div>
+      </article>
+
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Hallucinari. All rights reserved.</p>
+  </footer>
+
 </body>
 </html>
