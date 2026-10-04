@@ -134,7 +134,7 @@
             filter: brightness(1.2);
         }
 
-        /* ツールチップのデフォルトスタイル */
+        /* ツールチップの基本スタイル */
         .tooltip {
             background-color: #222;
             color: #fff;
@@ -142,7 +142,6 @@
             border-radius: 6px;
             font-size: 12px;
             line-height: 1.3;
-            white-space: nowrap;
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.15s ease;
@@ -150,25 +149,27 @@
             z-index: 1000;
         }
 
-        /* スマホ時（幅767px以下）: 「画像を保存する」ボタンの右隣に配置 */
+        /* スマホ時（幅767px以下）: ボタン横に静的配置（2段表示用） */
         @media (max-width: 767px) {
             .tooltip {
                 position: static !important;
                 transform: none !important;
                 font-size: 11px;
                 padding: 4px 8px;
+                white-space: normal;
             }
             .tooltip::after {
                 display: none !important;
             }
         }
 
-        /* PC・タブレット時（幅768px以上）: 枠外のアブソリュート配置 */
+        /* PC・タブレット時（幅768px以上）: resizable-wrapper を基準とした絶対配置 */
         @media (min-width: 768px) {
             .tooltip {
                 position: absolute;
                 font-size: 13px;
                 padding: 8px 12px;
+                white-space: nowrap;
             }
 
             .tooltip.left-side::after {
@@ -216,13 +217,15 @@
     
     <div class="controls-row">
         <button id="downloadBtn" class="download-btn" disabled>画像を保存する</button>
-        <!-- スマホ表示時はこの位置にインラインでポップアップが表示される -->
-        <div class="tooltip" id="tooltip"></div>
+        <!-- スマホ表示時のみこの位置へ表示 -->
+        <div class="tooltip" id="tooltipMobile"></div>
     </div>
 
     <!-- リサイズ領域 -->
     <div class="resizable-wrapper" id="resizableWrapper">
         <div class="line-container" id="colorLine"></div>
+        <!-- PC表示時用のポップアップ（画像を基準に絶対配置） -->
+        <div class="tooltip" id="tooltipPC"></div>
     </div>
     <div class="instruction-hint">※ 画像上を長押し（またはドラッグ）して右下へ動かすと拡大、左上へ動かすと縮小します。</div>
 
@@ -230,7 +233,8 @@
         const inputText = document.getElementById('inputText');
         const colorLine = document.getElementById('colorLine');
         const resizableWrapper = document.getElementById('resizableWrapper');
-        const tooltip = document.getElementById('tooltip');
+        const tooltipMobile = document.getElementById('tooltipMobile');
+        const tooltipPC = document.getElementById('tooltipPC');
         const downloadBtn = document.getElementById('downloadBtn');
 
         let isResizing = false;
@@ -247,7 +251,7 @@
             startHeight = rect.height;
 
             resizableWrapper.classList.add('resizing');
-            tooltip.classList.remove('active');
+            hideTooltips();
         };
 
         const handlePointerDown = (e) => {
@@ -321,12 +325,17 @@
 
         inputText.addEventListener('input', updateLine);
 
+        function hideTooltips() {
+            tooltipMobile.classList.remove('active');
+            tooltipPC.classList.remove('active');
+        }
+
         function updateLine() {
             const text = inputText.value;
             colorLine.innerHTML = '';
 
             if (!text) {
-                tooltip.classList.remove('active');
+                hideTooltips();
                 downloadBtn.disabled = true;
                 return;
             }
@@ -346,41 +355,43 @@
                 const showTooltip = () => {
                     if (isResizing) return;
                     const charDisplay = char === ' ' ? '（スペース）' : char;
-                    tooltip.innerHTML = `文字: <strong>${charDisplay}</strong> | Code: <strong>U+${hex8Digits}</strong> | Color: <strong>${colorCode}</strong>`;
 
-                    if (window.innerWidth >= 768) {
+                    if (window.innerWidth < 768) {
+                        /* スマホ用（2段表示：上がUnicode、下がColor Code） */
+                        tooltipMobile.innerHTML = `文字: <strong>${charDisplay}</strong> | Code: <strong>U+${hex8Digits}</strong><br>Color: <strong>${colorCode}</strong>`;
+                        tooltipMobile.classList.add('active');
+                    } else {
+                        /* PC用（1行表示） */
+                        tooltipPC.innerHTML = `文字: <strong>${charDisplay}</strong> | Code: <strong>U+${hex8Digits}</strong> | Color: <strong>${colorCode}</strong>`;
+                        
                         const wrapperRect = resizableWrapper.getBoundingClientRect();
                         const segRect = segment.getBoundingClientRect();
 
                         const segCenterX = segRect.left + segRect.width / 2;
                         const wrapperCenterX = wrapperRect.left + wrapperRect.width / 2;
 
-                        tooltip.classList.remove('left-side', 'right-side');
+                        tooltipPC.classList.remove('left-side', 'right-side');
 
                         if (segCenterX < wrapperCenterX) {
-                            tooltip.style.left = 'auto';
-                            tooltip.style.right = 'calc(100% + 12px)';
-                            tooltip.classList.add('left-side');
+                            tooltipPC.style.left = 'auto';
+                            tooltipPC.style.right = 'calc(100% + 14px)';
+                            tooltipPC.classList.add('left-side');
                         } else {
-                            tooltip.style.right = 'auto';
-                            tooltip.style.left = 'calc(100% + 12px)';
-                            tooltip.classList.add('right-side');
+                            tooltipPC.style.right = 'auto';
+                            tooltipPC.style.left = 'calc(100% + 14px)';
+                            tooltipPC.classList.add('right-side');
                         }
 
                         const offsetTop = (segRect.top + segRect.height / 2) - wrapperRect.top;
-                        tooltip.style.top = `${offsetTop}px`;
-                        tooltip.style.transform = 'translateY(-50%)';
+                        tooltipPC.style.top = `${offsetTop}px`;
+                        tooltipPC.style.transform = 'translateY(-50%)';
+
+                        tooltipPC.classList.add('active');
                     }
-
-                    tooltip.classList.add('active');
-                };
-
-                const hideTooltip = () => {
-                    tooltip.classList.remove('active');
                 };
 
                 segment.addEventListener('mouseenter', showTooltip);
-                segment.addEventListener('mouseleave', hideTooltip);
+                segment.addEventListener('mouseleave', hideTooltips);
 
                 colorLine.appendChild(segment);
             });
