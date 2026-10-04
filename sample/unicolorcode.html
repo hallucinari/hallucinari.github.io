@@ -136,7 +136,7 @@
 <body>
 
     <h2>Unicolorcode</h2>
-    <p>８桁UnicodeをColor Codeに変換してカーペットのようなものを生成します</p>
+    <p>６桁UnicodeをColor Codeに変換してカーペットのようなものを生成します<br>通常の4桁Unicodeを無理やり先頭2桁に「00」をつけているため黒と寒色系の色が多いです</p>
 
     <textarea id="inputText" placeholder="ここに何か入力してください..."></textarea>
     
@@ -309,7 +309,7 @@
             }
         }
 
-        // 線の浮き出ない完全画像化ロジック
+        // 隙間・白い線を完全に除去するダウンロード処理
         downloadBtn.addEventListener('click', () => {
             const segments = Array.from(colorLine.children);
             if (segments.length === 0) return;
@@ -323,18 +323,16 @@
             canvas.height = height;
             const ctx = canvas.getContext('2d');
 
-            // 背景塗りつぶし（下地）
-            ctx.fillStyle = '#f5f5f5';
-            ctx.fillRect(0, 0, width, height);
+            // 下地塗り（#f5f5f5）を完全に排除
 
-            // サブピクセルの隙間防止（境界をわずかにオーバーラップ描画）
             segments.forEach(seg => {
                 const segRect = seg.getBoundingClientRect();
                 
-                const x1 = Math.floor(segRect.left - wrapperRect.left);
-                const y1 = Math.floor(segRect.top - wrapperRect.top);
-                const x2 = Math.ceil(segRect.right - wrapperRect.left);
-                const y2 = Math.ceil(segRect.bottom - wrapperRect.top);
+                // 座標計算に1pxのオーバーラップを適用して四隅の隙間を塞ぐ
+                const x1 = Math.max(0, Math.floor(segRect.left - wrapperRect.left));
+                const y1 = Math.max(0, Math.floor(segRect.top - wrapperRect.top));
+                const x2 = Math.min(width, Math.ceil(segRect.right - wrapperRect.left) + 1);
+                const y2 = Math.min(height, Math.ceil(segRect.bottom - wrapperRect.top) + 1);
 
                 const w = x2 - x1;
                 const h = y2 - y1;
