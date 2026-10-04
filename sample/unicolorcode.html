@@ -220,7 +220,7 @@
 <body>
 
     <h2>Unicolorcode</h2>
-    <p>６桁UnicodeをColor Codeに変換してカーペットのようなものを生成します。<br>通常の4桁Unicodeの先頭2桁に無理やり「00」をつけているため、生成された画像は黒と寒色系の色で多く構成されています。</p>
+    <p>６桁UnicodeをColor Codeに変換してカーペットのようなものを生成します。<br>通常の4桁Unicodeの先頭2桁に無理やり「00」をつけているため、黒と寒色系の色が多いです。</p>
 
     <textarea id="inputText" placeholder="ここに何か入力してください..."></textarea>
     
@@ -275,10 +275,9 @@
                 return;
             }
 
-            // 長押し時間を0.2秒（200ms）に変更
             longPressTimer = setTimeout(() => {
                 startResize({ clientX, clientY });
-            }, 200);
+            }, 150);
         };
 
         const handlePointerMove = (e) => {
