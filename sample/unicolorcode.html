@@ -5,13 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Unicolorcode</title>
     <style>
+        /* ルート変数で画面幅に応じたブロック最小幅を定義 */
+        :root {
+            --segment-min-width: 14px;
+        }
+
+        /* タブレット (768px〜) */
+        @media (min-width: 768px) {
+            :root {
+                --segment-min-width: 18px;
+            }
+        }
+
+        /* PC・大型ディスプレイ (1024px〜) */
+        @media (min-width: 1024px) {
+            :root {
+                --segment-min-width: 22px;
+            }
+        }
+
         body {
             font-family: sans-serif;
             max-width: 900px;
-            margin: 40px auto;
-            padding: 0 160px; /* 左右の欄外ポップアップ用スペース */
+            margin: 20px auto;
+            padding: 0 16px; /* スマホ向けに左右余白を最適化 */
             line-height: 1.6;
+            box-sizing: border-box;
         }
+
+        /* PC/タブレット向けの余白確保 */
+        @media (min-width: 768px) {
+            body {
+                margin: 40px auto;
+                padding: 0 160px; /* 欄外ポップアップ用スペース */
+            }
+        }
+
         textarea {
             width: 100%;
             height: 90px;
@@ -36,6 +65,7 @@
             border-radius: 6px;
             cursor: pointer;
             transition: background-color 0.2s, opacity 0.2s;
+            touch-action: manipulation;
         }
         .download-btn:hover {
             background-color: #555;
@@ -49,9 +79,9 @@
         .resizable-wrapper {
             position: relative;
             width: 100%;
-            min-width: 150px;
+            min-width: 100px;
             min-height: 20px;
-            height: 120px;
+            height: 160px; /* スマホ表示に配慮して初期高さを少し拡張 */
             padding: 0;
             box-sizing: border-box;
             background-color: #f5f5f5;
@@ -60,6 +90,7 @@
             resize: none;
             overflow: visible; /* 欄外ポップアップ用 */
             box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+            touch-action: none; /* タッチでのドラッグリサイズ安定化 */
         }
 
         /* 折り返しあり・隙間ゼロのFlexコンテナ */
@@ -77,7 +108,7 @@
 
         /* 各文字のカラーブロック */
         .color-segment {
-            flex: 1 0 12px;  /* 基本幅12px、行末の余白を作らないよう伸びる設定 */
+            flex: 1 0 var(--segment-min-width); /* デバイスの画面幅に応じて最小幅を可変 */
             margin: 0;
             padding: 0;
             border: none;
@@ -104,6 +135,20 @@
             transition: opacity 0.15s ease;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             z-index: 1000;
+        }
+
+        /* スマホ等で幅が狭い場合ポップアップを枠内に調整 */
+        @media (max-width: 767px) {
+            .tooltip {
+                position: fixed;
+                top: 10px !important;
+                left: 50% !important;
+                right: auto !important;
+                transform: translateX(-50%) !important;
+            }
+            .tooltip::after {
+                display: none !important;
+            }
         }
 
         .tooltip.left-side::after {
@@ -133,10 +178,11 @@
         }
     </style>
 </head>
+
 <body>
 
     <h2>Unicolorcode</h2>
-    <p>６桁UnicodeをColor Codeに変換してカーペットのようなものを生成します<br>通常の4桁Unicodeの先頭2桁に無理やり「00」をつけているため黒と寒色系の色が多いです</p>
+    <p>６桁UnicodeをColor Codeに変換してカーペットのようなものを生成します<br>通常の4桁Unicodeを無理やり先頭2桁に「00」をつけているため黒と寒色系の色が多いです</p>
 
     <textarea id="inputText" placeholder="ここに何か入力してください..."></textarea>
     
@@ -160,10 +206,10 @@
         let isResizing = false;
         let resizeEdge = '';
         let startX, startY, startWidth, startHeight;
-        const edgeThreshold = 8;
+        const edgeThreshold = 12; // スマホでのタッチ調整をしやすくするため判定域を広げる
 
-        // ドラッグリサイズ制御
-        resizableWrapper.addEventListener('mousemove', (e) => {
+        // ポインターイベントによる統一的なドラッグ・タッチリサイズ制御
+        resizableWrapper.addEventListener('pointermove', (e) => {
             if (isResizing) return;
             const rect = resizableWrapper.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -178,7 +224,7 @@
             resizableWrapper.style.cursor = cursor ? `${cursor}-resize` : 'default';
         });
 
-        resizableWrapper.addEventListener('mousedown', (e) => {
+        resizableWrapper.addEventListener('pointerdown', (e) => {
             const rect = resizableWrapper.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
@@ -196,26 +242,32 @@
                 startY = e.clientY;
                 startWidth = rect.width;
                 startHeight = rect.height;
+                resizableWrapper.setPointerCapture(e.pointerId);
                 e.preventDefault();
             }
         });
 
-        window.addEventListener('mousemove', (e) => {
+        window.addEventListener('pointermove', (e) => {
             if (!isResizing) return;
 
             const dx = e.clientX - startX;
             const dy = e.clientY - startY;
 
-            if (resizeEdge.includes('e')) resizableWrapper.style.width = `${Math.max(150, startWidth + dx)}px`;
+            if (resizeEdge.includes('e')) resizableWrapper.style.width = `${Math.max(100, startWidth + dx)}px`;
             if (resizeEdge.includes('s')) resizableWrapper.style.height = `${Math.max(20, startHeight + dy)}px`;
-            if (resizeEdge.includes('w')) resizableWrapper.style.width = `${Math.max(150, startWidth - dx)}px`;
+            if (resizeEdge.includes('w')) resizableWrapper.style.width = `${Math.max(100, startWidth - dx)}px`;
             if (resizeEdge.includes('n')) resizableWrapper.style.height = `${Math.max(20, startHeight - dy)}px`;
 
             adjustHeights();
         });
 
-        window.addEventListener('mouseup', () => {
-            isResizing = false;
+        window.addEventListener('pointerup', (e) => {
+            if (isResizing) {
+                isResizing = false;
+                try {
+                    resizableWrapper.releasePointerCapture(e.pointerId);
+                } catch (err) {}
+            }
         });
 
         const resizeObserver = new ResizeObserver(() => {
@@ -247,38 +299,46 @@
                 segment.className = 'color-segment';
                 segment.style.backgroundColor = colorCode;
 
-                segment.addEventListener('mouseenter', () => {
+                const showTooltip = () => {
                     const charDisplay = char === ' ' ? '（スペース）' : char;
                     tooltip.innerHTML = `文字: <strong>${charDisplay}</strong><br>Code: <strong>U+${hex8Digits}</strong><br>Color: <strong>${colorCode}</strong>`;
 
-                    const wrapperRect = resizableWrapper.getBoundingClientRect();
-                    const segRect = segment.getBoundingClientRect();
+                    if (window.innerWidth >= 768) {
+                        const wrapperRect = resizableWrapper.getBoundingClientRect();
+                        const segRect = segment.getBoundingClientRect();
 
-                    const segCenterX = segRect.left + segRect.width / 2;
-                    const wrapperCenterX = wrapperRect.left + wrapperRect.width / 2;
+                        const segCenterX = segRect.left + segRect.width / 2;
+                        const wrapperCenterX = wrapperRect.left + wrapperRect.width / 2;
 
-                    tooltip.classList.remove('left-side', 'right-side');
+                        tooltip.classList.remove('left-side', 'right-side');
 
-                    if (segCenterX < wrapperCenterX) {
-                        tooltip.style.left = 'auto';
-                        tooltip.style.right = 'calc(100% + 12px)';
-                        tooltip.classList.add('left-side');
-                    } else {
-                        tooltip.style.right = 'auto';
-                        tooltip.style.left = 'calc(100% + 12px)';
-                        tooltip.classList.add('right-side');
+                        if (segCenterX < wrapperCenterX) {
+                            tooltip.style.left = 'auto';
+                            tooltip.style.right = 'calc(100% + 12px)';
+                            tooltip.classList.add('left-side');
+                        } else {
+                            tooltip.style.right = 'auto';
+                            tooltip.style.left = 'calc(100% + 12px)';
+                            tooltip.classList.add('right-side');
+                        }
+
+                        const offsetTop = (segRect.top + segRect.height / 2) - wrapperRect.top;
+                        tooltip.style.top = `${offsetTop}px`;
+                        tooltip.style.transform = 'translateY(-50%)';
                     }
 
-                    const offsetTop = (segRect.top + segRect.height / 2) - wrapperRect.top;
-                    tooltip.style.top = `${offsetTop}px`;
-                    tooltip.style.transform = 'translateY(-50%)';
-
                     tooltip.classList.add('active');
-                });
+                };
 
-                segment.addEventListener('mouseleave', () => {
+                const hideTooltip = () => {
                     tooltip.classList.remove('active');
-                });
+                };
+
+                segment.addEventListener('mouseenter', showTooltip);
+                segment.addEventListener('mouseleave', hideTooltip);
+                segment.addEventListener('touchstart', (e) => {
+                    showTooltip();
+                }, { passive: true });
 
                 colorLine.appendChild(segment);
             });
@@ -295,7 +355,7 @@
 
             segments.forEach(seg => {
                 const top = seg.offsetTop;
-                if (top !== lastTop) {
+                if (Math.abs(top - lastTop) > 2) {
                     lineCount++;
                     lastTop = top;
                 }
@@ -323,12 +383,9 @@
             canvas.height = height;
             const ctx = canvas.getContext('2d');
 
-            // 下地塗り（#f5f5f5）を完全に排除
-
             segments.forEach(seg => {
                 const segRect = seg.getBoundingClientRect();
                 
-                // 座標計算に1pxのオーバーラップを適用して四隅の隙間を塞ぐ
                 const x1 = Math.max(0, Math.floor(segRect.left - wrapperRect.left));
                 const y1 = Math.max(0, Math.floor(segRect.top - wrapperRect.top));
                 const x2 = Math.min(width, Math.ceil(segRect.right - wrapperRect.left) + 1);
@@ -341,10 +398,11 @@
                 ctx.fillRect(x1, y1, w, h);
             });
 
-            const link = document.createElement('a');
-            link.download = `unicolorcode_${Date.now()}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+            const link = document.append? (document.body.appendChild(document.createElement('a'))) : document.createElement('a');
+            const a = document.createElement('a');
+            a.download = `unicolorcode_${Date.now()}.png`;
+            a.href = canvas.toDataURL('image/png');
+            a.click();
         });
 
         updateLine();
