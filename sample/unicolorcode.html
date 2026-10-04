@@ -220,7 +220,7 @@
 <body>
 
     <h2>Unicolorcode</h2>
-    <p>６桁UnicodeをColor Codeに変換してカーペットのようなものを生成します。<br>通常の4桁Unicodeの先頭2桁に無理やり「00」をつけているため、黒と寒色系の色が多いです。</p>
+    <p>６桁UnicodeをColor Codeに変換してカーペットのようなものを生成します。<br>通常の4桁Unicodeの先頭2桁に無理やり「00」をつけているため、生成された画像は黒と寒色系の色で多く構成されています。</p>
 
     <textarea id="inputText" placeholder="ここに何か入力してください..."></textarea>
     
@@ -275,6 +275,7 @@
                 return;
             }
 
+            // 長押し時間を 120ms (0.12秒) に変更
             longPressTimer = setTimeout(() => {
                 startResize({ clientX, clientY });
             }, 120);
@@ -370,23 +371,33 @@
                         tooltipMobile.innerHTML = `文字: <strong>${charDisplay}</strong> | Code: <strong>U+${hex8Digits}</strong><br>Color: <strong>${colorCode}</strong>`;
                         tooltipMobile.classList.add('active');
                     } else {
-                        /* PC用: 画像左右に追従 */
+                        /* PC用: 画像左右に追従（画面端のはみ出し防止ロジック追加） */
                         tooltipPC.innerHTML = `文字: <strong>${charDisplay}</strong> | Code: <strong>U+${hex8Digits}</strong> | Color: <strong>${colorCode}</strong>`;
                         
+                        // 一旦計算用に表示させてサイズを取得できるようにする
+                        tooltipPC.style.left = 'auto';
+                        tooltipPC.style.right = 'auto';
+                        tooltipPC.classList.add('active');
+
                         const wrapperRect = resizableWrapper.getBoundingClientRect();
                         const segRect = segment.getBoundingClientRect();
+                        const tooltipWidth = tooltipPC.offsetWidth || 220; // ツールチップの幅
+                        const windowWidth = window.innerWidth;
 
                         const segCenterX = segRect.left + segRect.width / 2;
                         const wrapperCenterX = wrapperRect.left + wrapperRect.width / 2;
 
                         tooltipPC.classList.remove('left-side', 'right-side');
 
-                        if (segCenterX < wrapperCenterX) {
-                            tooltipPC.style.left = 'auto';
+                        // 右側に表示した場合に画面の右端を超えるかチェック
+                        const projectedRightEdge = wrapperRect.right + 14 + tooltipWidth;
+                        const isOverflowingRight = projectedRightEdge > windowWidth - 10;
+
+                        // 画像の左半分の位置であっても、右端からはみ出す場合は強制的に左側へ表示
+                        if (segCenterX >= wrapperCenterX || isOverflowingRight) {
                             tooltipPC.style.right = 'calc(100% + 14px)';
                             tooltipPC.classList.add('left-side');
                         } else {
-                            tooltipPC.style.right = 'auto';
                             tooltipPC.style.left = 'calc(100% + 14px)';
                             tooltipPC.classList.add('right-side');
                         }
@@ -394,8 +405,6 @@
                         const offsetTop = (segRect.top + segRect.height / 2) - wrapperRect.top;
                         tooltipPC.style.top = `${offsetTop}px`;
                         tooltipPC.style.transform = 'translateY(-50%)';
-
-                        tooltipPC.classList.add('active');
                     }
                 };
 
