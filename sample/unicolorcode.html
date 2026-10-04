@@ -37,6 +37,14 @@
             }
         }
 
+        a {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+        a:hover {
+            color: #004499;
+        }
+
         textarea {
             width: 100%;
             height: 90px;
@@ -220,8 +228,9 @@
 <body>
 
     <h2>Unicolorcode</h2>
-    <p>６桁UnicodeをColor Codeに変換してカーペットのようなものを生成します。<br>通常の4桁Unicodeの先頭2桁に無理やり「00」をつけているため、生成された画像は黒と寒色系の色が多いです。<br>生成される画像はグランドジャット島風の星月夜か青葉市子になることが多いです。
-</p>
+    <p>６桁UnicodeをColor Codeに変換してカーペットのようなものを生成します。<br>
+    通常の4桁Unicodeの先頭2桁に無理やり「00」をつけているため、生成された画像は黒と寒色系の色が多いです。<br>
+    生成される画像は<a href="https://www.artic.edu/artworks/27992/a-sunday-on-la-grande-jatte-1884" target="_blank" rel="noopener noreferrer">グランドジャット島</a>風の<a href="https://www.moma.org/collection/works/79802" target="_blank" rel="noopener noreferrer">星月夜</a>か<a href="https://ichikoaoba.bandcamp.com/album/luminescent-creatures-2" target="_blank" rel="noopener noreferrer">青葉市子</a>になることが多いです。</p>
 
     <textarea id="inputText" placeholder="ここに何か入力してください..."></textarea>
     
