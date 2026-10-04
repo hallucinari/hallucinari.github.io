@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unicolorcode</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 160px; /* 左右の欄外ポップアップ用スペース */
+            line-height: 1.6;
+        }
+        textarea {
+            width: 100%;
+            height: 90px;
+            font-size: 16px;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        /* 画像保存ボタンのスタイル */
+        .download-btn {
+            display: inline-block;
+            margin-bottom: 25px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #333;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s, opacity 0.2s;
+        }
+        .download-btn:hover {
+            background-color: #555;
+        }
+        .download-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* 外枠コンテナ：リサイズ対応 */
+        .resizable-wrapper {
+            position: relative;
+            width: 100%;
+            min-width: 150px;
+            min-height: 20px;
+            height: 120px;
+            padding: 0;
+            box-sizing: border-box;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            resize: none;
+            overflow: visible; /* 欄外ポップアップ用 */
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* 折り返しあり・隙間ゼロのFlexコンテナ */
+        .line-container {
+            display: flex;
+            flex-wrap: wrap; /* 折り返しを有効化 */
+            align-content: stretch; /* 各行の高さを縦幅いっぱいに均等分配 */
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            border-radius: 7px;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 各文字のカラーブロック */
+        .color-segment {
+            flex: 1 0 12px;  /* 基本幅12px、行末の余白を作らないよう伸びる設定 */
+            margin: 0;
+            padding: 0;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            transition: filter 0.1s;
+        }
+        .color-segment:hover {
+            filter: brightness(1.2);
+        }
+
+        /* 左右欄外ポップアップ */
+        .tooltip {
+            position: absolute;
+            background-color: #222;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            line-height: 1.4;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+
+        .tooltip.left-side::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 100%;
+            transform: translateY(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: transparent transparent transparent #222;
+        }
+
+        .tooltip.right-side::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            right: 100%;
+            transform: translateY(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: transparent #222 transparent transparent;
+        }
+
+        .tooltip.active {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Unicolorcode</h2>
+    <p>８桁UnicodeをColor Codeに変換してカーペットのようなものを生成します</p>
+
+    <textarea id="inputText" placeholder="ここに何か入力してください..."></textarea>
+    
+    <div>
+        <button id="downloadBtn" class="download-btn" disabled>画像を保存する</button>
+    </div>
+
+    <!-- リサイズ領域 -->
+    <div class="resizable-wrapper" id="resizableWrapper">
+        <div class="tooltip" id="tooltip"></div>
+        <div class="line-container" id="colorLine"></div>
+    </div>
+
+    <script>
+        const inputText = document.getElementById('inputText');
+        const colorLine = document.getElementById('colorLine');
+        const resizableWrapper = document.getElementById('resizableWrapper');
+        const tooltip = document.getElementById('tooltip');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        let isResizing = false;
+        let resizeEdge = '';
+        let startX, startY, startWidth, startHeight;
+        const edgeThreshold = 8;
+
+        // ドラッグリサイズ制御
+        resizableWrapper.addEventListener('mousemove', (e) => {
+            if (isResizing) return;
+            const rect = resizableWrapper.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            let cursor = '';
+            if (y < edgeThreshold) cursor += 'n';
+            else if (y > rect.height - edgeThreshold) cursor += 's';
+            if (x < edgeThreshold) cursor += 'w';
+            else if (x > rect.width - edgeThreshold) cursor += 'e';
+
+            resizableWrapper.style.cursor = cursor ? `${cursor}-resize` : 'default';
+        });
+
+        resizableWrapper.addEventListener('mousedown', (e) => {
+            const rect = resizableWrapper.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            let edge = '';
+            if (y < edgeThreshold) edge += 'n';
+            else if (y > rect.height - edgeThreshold) edge += 's';
+            if (x < edgeThreshold) edge += 'w';
+            else if (x > rect.width - edgeThreshold) edge += 'e';
+
+            if (edge) {
+                isResizing = true;
+                resizeEdge = edge;
+                startX = e.clientX;
+                startY = e.clientY;
+                startWidth = rect.width;
+                startHeight = rect.height;
+                e.preventDefault();
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+
+            if (resizeEdge.includes('e')) resizableWrapper.style.width = `${Math.max(150, startWidth + dx)}px`;
+            if (resizeEdge.includes('s')) resizableWrapper.style.height = `${Math.max(20, startHeight + dy)}px`;
+            if (resizeEdge.includes('w')) resizableWrapper.style.width = `${Math.max(150, startWidth - dx)}px`;
+            if (resizeEdge.includes('n')) resizableWrapper.style.height = `${Math.max(20, startHeight - dy)}px`;
+
+            adjustHeights();
+        });
+
+        window.addEventListener('mouseup', () => {
+            isResizing = false;
+        });
+
+        const resizeObserver = new ResizeObserver(() => {
+            adjustHeights();
+        });
+        resizeObserver.observe(resizableWrapper);
+
+        inputText.addEventListener('input', updateLine);
+
+        function updateLine() {
+            const text = inputText.value;
+            colorLine.innerHTML = '';
+
+            if (!text) {
+                tooltip.classList.remove('active');
+                downloadBtn.disabled = true;
+                return;
+            }
+
+            downloadBtn.disabled = false;
+            const characters = Array.from(text);
+
+            characters.forEach((char) => {
+                const codePoint = char.codePointAt(0);
+                const hex8Digits = codePoint.toString(16).toUpperCase().padStart(8, '0');
+                const colorCode = '#' + hex8Digits.slice(-6);
+
+                const segment = document.createElement('div');
+                segment.className = 'color-segment';
+                segment.style.backgroundColor = colorCode;
+
+                segment.addEventListener('mouseenter', () => {
+                    const charDisplay = char === ' ' ? '（スペース）' : char;
+                    tooltip.innerHTML = `文字: <strong>${charDisplay}</strong><br>Code: <strong>U+${hex8Digits}</strong><br>Color: <strong>${colorCode}</strong>`;
+
+                    const wrapperRect = resizableWrapper.getBoundingClientRect();
+                    const segRect = segment.getBoundingClientRect();
+
+                    const segCenterX = segRect.left + segRect.width / 2;
+                    const wrapperCenterX = wrapperRect.left + wrapperRect.width / 2;
+
+                    tooltip.classList.remove('left-side', 'right-side');
+
+                    if (segCenterX < wrapperCenterX) {
+                        tooltip.style.left = 'auto';
+                        tooltip.style.right = 'calc(100% + 12px)';
+                        tooltip.classList.add('left-side');
+                    } else {
+                        tooltip.style.right = 'auto';
+                        tooltip.style.left = 'calc(100% + 12px)';
+                        tooltip.classList.add('right-side');
+                    }
+
+                    const offsetTop = (segRect.top + segRect.height / 2) - wrapperRect.top;
+                    tooltip.style.top = `${offsetTop}px`;
+                    tooltip.style.transform = 'translateY(-50%)';
+
+                    tooltip.classList.add('active');
+                });
+
+                segment.addEventListener('mouseleave', () => {
+                    tooltip.classList.remove('active');
+                });
+
+                colorLine.appendChild(segment);
+            });
+
+            adjustHeights();
+        }
+
+        function adjustHeights() {
+            const segments = Array.from(colorLine.children);
+            if (segments.length === 0) return;
+
+            let lineCount = 0;
+            let lastTop = -1;
+
+            segments.forEach(seg => {
+                const top = seg.offsetTop;
+                if (top !== lastTop) {
+                    lineCount++;
+                    lastTop = top;
+                }
+            });
+
+            if (lineCount > 0) {
+                const heightPercent = 100 / lineCount;
+                segments.forEach(seg => {
+                    seg.style.height = `${heightPercent}%`;
+                });
+            }
+        }
+
+        // 線の浮き出ない完全画像化ロジック
+        downloadBtn.addEventListener('click', () => {
+            const segments = Array.from(colorLine.children);
+            if (segments.length === 0) return;
+
+            const wrapperRect = resizableWrapper.getBoundingClientRect();
+            const width = Math.round(wrapperRect.width);
+            const height = Math.round(wrapperRect.height);
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+
+            // 背景塗りつぶし（下地）
+            ctx.fillStyle = '#f5f5f5';
+            ctx.fillRect(0, 0, width, height);
+
+            // サブピクセルの隙間防止（境界をわずかにオーバーラップ描画）
+            segments.forEach(seg => {
+                const segRect = seg.getBoundingClientRect();
+                
+                const x1 = Math.floor(segRect.left - wrapperRect.left);
+                const y1 = Math.floor(segRect.top - wrapperRect.top);
+                const x2 = Math.ceil(segRect.right - wrapperRect.left);
+                const y2 = Math.ceil(segRect.bottom - wrapperRect.top);
+
+                const w = x2 - x1;
+                const h = y2 - y1;
+
+                ctx.fillStyle = window.getComputedStyle(seg).backgroundColor;
+                ctx.fillRect(x1, y1, w, h);
+            });
+
+            const link = document.createElement('a');
+            link.download = `unicolorcode_${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+
+        updateLine();
+    </script>
+
+</body>
+</html>
