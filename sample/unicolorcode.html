@@ -48,9 +48,10 @@
             margin-bottom: 20px;
         }
 
-        /* ボタンとスマホ用ポップアップを横並びにするコンテナ */
+        /* ボタンとスマホ用ポップアップを納めるコンテナ */
         .controls-row {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
             gap: 12px;
             margin-bottom: 25px;
@@ -147,18 +148,17 @@
             z-index: 1000;
         }
 
-        /* スマホ時（幅767px以下）: ボタン右側に完全静的配置＆2段表示 */
+        /* スマホ時（幅767px以下）: スティッキー配置で画面内固定視認性を高める */
         @media (max-width: 767px) {
             #tooltipMobile {
-                position: static !important;
-                top: auto !important;
-                left: auto !important;
-                right: auto !important;
-                transform: none !important;
+                position: sticky;
+                top: 10px;
                 font-size: 11px;
                 padding: 6px 10px;
                 white-space: normal;
                 display: none;
+                max-width: 100%;
+                word-break: break-all;
             }
             #tooltipMobile.active {
                 display: block;
@@ -226,14 +226,14 @@
     
     <div class="controls-row">
         <button id="downloadBtn" class="download-btn" disabled>画像を保存する</button>
-        <!-- スマホ用：ボタンの右隣に表示される2段ポップアップ -->
+        <!-- スマホ用：ボタン横に配置し、見切れ防止にスティッキー制御 -->
         <div class="tooltip" id="tooltipMobile"></div>
     </div>
 
     <!-- リサイズ領域 -->
     <div class="resizable-wrapper" id="resizableWrapper">
         <div class="line-container" id="colorLine"></div>
-        <!-- PC用：画像の左右に追従するポップアップ -->
+        <!-- PC用：画像の左右で空きスペースが広い方に表示されるポップアップ -->
         <div class="tooltip" id="tooltipPC"></div>
     </div>
     <div class="instruction-hint">※ 画像上を長押し（またはドラッグ）して右下へ動かすと拡大、左上へ動かすと縮小します。</div>
@@ -275,7 +275,7 @@
                 return;
             }
 
-            // 長押し時間を 120ms (0.12秒) に変更
+            // 長押し時間を 120ms に設定
             longPressTimer = setTimeout(() => {
                 startResize({ clientX, clientY });
             }, 120);
@@ -367,44 +367,39 @@
                     const charDisplay = char === ' ' ? '（スペース）' : char;
 
                     if (window.innerWidth < 768) {
-                        /* スマホ用: ボタン横へ2段表示 */
+                        /* スマホ用 */
                         tooltipMobile.innerHTML = `文字: <strong>${charDisplay}</strong> | Code: <strong>U+${hex8Digits}</strong><br>Color: <strong>${colorCode}</strong>`;
                         tooltipMobile.classList.add('active');
                     } else {
-                        /* PC用: 画像左右に追従（画面端のはみ出し防止ロジック追加） */
+                        /* PC用: 左右の空きスペース量を計算して広い方へ配置 */
                         tooltipPC.innerHTML = `文字: <strong>${charDisplay}</strong> | Code: <strong>U+${hex8Digits}</strong> | Color: <strong>${colorCode}</strong>`;
-                        
-                        // 一旦計算用に表示させてサイズを取得できるようにする
-                        tooltipPC.style.left = 'auto';
-                        tooltipPC.style.right = 'auto';
-                        tooltipPC.classList.add('active');
 
                         const wrapperRect = resizableWrapper.getBoundingClientRect();
                         const segRect = segment.getBoundingClientRect();
-                        const tooltipWidth = tooltipPC.offsetWidth || 220; // ツールチップの幅
                         const windowWidth = window.innerWidth;
 
-                        const segCenterX = segRect.left + segRect.width / 2;
-                        const wrapperCenterX = wrapperRect.left + wrapperRect.width / 2;
+                        // 画像の左右に残っている余白領域（ピクセル数）を計算
+                        const spaceOnLeft = wrapperRect.left;
+                        const spaceOnRight = windowWidth - wrapperRect.right;
 
                         tooltipPC.classList.remove('left-side', 'right-side');
 
-                        // 右側に表示した場合に画面の右端を超えるかチェック
-                        const projectedRightEdge = wrapperRect.right + 14 + tooltipWidth;
-                        const isOverflowingRight = projectedRightEdge > windowWidth - 10;
-
-                        // 画像の左半分の位置であっても、右端からはみ出す場合は強制的に左側へ表示
-                        if (segCenterX >= wrapperCenterX || isOverflowingRight) {
-                            tooltipPC.style.right = 'calc(100% + 14px)';
-                            tooltipPC.classList.add('left-side');
-                        } else {
+                        // 空き領域が大きい方の側にポップアップを表示
+                        if (spaceOnRight >= spaceOnLeft) {
+                            tooltipPC.style.right = 'auto';
                             tooltipPC.style.left = 'calc(100% + 14px)';
                             tooltipPC.classList.add('right-side');
+                        } else {
+                            tooltipPC.style.left = 'auto';
+                            tooltipPC.style.right = 'calc(100% + 14px)';
+                            tooltipPC.classList.add('left-side');
                         }
 
                         const offsetTop = (segRect.top + segRect.height / 2) - wrapperRect.top;
                         tooltipPC.style.top = `${offsetTop}px`;
                         tooltipPC.style.transform = 'translateY(-50%)';
+
+                        tooltipPC.classList.add('active');
                     }
                 };
 
