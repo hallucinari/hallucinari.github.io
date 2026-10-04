@@ -5,19 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Unicolorcode</title>
     <style>
-        /* ルート変数で画面幅に応じたブロック最小幅を定義 */
         :root {
             --segment-min-width: 14px;
         }
 
-        /* タブレット (768px〜) */
         @media (min-width: 768px) {
             :root {
                 --segment-min-width: 18px;
             }
         }
 
-        /* PC・大型ディスプレイ (1024px〜) */
         @media (min-width: 1024px) {
             :root {
                 --segment-min-width: 22px;
@@ -28,16 +25,15 @@
             font-family: sans-serif;
             max-width: 900px;
             margin: 20px auto;
-            padding: 0 16px; /* スマホ向けに左右余白を最適化 */
+            padding: 0 16px;
             line-height: 1.6;
             box-sizing: border-box;
         }
 
-        /* PC/タブレット向けの余白確保 */
         @media (min-width: 768px) {
             body {
                 margin: 40px auto;
-                padding: 0 160px; /* 欄外ポップアップ用スペース */
+                padding: 0 160px;
             }
         }
 
@@ -52,7 +48,6 @@
             margin-bottom: 20px;
         }
 
-        /* 画像保存ボタンのスタイル */
         .download-btn {
             display: inline-block;
             margin-bottom: 25px;
@@ -75,40 +70,50 @@
             cursor: not-allowed;
         }
 
-        /* 外枠コンテナ：リサイズ対応 */
+        /* 画像コンテナ：全体ドラッグ対応 */
         .resizable-wrapper {
             position: relative;
             width: 100%;
             min-width: 100px;
             min-height: 20px;
-            height: 160px; /* スマホ表示に配慮して初期高さを少し拡張 */
+            height: 160px;
             padding: 0;
             box-sizing: border-box;
             background-color: #f5f5f5;
-            border: 1px solid #ddd;
+            border: 2px dashed transparent;
             border-radius: 8px;
-            resize: none;
-            overflow: visible; /* 欄外ポップアップ用 */
+            overflow: visible;
             box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-            touch-action: none; /* タッチでのドラッグリサイズ安定化 */
+            cursor: grab;
+            user-select: none;
+            touch-action: pan-y; /* リサイズモード起動前は縦スクロールを許可 */
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
         }
 
-        /* 折り返しあり・隙間ゼロのFlexコンテナ */
+        /* ドラッグリサイズ中の視覚フィードバック */
+        .resizable-wrapper.resizing {
+            cursor: grabbing;
+            border-color: #4a90e2;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            transform: scale(1.01);
+            touch-action: none; /* リサイズ中はスクロールをブロック */
+        }
+
         .line-container {
             display: flex;
-            flex-wrap: wrap; /* 折り返しを有効化 */
-            align-content: stretch; /* 各行の高さを縦幅いっぱいに均等分配 */
+            flex-wrap: wrap;
+            align-content: stretch;
             width: 100%;
             height: 100%;
             overflow: hidden;
-            border-radius: 7px;
+            border-radius: 6px;
             margin: 0;
             padding: 0;
+            pointer-events: auto;
         }
 
-        /* 各文字のカラーブロック */
         .color-segment {
-            flex: 1 0 var(--segment-min-width); /* デバイスの画面幅に応じて最小幅を可変 */
+            flex: 1 0 var(--segment-min-width);
             margin: 0;
             padding: 0;
             border: none;
@@ -120,7 +125,6 @@
             filter: brightness(1.2);
         }
 
-        /* 左右欄外ポップアップ */
         .tooltip {
             position: absolute;
             background-color: #222;
@@ -137,7 +141,6 @@
             z-index: 1000;
         }
 
-        /* スマホ等で幅が狭い場合ポップアップを枠内に調整 */
         @media (max-width: 767px) {
             .tooltip {
                 position: fixed;
@@ -176,6 +179,14 @@
         .tooltip.active {
             opacity: 1;
         }
+
+        /* 操作ヒントの表示 */
+        .instruction-hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 6px;
+            margin-bottom: 12px;
+        }
     </style>
 </head>
 
@@ -195,6 +206,7 @@
         <div class="tooltip" id="tooltip"></div>
         <div class="line-container" id="colorLine"></div>
     </div>
+    <div class="instruction-hint">※ 画像上を長押し（またはドラッグ）して右下へ動かすと拡大、左上へ動かすと縮小します。</div>
 
     <script>
         const inputText = document.getElementById('inputText');
@@ -204,71 +216,93 @@
         const downloadBtn = document.getElementById('downloadBtn');
 
         let isResizing = false;
-        let resizeEdge = '';
         let startX, startY, startWidth, startHeight;
-        const edgeThreshold = 12; // スマホでのタッチ調整をしやすくするため判定域を広げる
+        let longPressTimer = null;
 
-        // ポインターイベントによる統一的なドラッグ・タッチリサイズ制御
-        resizableWrapper.addEventListener('pointermove', (e) => {
-            if (isResizing) return;
+        // 画像上でのドラッグ / タッチリサイズ制御（案1実装）
+        const startResize = (e) => {
+            isResizing = true;
+            startX = e.clientX || (e.touches && e.touches[0].clientX);
+            startY = e.clientY || (e.touches && e.touches[0].clientY);
+
             const rect = resizableWrapper.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            startWidth = rect.width;
+            startHeight = rect.height;
 
-            let cursor = '';
-            if (y < edgeThreshold) cursor += 'n';
-            else if (y > rect.height - edgeThreshold) cursor += 's';
-            if (x < edgeThreshold) cursor += 'w';
-            else if (x > rect.width - edgeThreshold) cursor += 'e';
+            resizableWrapper.classList.add('resizing');
+            tooltip.classList.remove('active');
+        };
 
-            resizableWrapper.style.cursor = cursor ? `${cursor}-resize` : 'default';
-        });
+        // マウスダウン・タッチスタートイベント
+        const handlePointerDown = (e) => {
+            // 左クリックまたはタッチ時のみ動作
+            if (e.button && e.button !== 0) return;
 
-        resizableWrapper.addEventListener('pointerdown', (e) => {
-            const rect = resizableWrapper.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
 
-            let edge = '';
-            if (y < edgeThreshold) edge += 'n';
-            else if (y > rect.height - edgeThreshold) edge += 's';
-            if (x < edgeThreshold) edge += 'w';
-            else if (x > rect.width - edgeThreshold) edge += 'e';
-
-            if (edge) {
-                isResizing = true;
-                resizeEdge = edge;
-                startX = e.clientX;
-                startY = e.clientY;
-                startWidth = rect.width;
-                startHeight = rect.height;
-                resizableWrapper.setPointerCapture(e.pointerId);
+            // Shiftキーを押している場合は即時ドラッグ開始（PC向け）
+            if (e.shiftKey) {
+                startResize(e);
                 e.preventDefault();
+                return;
             }
-        });
 
-        window.addEventListener('pointermove', (e) => {
+            // タッチ操作または通常クリックの場合は長押し（約250ms）でモード起動
+            longPressTimer = setTimeout(() => {
+                startResize({ clientX, clientY });
+            }, 250);
+        };
+
+        const handlePointerMove = (e) => {
+            const currentX = e.clientX || (e.touches && e.touches[0].clientX);
+            const currentY = e.clientY || (e.touches && e.touches[0].clientY);
+
+            // わずかに動いたら長押し判定をキャンセル（誤作動防止）
+            if (!isResizing && longPressTimer) {
+                if (Math.abs(currentX - startX) > 5 || Math.abs(currentY - startY) > 5) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+            }
+
             if (!isResizing) return;
 
-            const dx = e.clientX - startX;
-            const dy = e.clientY - startY;
+            // 移動量に応じて幅と高さを伸縮（右・下で拡大、左・上で縮小）
+            const dx = currentX - startX;
+            const dy = currentY - startY;
 
-            if (resizeEdge.includes('e')) resizableWrapper.style.width = `${Math.max(100, startWidth + dx)}px`;
-            if (resizeEdge.includes('s')) resizableWrapper.style.height = `${Math.max(20, startHeight + dy)}px`;
-            if (resizeEdge.includes('w')) resizableWrapper.style.width = `${Math.max(100, startWidth - dx)}px`;
-            if (resizeEdge.includes('n')) resizableWrapper.style.height = `${Math.max(20, startHeight - dy)}px`;
+            const newWidth = Math.max(100, startWidth + dx);
+            const newHeight = Math.max(30, startHeight + dy);
+
+            resizableWrapper.style.width = `${newWidth}px`;
+            resizableWrapper.style.height = `${newHeight}px`;
 
             adjustHeights();
-        });
 
-        window.addEventListener('pointerup', (e) => {
+            if (e.cancelable) e.preventDefault();
+        };
+
+        const handlePointerUp = () => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
             if (isResizing) {
                 isResizing = false;
-                try {
-                    resizableWrapper.releasePointerCapture(e.pointerId);
-                } catch (err) {}
+                resizableWrapper.classList.remove('resizing');
             }
-        });
+        };
+
+        // イベントリスナー登録 (マウス ＆ タッチ)
+        resizableWrapper.addEventListener('mousedown', handlePointerDown);
+        window.addEventListener('mousemove', handlePointerMove);
+        window.addEventListener('mouseup', handlePointerUp);
+
+        resizableWrapper.addEventListener('touchstart', handlePointerDown, { passive: false });
+        window.addEventListener('touchmove', handlePointerMove, { passive: false });
+        window.addEventListener('touchend', handlePointerUp);
+        window.addEventListener('touchcancel', handlePointerUp);
 
         const resizeObserver = new ResizeObserver(() => {
             adjustHeights();
@@ -300,6 +334,7 @@
                 segment.style.backgroundColor = colorCode;
 
                 const showTooltip = () => {
+                    if (isResizing) return; // ドラッグリサイズ中はポップアップを出さない
                     const charDisplay = char === ' ' ? '（スペース）' : char;
                     tooltip.innerHTML = `文字: <strong>${charDisplay}</strong><br>Code: <strong>U+${hex8Digits}</strong><br>Color: <strong>${colorCode}</strong>`;
 
@@ -336,9 +371,6 @@
 
                 segment.addEventListener('mouseenter', showTooltip);
                 segment.addEventListener('mouseleave', hideTooltip);
-                segment.addEventListener('touchstart', (e) => {
-                    showTooltip();
-                }, { passive: true });
 
                 colorLine.appendChild(segment);
             });
@@ -369,7 +401,7 @@
             }
         }
 
-        // 隙間・白い線を完全に除去するダウンロード処理
+        // 画像保存処理
         downloadBtn.addEventListener('click', () => {
             const segments = Array.from(colorLine.children);
             if (segments.length === 0) return;
@@ -398,7 +430,6 @@
                 ctx.fillRect(x1, y1, w, h);
             });
 
-            const link = document.append? (document.body.appendChild(document.createElement('a'))) : document.createElement('a');
             const a = document.createElement('a');
             a.download = `unicolorcode_${Date.now()}.png`;
             a.href = canvas.toDataURL('image/png');
