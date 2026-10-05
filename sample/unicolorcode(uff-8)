@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unicolorcode(UTF-8)</title>
+    <style>
+        :root {
+            --segment-min-width: 14px;
+        }
+
+        @media (min-width: 768px) {
+            :root {
+                --segment-min-width: 18px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            :root {
+                --segment-min-width: 22px;
+            }
+        }
+
+        body {
+            font-family: sans-serif;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 16px;
+            line-height: 1.6;
+            box-sizing: border-box;
+        }
+
+        @media (min-width: 768px) {
+            body {
+                margin: 40px auto;
+                padding: 0 160px;
+            }
+        }
+
+        a {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+        a:hover {
+            color: #004499;
+        }
+
+        textarea {
+            width: 100%;
+            height: 90px;
+            font-size: 16px;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+            min-height: 42px;
+        }
+
+        .download-btn {
+            display: inline-block;
+            margin: 0;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #333;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s, opacity 0.2s;
+            touch-action: manipulation;
+            flex-shrink: 0;
+        }
+        .download-btn:hover {
+            background-color: #555;
+        }
+        .download-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .resizable-wrapper {
+            position: relative;
+            width: 100%;
+            min-width: 100px;
+            min-height: 20px;
+            height: 160px;
+            padding: 0;
+            box-sizing: border-box;
+            background-color: #f5f5f5;
+            border: 2px dashed transparent;
+            border-radius: 8px;
+            overflow: visible;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+            cursor: grab;
+            user-select: none;
+            touch-action: pan-y;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .resizable-wrapper.resizing {
+            cursor: grabbing;
+            border-color: #4a90e2;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            transform: scale(1.01);
+            touch-action: none;
+        }
+
+        .line-container {
+            display: flex;
+            flex-wrap: wrap;
+            align-content: stretch;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            border-radius: 6px;
+            margin: 0;
+            padding: 0;
+            pointer-events: auto;
+        }
+
+        .color-segment {
+            flex: 1 0 var(--segment-min-width);
+            margin: 0;
+            padding: 0;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            transition: filter 0.1s;
+        }
+        .color-segment:hover {
+            filter: brightness(1.2);
+        }
+
+        .tooltip {
+            background-color: #222;
+            color: #fff;
+            border-radius: 6px;
+            line-height: 1.3;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+
+        @media (max-width: 767px) {
+            #tooltipMobile {
+                position: sticky;
+                top: 10px;
+                font-size: 11px;
+                padding: 6px 10px;
+                white-space: normal;
+                display: none;
+                max-width: 100%;
+                word-break: break-all;
+            }
+            #tooltipMobile.active {
+                display: block;
+                opacity: 1;
+            }
+            #tooltipPC {
+                display: none !important;
+            }
+        }
+
+        @media (min-width: 768px) {
+            #tooltipMobile {
+                display: none !important;
+            }
+            #tooltipPC {
+                position: absolute;
+                font-size: 13px;
+                padding: 8px 12px;
+                white-space: nowrap;
+            }
+
+            #tooltipPC.left-side::after {
+                content: "";
+                position: absolute;
+                top: 50%;
+                left: 100%;
+                transform: translateY(-50%);
+                border-width: 6px;
+                border-style: solid;
+                border-color: transparent transparent transparent #222;
+            }
+
+            #tooltipPC.right-side::after {
+                content: "";
+                position: absolute;
+                top: 50%;
+                right: 100%;
+                transform: translateY(-50%);
+                border-width: 6px;
+                border-style: solid;
+                border-color: transparent #222 transparent transparent;
+            }
+        }
+
+        .tooltip.active {
+            opacity: 1;
+        }
+
+        .instruction-hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 6px;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Unicolorcode(UTF-8)</h2>
+    <p>文字を16進数のUTF-8バイト列に変換し、それをColor Codeと対応させてカーペットのようなものを生成します。<br>
+    前作の4桁Unicodeの先頭2桁に無理やり「00」をつけた方法では成し得なかった、赤緑青の色彩が生成されます。</p>
+
+    <textarea id="inputText" placeholder="ここに何か入力してください..."></textarea>
+    
+    <div class="controls-row">
+        <button id="downloadBtn" class="download-btn" disabled>画像を保存する</button>
+        <div class="tooltip" id="tooltipMobile"></div>
+    </div>
+
+    <div class="resizable-wrapper" id="resizableWrapper">
+        <div class="line-container" id="colorLine"></div>
+        <div class="tooltip" id="tooltipPC"></div>
+    </div>
+    <div class="instruction-hint">※ 画像上を長押し（またはドラッグ）して右下へ動かすと拡大、左上へ動かすと縮小します。</div>
+
+    <script>
+        const inputText = document.getElementById('inputText');
+        const colorLine = document.getElementById('colorLine');
+        const resizableWrapper = document.getElementById('resizableWrapper');
+        const tooltipMobile = document.getElementById('tooltipMobile');
+        const tooltipPC = document.getElementById('tooltipPC');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        const utf8Encoder = new TextEncoder();
+
+        let isResizing = false;
+        let startX, startY, startWidth, startHeight;
+        let longPressTimer = null;
+
+        const startResize = (e) => {
+            isResizing = true;
+            startX = e.clientX || (e.touches && e.touches[0].clientX);
+            startY = e.clientY || (e.touches && e.touches[0].clientY);
+
+            const rect = resizableWrapper.getBoundingClientRect();
+            startWidth = rect.width;
+            startHeight = rect.height;
+
+            resizableWrapper.classList.add('resizing');
+            hideTooltips();
+        };
+
+        const handlePointerDown = (e) => {
+            if (e.button && e.button !== 0) return;
+
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+
+            if (e.shiftKey) {
+                startResize(e);
+                e.preventDefault();
+                return;
+            }
+
+            longPressTimer = setTimeout(() => {
+                startResize({ clientX, clientY });
+            }, 120);
+        };
+
+        const handlePointerMove = (e) => {
+            const currentX = e.clientX || (e.touches && e.touches[0].clientX);
+            const currentY = e.clientY || (e.touches && e.touches[0].clientY);
+
+            if (!isResizing && longPressTimer) {
+                if (Math.abs(currentX - startX) > 5 || Math.abs(currentY - startY) > 5) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+            }
+
+            if (!isResizing) return;
+
+            const dx = currentX - startX;
+            const dy = currentY - startY;
+
+            const newWidth = Math.max(100, startWidth + dx);
+            const newHeight = Math.max(30, startHeight + dy);
+
+            resizableWrapper.style.width = `${newWidth}px`;
+            resizableWrapper.style.height = `${newHeight}px`;
+
+            adjustHeights();
+
+            if (e.cancelable) e.preventDefault();
+        };
+
+        const handlePointerUp = () => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+            if (isResizing) {
+                isResizing = false;
+                resizableWrapper.classList.remove('resizing');
+            }
+        };
+
+        resizableWrapper.addEventListener('mousedown', handlePointerDown);
+        window.addEventListener('mousemove', handlePointerMove);
+        window.addEventListener('mouseup', handlePointerUp);
+
+        resizableWrapper.addEventListener('touchstart', handlePointerDown, { passive: false });
+        window.addEventListener('touchmove', handlePointerMove, { passive: false });
+        window.addEventListener('touchend', handlePointerUp);
+        window.addEventListener('touchcancel', handlePointerUp);
+
+        const resizeObserver = new ResizeObserver(() => {
+            adjustHeights();
+        });
+        resizeObserver.observe(resizableWrapper);
+
+        inputText.addEventListener('input', updateLine);
+
+        function hideTooltips() {
+            tooltipMobile.classList.remove('active');
+            tooltipPC.classList.remove('active');
+        }
+
+        function getUtf8ColorInfo(char) {
+            const bytes = utf8Encoder.encode(char);
+            const hexParts = Array.from(bytes).map(b => b.toString(16).toUpperCase().padStart(2, '0'));
+            const rawHex = hexParts.join('');
+
+            const colorHex = rawHex.padStart(6, '0').slice(-6);
+            const colorCode = '#' + colorHex;
+
+            const formattedBytes = hexParts.join(' ');
+
+            return {
+                colorCode,
+                formattedBytes,
+                rawHex
+            };
+        }
+
+        function updateLine() {
+            const text = inputText.value;
+            colorLine.innerHTML = '';
+
+            if (!text) {
+                hideTooltips();
+                downloadBtn.disabled = true;
+                return;
+            }
+
+            downloadBtn.disabled = false;
+            const characters = Array.from(text);
+
+            characters.forEach((char) => {
+                const codePointHex = char.codePointAt(0).toString(16).toUpperCase().padStart(4, '0');
+                const utf8Info = getUtf8ColorInfo(char);
+
+                const segment = document.createElement('div');
+                segment.className = 'color-segment';
+                segment.style.backgroundColor = utf8Info.colorCode;
+
+                const showTooltip = () => {
+                    if (isResizing) return;
+                    const charDisplay = char === ' ' ? '（スペース）' : char;
+
+                    if (window.innerWidth < 768) {
+                        tooltipMobile.innerHTML = `文字: <strong>${charDisplay}</strong> (U+${codePointHex})<br>UTF-8: <strong>${utf8Info.formattedBytes}</strong> | Color: <strong>${utf8Info.colorCode}</strong>`;
+                        tooltipMobile.classList.add('active');
+                    } else {
+                        tooltipPC.innerHTML = `文字: <strong>${charDisplay}</strong> (U+${codePointHex}) | UTF-8: <strong>${utf8Info.formattedBytes}</strong> | Color: <strong>${utf8Info.colorCode}</strong>`;
+
+                        const wrapperRect = resizableWrapper.getBoundingClientRect();
+                        const segRect = segment.getBoundingClientRect();
+                        const windowWidth = window.innerWidth;
+
+                        const spaceOnLeft = wrapperRect.left;
+                        const spaceOnRight = windowWidth - wrapperRect.right;
+
+                        tooltipPC.classList.remove('left-side', 'right-side');
+
+                        if (spaceOnRight >= spaceOnLeft) {
+                            tooltipPC.style.right = 'auto';
+                            tooltipPC.style.left = 'calc(100% + 14px)';
+                            tooltipPC.classList.add('right-side');
+                        } else {
+                            tooltipPC.style.left = 'auto';
+                            tooltipPC.style.right = 'calc(100% + 14px)';
+                            tooltipPC.classList.add('left-side');
+                        }
+
+                        const offsetTop = (segRect.top + segRect.height / 2) - wrapperRect.top;
+                        tooltipPC.style.top = `${offsetTop}px`;
+                        tooltipPC.style.transform = 'translateY(-50%)';
+
+                        tooltipPC.classList.add('active');
+                    }
+                };
+
+                segment.addEventListener('mouseenter', showTooltip);
+                segment.addEventListener('touchstart', showTooltip, { passive: true });
+                segment.addEventListener('mouseleave', hideTooltips);
+
+                colorLine.appendChild(segment);
+            });
+
+            adjustHeights();
+        }
+
+        function adjustHeights() {
+            const segments = Array.from(colorLine.children);
+            if (segments.length === 0) return;
+
+            let lineCount = 0;
+            let lastTop = -1;
+
+            segments.forEach(seg => {
+                const top = seg.offsetTop;
+                if (Math.abs(top - lastTop) > 2) {
+                    lineCount++;
+                    lastTop = top;
+                }
+            });
+
+            if (lineCount > 0) {
+                const heightPercent = 100 / lineCount;
+                segments.forEach(seg => {
+                    seg.style.height = `${heightPercent}%`;
+                });
+            }
+        }
+
+        downloadBtn.addEventListener('click', () => {
+            const segments = Array.from(colorLine.children);
+            if (segments.length === 0) return;
+
+            const wrapperRect = resizableWrapper.getBoundingClientRect();
+            const width = Math.round(wrapperRect.width);
+            const height = Math.round(wrapperRect.height);
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+
+            segments.forEach(seg => {
+                const segRect = seg.getBoundingClientRect();
+                
+                const x1 = Math.max(0, Math.floor(segRect.left - wrapperRect.left));
+                const y1 = Math.max(0, Math.floor(segRect.top - wrapperRect.top));
+                const x2 = Math.min(width, Math.ceil(segRect.right - wrapperRect.left) + 1);
+                const y2 = Math.min(height, Math.ceil(segRect.bottom - wrapperRect.top) + 1);
+
+                const w = x2 - x1;
+                const h = y2 - y1;
+
+                ctx.fillStyle = window.getComputedStyle(seg).backgroundColor;
+                ctx.fillRect(x1, y1, w, h);
+            });
+
+            const a = document.createElement('a');
+            a.download = `unicolorcode_utf8_${Date.now()}.png`;
+            a.href = canvas.toDataURL('image/png');
+            a.click();
+        });
+
+        updateLine();
+    </script>
+
+</body>
+</html>
