@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unicolorcode(UTF-8)</title>
+    <title>Unicolorcode (UTF-8)</title>
     <style>
         :root {
             --segment-min-width: 14px;
@@ -28,6 +28,7 @@
             padding: 0 16px;
             line-height: 1.6;
             box-sizing: border-box;
+            position: relative;
         }
 
         @media (min-width: 768px) {
@@ -37,12 +38,44 @@
             }
         }
 
+        /* 言語切替ボタン（右上固定） */
+        .lang-switch-container {
+            position: absolute;
+            top: 0px;
+            right: 16px;
+        }
+        @media (min-width: 768px) {
+            .lang-switch-container {
+                right: 160px;
+            }
+        }
+
+        .lang-btn {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .lang-btn:hover {
+            background-color: #e2e2e2;
+            border-color: #aaa;
+        }
+
         a {
             color: #0066cc;
             text-decoration: underline;
         }
         a:hover {
             color: #004499;
+        }
+
+        h2 {
+            margin-top: 10px;
+            padding-right: 120px; /* ボタンとの重複防止 */
         }
 
         textarea {
@@ -115,10 +148,9 @@
             touch-action: none;
         }
 
+        /* 段ズレ防止のためCSS Gridへ変更 */
         .line-container {
-            display: flex;
-            flex-wrap: wrap;
-            align-content: stretch;
+            display: grid;
             width: 100%;
             height: 100%;
             overflow: hidden;
@@ -129,7 +161,8 @@
         }
 
         .color-segment {
-            flex: 1 0 var(--segment-min-width);
+            width: 100%;
+            height: 100%;
             margin: 0;
             padding: 0;
             border: none;
@@ -222,14 +255,17 @@
 
 <body>
 
-    <h2>Unicolorcode(UTF-8)</h2>
-    <p>文字を16進数のUTF-8バイト列に変換し、それをColor Codeと対応させてカーペットのようなものを生成します。<br>
-    前作の4桁Unicodeの先頭2桁に無理やり「00」をつけた方法では成し得なかった、赤緑青の色彩が生成されます。</p>
+    <div class="lang-switch-container">
+        <button id="langToggleBtn" class="lang-btn">English</button>
+    </div>
 
-    <textarea id="inputText" placeholder="ここに何か入力してください..."></textarea>
+    <h2>Unicolorcode (UTF-8)</h2>
+    <p id="descParagraph"></p>
+
+    <textarea id="inputText"></textarea>
     
     <div class="controls-row">
-        <button id="downloadBtn" class="download-btn" disabled>画像を保存する</button>
+        <button id="downloadBtn" class="download-btn" disabled></button>
         <div class="tooltip" id="tooltipMobile"></div>
     </div>
 
@@ -237,21 +273,65 @@
         <div class="line-container" id="colorLine"></div>
         <div class="tooltip" id="tooltipPC"></div>
     </div>
-    <div class="instruction-hint">※生成した画像上を長押し(またはドラッグ)することで比率を変えることができます</div>
+    <div class="instruction-hint" id="instructionHint"></div>
 
     <script>
+        // 多言語対応リソース
+        const i18n = {
+            ja: {
+                desc: 'Unicodeを16進数のUTF-8バイト列に変換し、それをColor Codeと対応させてカーペットのようなものを生成します。<br>前作の4桁Unicodeの先頭2桁に無理やり「00」をつける方法では成し得なかった、赤緑青の色彩が生成されます。',
+                placeholder: 'ここに何か入力してください...',
+                downloadBtn: '画像を保存する',
+                hint: '※生成した画像上を長押し(またはドラッグ)することで比率を変えることができます',
+                charLabel: '文字',
+                spaceLabel: '（スペース）',
+                langBtnNext: 'English'
+            },
+            en: {
+                desc: 'Converts Unicode characters into hexadecimal UTF-8 byte sequences and maps them to Color Codes to generate a carpet-like pattern.<br>Unlike the previous version that forcibly prepended "00" to 4-digit Unicode, this approach generates rich colors across the RGB spectrum.',
+                placeholder: 'Type something here...',
+                downloadBtn: 'Save Image',
+                hint: '* Long-press (or drag) on the generated image to adjust its aspect ratio.',
+                charLabel: 'Char',
+                spaceLabel: '(Space)',
+                langBtnNext: '日本語'
+            }
+        };
+
+        let currentLang = 'ja';
+
+        const descParagraph = document.getElementById('descParagraph');
         const inputText = document.getElementById('inputText');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const instructionHint = document.getElementById('instructionHint');
+        const langToggleBtn = document.getElementById('langToggleBtn');
+
         const colorLine = document.getElementById('colorLine');
         const resizableWrapper = document.getElementById('resizableWrapper');
         const tooltipMobile = document.getElementById('tooltipMobile');
         const tooltipPC = document.getElementById('tooltipPC');
-        const downloadBtn = document.getElementById('downloadBtn');
 
         const utf8Encoder = new TextEncoder();
 
         let isResizing = false;
         let startX, startY, startWidth, startHeight;
         let longPressTimer = null;
+
+        function applyLanguage(lang) {
+            currentLang = lang;
+            const t = i18n[lang];
+            descParagraph.innerHTML = t.desc;
+            inputText.placeholder = t.placeholder;
+            downloadBtn.textContent = t.downloadBtn;
+            instructionHint.textContent = t.hint;
+            langToggleBtn.textContent = t.langBtnNext;
+            updateLine();
+        }
+
+        langToggleBtn.addEventListener('click', () => {
+            const nextLang = currentLang === 'ja' ? 'en' : 'ja';
+            applyLanguage(nextLang);
+        });
 
         const startResize = (e) => {
             isResizing = true;
@@ -305,7 +385,7 @@
             resizableWrapper.style.width = `${newWidth}px`;
             resizableWrapper.style.height = `${newHeight}px`;
 
-            adjustHeights();
+            adjustGrid();
 
             if (e.cancelable) e.preventDefault();
         };
@@ -331,7 +411,7 @@
         window.addEventListener('touchcancel', handlePointerUp);
 
         const resizeObserver = new ResizeObserver(() => {
-            adjustHeights();
+            adjustGrid();
         });
         resizeObserver.observe(resizableWrapper);
 
@@ -349,7 +429,6 @@
 
             const colorHex = rawHex.padStart(6, '0').slice(-6);
             const colorCode = '#' + colorHex;
-
             const formattedBytes = hexParts.join(' ');
 
             return {
@@ -371,6 +450,7 @@
 
             downloadBtn.disabled = false;
             const characters = Array.from(text);
+            const t = i18n[currentLang];
 
             characters.forEach((char) => {
                 const codePointHex = char.codePointAt(0).toString(16).toUpperCase().padStart(4, '0');
@@ -382,13 +462,13 @@
 
                 const showTooltip = () => {
                     if (isResizing) return;
-                    const charDisplay = char === ' ' ? '（スペース）' : char;
+                    const charDisplay = char === ' ' ? t.spaceLabel : char;
 
                     if (window.innerWidth < 768) {
-                        tooltipMobile.innerHTML = `文字: <strong>${charDisplay}</strong> (U+${codePointHex})<br>UTF-8: <strong>${utf8Info.formattedBytes}</strong> | Color: <strong>${utf8Info.colorCode}</strong>`;
+                        tooltipMobile.innerHTML = `${t.charLabel}: <strong>${charDisplay}</strong> (U+${codePointHex})<br>UTF-8: <strong>${utf8Info.formattedBytes}</strong> | Color: <strong>${utf8Info.colorCode}</strong>`;
                         tooltipMobile.classList.add('active');
                     } else {
-                        tooltipPC.innerHTML = `文字: <strong>${charDisplay}</strong> (U+${codePointHex}) | UTF-8: <strong>${utf8Info.formattedBytes}</strong> | Color: <strong>${utf8Info.colorCode}</strong>`;
+                        tooltipPC.innerHTML = `${t.charLabel}: <strong>${charDisplay}</strong> (U+${codePointHex}) | UTF-8: <strong>${utf8Info.formattedBytes}</strong> | Color: <strong>${utf8Info.colorCode}</strong>`;
 
                         const wrapperRect = resizableWrapper.getBoundingClientRect();
                         const segRect = segment.getBoundingClientRect();
@@ -424,30 +504,30 @@
                 colorLine.appendChild(segment);
             });
 
-            adjustHeights();
+            adjustGrid();
         }
 
-        function adjustHeights() {
-            const segments = Array.from(colorLine.children);
-            if (segments.length === 0) return;
+        // 段ズレ・重複描画を解決するCSS Grid再配置関数
+        function adjustGrid() {
+            const count = colorLine.children.length;
+            if (count === 0) return;
 
-            let lineCount = 0;
-            let lastTop = -1;
+            const wrapperWidth = colorLine.clientWidth;
+            if (wrapperWidth === 0) return;
 
-            segments.forEach(seg => {
-                const top = seg.offsetTop;
-                if (Math.abs(top - lastTop) > 2) {
-                    lineCount++;
-                    lastTop = top;
-                }
-            });
+            // 画面幅に応じた最小セグメント幅を取得
+            const rootStyle = getComputedStyle(document.documentElement);
+            const minWidthPx = parseFloat(rootStyle.getPropertyValue('--segment-min-width')) || 14;
 
-            if (lineCount > 0) {
-                const heightPercent = 100 / lineCount;
-                segments.forEach(seg => {
-                    seg.style.height = `${heightPercent}%`;
-                });
-            }
+            // 1行に配置可能な最大列数
+            let columns = Math.floor(wrapperWidth / minWidthPx);
+            if (columns < 1) columns = 1;
+
+            // 総段数（行数）を計算
+            const rows = Math.ceil(count / columns);
+
+            colorLine.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+            colorLine.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
         }
 
         downloadBtn.addEventListener('click', () => {
@@ -484,7 +564,8 @@
             a.click();
         });
 
-        updateLine();
+        // 初期表示設定（日本語）
+        applyLanguage('ja');
     </script>
 
 </body>
