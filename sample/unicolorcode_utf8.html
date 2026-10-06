@@ -154,7 +154,7 @@
         .wrapper-outer-container {
             position: relative;
             margin-top: 35px;
-            padding-left: 32px;
+            padding-left: 0;
             display: inline-block;
             width: auto;
             max-width: none;
@@ -179,7 +179,7 @@
         .dimension-guide-top {
             position: absolute;
             top: -24px;
-            left: 32px;
+            left: 0;
             right: 0;
             height: 20px;
             display: flex;
@@ -224,11 +224,11 @@
             border-radius: 3px;
         }
 
-        /* 左側（縦幅）寸法線ガイド */
+        /* 左側（縦幅）寸法線ガイド：画像本体の左外側にはみ出して配置 */
         .dimension-guide-left {
             position: absolute;
             top: 0;
-            left: 2px;
+            left: -28px;
             width: 24px;
             height: 100%;
             display: flex;
