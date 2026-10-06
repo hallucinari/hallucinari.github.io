@@ -21,11 +21,16 @@
             }
         }
 
+        html, body {
+            overflow-x: auto;
+            min-width: 100%;
+        }
+
         body {
             font-family: sans-serif;
             max-width: 900px;
             margin: 20px auto;
-            padding: 0 16px;
+            padding: 0 16px 80px 16px;
             line-height: 1.6;
             box-sizing: border-box;
             position: relative;
@@ -34,11 +39,11 @@
         @media (min-width: 768px) {
             body {
                 margin: 40px auto;
-                padding: 0 160px;
+                padding: 0 160px 100px 160px;
             }
         }
 
-        /* 言語切替ボタン（右上固定） */
+        /* 言語切替ボタン */
         .lang-switch-container {
             position: absolute;
             top: 0px;
@@ -75,7 +80,7 @@
 
         h2 {
             margin-top: 10px;
-            padding-right: 120px; /* ボタンとの重複防止 */
+            padding-right: 120px;
         }
 
         textarea {
@@ -89,13 +94,14 @@
             margin-bottom: 20px;
         }
 
+        /* ボタンとポップアップ情報の横並びエリア */
         .controls-row {
             display: flex;
-            flex-wrap: wrap;
             align-items: center;
             gap: 12px;
             margin-bottom: 25px;
             min-height: 42px;
+            flex-wrap: wrap;
         }
 
         .download-btn {
@@ -121,6 +127,155 @@
             cursor: not-allowed;
         }
 
+        /* 常に保存ボタンの右側に配置される統一ポップアップ */
+        .info-tooltip {
+            background-color: #222;
+            color: #fff;
+            border-radius: 6px;
+            line-height: 1.4;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            font-size: 13px;
+            padding: 8px 14px;
+            white-space: nowrap;
+            width: fit-content;
+            max-width: 100%;
+            flex: 0 1 auto;
+            min-width: auto;
+            word-break: normal;
+        }
+
+        .info-tooltip.active {
+            opacity: 1;
+        }
+
+        .wrapper-outer-container {
+            position: relative;
+            margin-top: 35px;
+            padding-left: 32px;
+            display: inline-block;
+            width: auto;
+            max-width: none;
+            box-sizing: border-box;
+            vertical-align: top;
+        }
+
+        .dimension-guide-top,
+        .dimension-guide-left {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s ease-out;
+            z-index: 10;
+        }
+
+        .dimension-guide-top.visible,
+        .dimension-guide-left.visible {
+            opacity: 1;
+        }
+
+        /* 上部（横幅）寸法線ガイド */
+        .dimension-guide-top {
+            position: absolute;
+            top: -24px;
+            left: 32px;
+            right: 0;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dimension-guide-top::before,
+        .dimension-guide-top::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 10px;
+            height: 10px;
+            background-color: #0066cc;
+            transform: translateY(-50%);
+        }
+        .dimension-guide-top::before {
+            left: 0;
+            clip-path: polygon(100% 0%, 0% 50%, 100% 100%, 70% 50%);
+        }
+        .dimension-guide-top::after {
+            right: 0;
+            clip-path: polygon(0% 0%, 100% 50%, 0% 100%, 30% 50%);
+        }
+        .dimension-guide-top .guide-line {
+            position: absolute;
+            top: 50%;
+            left: 2px;
+            right: 2px;
+            height: 2px;
+            background-color: #0066cc;
+            transform: translateY(-50%);
+        }
+        .dimension-guide-top .guide-label {
+            position: relative;
+            background-color: #fff;
+            padding: 0 6px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #0066cc;
+            z-index: 2;
+            border-radius: 3px;
+        }
+
+        /* 左側（縦幅）寸法線ガイド */
+        .dimension-guide-left {
+            position: absolute;
+            top: 0;
+            left: 2px;
+            width: 24px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dimension-guide-left::before,
+        .dimension-guide-left::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            background-color: #0066cc;
+            transform: translateX(-50%);
+        }
+        .dimension-guide-left::before {
+            top: 0;
+            clip-path: polygon(0% 100%, 50% 0%, 100% 100%, 50% 70%);
+        }
+        .dimension-guide-left::after {
+            bottom: 0;
+            clip-path: polygon(0% 0%, 50% 100%, 100% 0%, 50% 30%);
+        }
+        .dimension-guide-left .guide-line {
+            position: absolute;
+            left: 50%;
+            top: 2px;
+            bottom: 2px;
+            width: 2px;
+            background-color: #0066cc;
+            transform: translateX(-50%);
+        }
+        .dimension-guide-left .guide-label {
+            position: relative;
+            background-color: #fff;
+            padding: 4px 2px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #0066cc;
+            z-index: 2;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            border-radius: 3px;
+            white-space: nowrap;
+        }
+
         .resizable-wrapper {
             position: relative;
             width: 100%;
@@ -144,11 +299,10 @@
             cursor: grabbing;
             border-color: #4a90e2;
             box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-            transform: scale(1.01);
+            transform: scale(1.005);
             touch-action: none;
         }
 
-        /* 段ズレ防止のためCSS Gridへ変更 */
         .line-container {
             display: grid;
             width: 100%;
@@ -174,80 +328,10 @@
             filter: brightness(1.2);
         }
 
-        .tooltip {
-            background-color: #222;
-            color: #fff;
-            border-radius: 6px;
-            line-height: 1.3;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.15s ease;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            z-index: 1000;
-        }
-
-        @media (max-width: 767px) {
-            #tooltipMobile {
-                position: sticky;
-                top: 10px;
-                font-size: 11px;
-                padding: 6px 10px;
-                white-space: normal;
-                display: none;
-                max-width: 100%;
-                word-break: break-all;
-            }
-            #tooltipMobile.active {
-                display: block;
-                opacity: 1;
-            }
-            #tooltipPC {
-                display: none !important;
-            }
-        }
-
-        @media (min-width: 768px) {
-            #tooltipMobile {
-                display: none !important;
-            }
-            #tooltipPC {
-                position: absolute;
-                font-size: 13px;
-                padding: 8px 12px;
-                white-space: nowrap;
-            }
-
-            #tooltipPC.left-side::after {
-                content: "";
-                position: absolute;
-                top: 50%;
-                left: 100%;
-                transform: translateY(-50%);
-                border-width: 6px;
-                border-style: solid;
-                border-color: transparent transparent transparent #222;
-            }
-
-            #tooltipPC.right-side::after {
-                content: "";
-                position: absolute;
-                top: 50%;
-                right: 100%;
-                transform: translateY(-50%);
-                border-width: 6px;
-                border-style: solid;
-                border-color: transparent #222 transparent transparent;
-            }
-        }
-
-        .tooltip.active {
-            opacity: 1;
-        }
-
         .instruction-hint {
             font-size: 12px;
             color: #666;
-            margin-top: 6px;
+            margin-top: 12px;
             margin-bottom: 12px;
         }
     </style>
@@ -266,17 +350,31 @@
     
     <div class="controls-row">
         <button id="downloadBtn" class="download-btn" disabled></button>
-        <div class="tooltip" id="tooltipMobile"></div>
+        <!-- 保存ボタンの右隣に表示される統一情報ポップアップ -->
+        <div class="info-tooltip" id="infoTooltip"></div>
     </div>
 
-    <div class="resizable-wrapper" id="resizableWrapper">
-        <div class="line-container" id="colorLine"></div>
-        <div class="tooltip" id="tooltipPC"></div>
+    <div class="wrapper-outer-container" id="wrapperOuterContainer">
+        <!-- 上部：横幅（ピクセル）矢印ガイド -->
+        <div class="dimension-guide-top" id="guideTop">
+            <div class="guide-line"></div>
+            <div class="guide-label" id="widthLabel">0px</div>
+        </div>
+
+        <!-- 左側：縦幅（ピクセル）矢印ガイド -->
+        <div class="dimension-guide-left" id="guideLeft">
+            <div class="guide-line"></div>
+            <div class="guide-label" id="heightLabel">0px</div>
+        </div>
+
+        <div class="resizable-wrapper" id="resizableWrapper">
+            <div class="line-container" id="colorLine"></div>
+        </div>
     </div>
+
     <div class="instruction-hint" id="instructionHint"></div>
 
     <script>
-        // 多言語対応リソース
         const i18n = {
             ja: {
                 desc: 'Unicodeを16進数のUTF-8バイト列に変換し、それをColor Codeと対応させてカーペットのようなものを生成します。<br>前作の4桁Unicodeの先頭2桁に無理やり「00」をつける方法では成し得なかった、赤緑青の色彩が生成されます。',
@@ -308,14 +406,21 @@
 
         const colorLine = document.getElementById('colorLine');
         const resizableWrapper = document.getElementById('resizableWrapper');
-        const tooltipMobile = document.getElementById('tooltipMobile');
-        const tooltipPC = document.getElementById('tooltipPC');
+        const infoTooltip = document.getElementById('infoTooltip');
+
+        const guideTop = document.getElementById('guideTop');
+        const guideLeft = document.getElementById('guideLeft');
+        const widthLabel = document.getElementById('widthLabel');
+        const heightLabel = document.getElementById('heightLabel');
 
         const utf8Encoder = new TextEncoder();
 
         let isResizing = false;
         let startX, startY, startWidth, startHeight;
+        let currentClientX = 0, currentClientY = 0;
         let longPressTimer = null;
+        let guideHideTimer = null;
+        let autoScrollAnimationFrame = null;
 
         function applyLanguage(lang) {
             currentLang = lang;
@@ -333,17 +438,114 @@
             applyLanguage(nextLang);
         });
 
+        function updateDimensionLabels() {
+            const rect = resizableWrapper.getBoundingClientRect();
+            const w = Math.round(rect.width);
+            const h = Math.round(rect.height);
+            widthLabel.textContent = `${w}px`;
+            heightLabel.textContent = `${h}px`;
+        }
+
+        function showGuides() {
+            if (guideHideTimer) {
+                clearTimeout(guideHideTimer);
+                guideHideTimer = null;
+            }
+            guideTop.classList.add('visible');
+            guideLeft.classList.add('visible');
+        }
+
+        function triggerGuidesFadeOut300ms() {
+            if (guideHideTimer) {
+                clearTimeout(guideHideTimer);
+            }
+            guideTop.classList.add('visible');
+            guideLeft.classList.add('visible');
+
+            guideHideTimer = setTimeout(() => {
+                guideTop.classList.remove('visible');
+                guideLeft.classList.remove('visible');
+                guideHideTimer = null;
+            }, 300);
+        }
+
+        function startAutoScrollLoop() {
+            if (autoScrollAnimationFrame) return;
+
+            const scrollStep = () => {
+                if (!isResizing) {
+                    autoScrollAnimationFrame = null;
+                    return;
+                }
+
+                const threshold = 60;
+                const speedScale = 0.35;
+
+                let scrollX = 0;
+                let scrollY = 0;
+
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+
+                if (currentClientX > viewportWidth - threshold) {
+                    scrollX = (currentClientX - (viewportWidth - threshold)) * speedScale;
+                } else if (currentClientX < threshold) {
+                    scrollX = (currentClientX - threshold) * speedScale;
+                }
+
+                if (currentClientY > viewportHeight - threshold) {
+                    scrollY = (currentClientY - (viewportHeight - threshold)) * speedScale;
+                } else if (currentClientY < threshold) {
+                    scrollY = (currentClientY - threshold) * speedScale;
+                }
+
+                if (scrollX !== 0 || scrollY !== 0) {
+                    window.scrollBy(scrollX, scrollY);
+                    performResize(currentClientX, currentClientY);
+                }
+
+                autoScrollAnimationFrame = requestAnimationFrame(scrollStep);
+            };
+
+            autoScrollAnimationFrame = requestAnimationFrame(scrollStep);
+        }
+
+        function stopAutoScrollLoop() {
+            if (autoScrollAnimationFrame) {
+                cancelAnimationFrame(autoScrollAnimationFrame);
+                autoScrollAnimationFrame = null;
+            }
+        }
+
+        function performResize(clientX, clientY) {
+            const dx = clientX - startX;
+            const dy = clientY - startY;
+
+            const newWidth = Math.max(100, startWidth + dx);
+            const newHeight = Math.max(30, startHeight + dy);
+
+            resizableWrapper.style.width = `${newWidth}px`;
+            resizableWrapper.style.height = `${newHeight}px`;
+
+            adjustGrid();
+            updateDimensionLabels();
+        }
+
         const startResize = (e) => {
             isResizing = true;
             startX = e.clientX || (e.touches && e.touches[0].clientX);
             startY = e.clientY || (e.touches && e.touches[0].clientY);
+            currentClientX = startX;
+            currentClientY = startY;
 
             const rect = resizableWrapper.getBoundingClientRect();
             startWidth = rect.width;
             startHeight = rect.height;
 
             resizableWrapper.classList.add('resizing');
-            hideTooltips();
+            showGuides();
+            hideTooltip();
+            startAutoScrollLoop();
         };
 
         const handlePointerDown = (e) => {
@@ -364,11 +566,13 @@
         };
 
         const handlePointerMove = (e) => {
-            const currentX = e.clientX || (e.touches && e.touches[0].clientX);
-            const currentY = e.clientY || (e.touches && e.touches[0].clientY);
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+            currentClientX = clientX;
+            currentClientY = clientY;
 
             if (!isResizing && longPressTimer) {
-                if (Math.abs(currentX - startX) > 5 || Math.abs(currentY - startY) > 5) {
+                if (Math.abs(clientX - startX) > 5 || Math.abs(clientY - startY) > 5) {
                     clearTimeout(longPressTimer);
                     longPressTimer = null;
                 }
@@ -376,16 +580,7 @@
 
             if (!isResizing) return;
 
-            const dx = currentX - startX;
-            const dy = currentY - startY;
-
-            const newWidth = Math.max(100, startWidth + dx);
-            const newHeight = Math.max(30, startHeight + dy);
-
-            resizableWrapper.style.width = `${newWidth}px`;
-            resizableWrapper.style.height = `${newHeight}px`;
-
-            adjustGrid();
+            performResize(clientX, clientY);
 
             if (e.cancelable) e.preventDefault();
         };
@@ -397,7 +592,9 @@
             }
             if (isResizing) {
                 isResizing = false;
+                stopAutoScrollLoop();
                 resizableWrapper.classList.remove('resizing');
+                triggerGuidesFadeOut300ms();
             }
         };
 
@@ -412,14 +609,14 @@
 
         const resizeObserver = new ResizeObserver(() => {
             adjustGrid();
+            updateDimensionLabels();
         });
         resizeObserver.observe(resizableWrapper);
 
         inputText.addEventListener('input', updateLine);
 
-        function hideTooltips() {
-            tooltipMobile.classList.remove('active');
-            tooltipPC.classList.remove('active');
+        function hideTooltip() {
+            infoTooltip.classList.remove('active');
         }
 
         function getUtf8ColorInfo(char) {
@@ -443,8 +640,9 @@
             colorLine.innerHTML = '';
 
             if (!text) {
-                hideTooltips();
+                hideTooltip();
                 downloadBtn.disabled = true;
+                updateDimensionLabels();
                 return;
             }
 
@@ -464,50 +662,21 @@
                     if (isResizing) return;
                     const charDisplay = char === ' ' ? t.spaceLabel : char;
 
-                    if (window.innerWidth < 768) {
-                        tooltipMobile.innerHTML = `${t.charLabel}: <strong>${charDisplay}</strong> (U+${codePointHex})<br>UTF-8: <strong>${utf8Info.formattedBytes}</strong> | Color: <strong>${utf8Info.colorCode}</strong>`;
-                        tooltipMobile.classList.add('active');
-                    } else {
-                        tooltipPC.innerHTML = `${t.charLabel}: <strong>${charDisplay}</strong> (U+${codePointHex}) | UTF-8: <strong>${utf8Info.formattedBytes}</strong> | Color: <strong>${utf8Info.colorCode}</strong>`;
-
-                        const wrapperRect = resizableWrapper.getBoundingClientRect();
-                        const segRect = segment.getBoundingClientRect();
-                        const windowWidth = window.innerWidth;
-
-                        const spaceOnLeft = wrapperRect.left;
-                        const spaceOnRight = windowWidth - wrapperRect.right;
-
-                        tooltipPC.classList.remove('left-side', 'right-side');
-
-                        if (spaceOnRight >= spaceOnLeft) {
-                            tooltipPC.style.right = 'auto';
-                            tooltipPC.style.left = 'calc(100% + 14px)';
-                            tooltipPC.classList.add('right-side');
-                        } else {
-                            tooltipPC.style.left = 'auto';
-                            tooltipPC.style.right = 'calc(100% + 14px)';
-                            tooltipPC.classList.add('left-side');
-                        }
-
-                        const offsetTop = (segRect.top + segRect.height / 2) - wrapperRect.top;
-                        tooltipPC.style.top = `${offsetTop}px`;
-                        tooltipPC.style.transform = 'translateY(-50%)';
-
-                        tooltipPC.classList.add('active');
-                    }
+                    infoTooltip.innerHTML = `${t.charLabel}: <strong>${charDisplay}</strong> (U+${codePointHex}) | UTF-8: <strong>${utf8Info.formattedBytes}</strong> | Color: <strong>${utf8Info.colorCode}</strong>`;
+                    infoTooltip.classList.add('active');
                 };
 
                 segment.addEventListener('mouseenter', showTooltip);
                 segment.addEventListener('touchstart', showTooltip, { passive: true });
-                segment.addEventListener('mouseleave', hideTooltips);
+                segment.addEventListener('mouseleave', hideTooltip);
 
                 colorLine.appendChild(segment);
             });
 
             adjustGrid();
+            updateDimensionLabels();
         }
 
-        // 段ズレ・重複描画を解決するCSS Grid再配置関数
         function adjustGrid() {
             const count = colorLine.children.length;
             if (count === 0) return;
@@ -515,15 +684,12 @@
             const wrapperWidth = colorLine.clientWidth;
             if (wrapperWidth === 0) return;
 
-            // 画面幅に応じた最小セグメント幅を取得
             const rootStyle = getComputedStyle(document.documentElement);
             const minWidthPx = parseFloat(rootStyle.getPropertyValue('--segment-min-width')) || 14;
 
-            // 1行に配置可能な最大列数
             let columns = Math.floor(wrapperWidth / minWidthPx);
             if (columns < 1) columns = 1;
 
-            // 総段数（行数）を計算
             const rows = Math.ceil(count / columns);
 
             colorLine.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
@@ -564,7 +730,6 @@
             a.click();
         });
 
-        // 初期表示設定（日本語）
         applyLanguage('ja');
     </script>
 
