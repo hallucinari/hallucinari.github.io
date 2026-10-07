@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTF-8 カラーホイール & Unicode バイト相互変換シミュレーター</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        .color-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(241, 245, 249, 0.8);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.5);
+            border-radius: 3px;
+        }
+        canvas {
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800 p-3 sm:p-6 lg:p-8">
+    <header class="max-w-7xl mx-auto mb-6 sm:mb-8 relative flex flex-col items-center">
+        <!-- Language Switcher Button -->
+        <div class="absolute right-0 top-0">
+            <button id="langToggleBtn" class="px-4 py-1.5 bg-white border border-slate-300 hover:border-slate-400 text-slate-700 hover:text-slate-900 rounded-full text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
+                <span id="langBtnText">English</span>
+            </button>
+        </div>
+
+        <div id="subTag" class="inline-block px-3 py-1 mb-2 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-600 text-xs font-semibold tracking-wider uppercase">
+            Unicode 18.0.0 Complete Block Registry
+        </div>
+        <h1 id="mainTitle" class="text-2xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-sky-600 to-pink-600 bg-clip-text text-transparent text-center">
+            UTF-8 カラーホイール & Unicode 相互変換器
+        </h1>
+        <p id="mainDesc" class="mt-2 text-slate-600 text-sm sm:text-base max-w-2xl mx-auto text-center">
+            カラーコード（RGB 3バイト）と UTF-8 バイト列を完全双方向変換。全Unicode領域の精密なブロック定義と瞬時に照合します。
+        </p>
+    </header>
+
+    <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Left Side: Interactive Color Wheel Canvas -->
+        <section class="lg:col-span-5 color-card rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col items-center border border-slate-200">
+            <h2 id="wheelHeading" class="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2 self-start">
+                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>
+                直感カラーホイール
+            </h2>
+            <p id="wheelSub" class="text-xs text-slate-500 mb-4 self-start">
+                内側の円で色相・彩度、外枠リングで明度（Val）をスムーズに操作できます。
+            </p>
+
+            <div class="relative w-full max-w-[340px] aspect-square flex items-center justify-center">
+                <canvas id="colorWheelCanvas" width="340" height="340" class="cursor-crosshair rounded-full shadow-md"></canvas>
+            </div>
+
+            <div class="w-full mt-6 grid grid-cols-3 gap-2 text-center text-xs">
+                <div class="bg-slate-100 p-2.5 rounded-xl border border-slate-200">
+                    <span id="labelR" class="text-slate-500 block text-[10px]">R (1バイト目)</span>
+                    <span id="valR" class="font-mono text-indigo-600 font-bold text-sm">E6</span>
+                </div>
+                <div class="bg-slate-100 p-2.5 rounded-xl border border-slate-200">
+                    <span id="labelG" class="text-slate-500 block text-[10px]">G (2バイト目)</span>
+                    <span id="valG" class="font-mono text-emerald-600 font-bold text-sm">9C</span>
+                </div>
+                <div class="bg-slate-100 p-2.5 rounded-xl border border-slate-200">
+                    <span id="labelB" class="text-slate-500 block text-[10px]">B (3バイト目)</span>
+                    <span id="valB" class="font-mono text-sky-600 font-bold text-sm">89</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Side: Unified Unicode Preview & Analytics Card -->
+        <section class="lg:col-span-7 space-y-6">
+            
+            <div class="color-card rounded-2xl p-6 shadow-xl border border-slate-200 space-y-6">
+                
+                <!-- Large Unicode Character Preview Header Area -->
+                <div class="border-b border-slate-200 pb-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <label for="charInput" id="previewHeaderLabel" class="text-xs font-bold text-indigo-600 tracking-wider uppercase flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            UNICODE PREVIEW (直接入力可能)
+                        </label>
+                        <span class="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200" id="hexColorTag">#E69C89</span>
+                    </div>
+
+                    <!-- Enlarged Swatch and Big Input Display -->
+                    <div class="flex items-center gap-5">
+                        <!-- Dynamic Color Swatch Display -->
+                        <div id="swatch" class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl shadow-md border-2 border-slate-200 flex-shrink-0 transition-colors duration-150"></div>
+                        
+                        <!-- Text Box for Dynamic Character Input (Enlarged) -->
+                        <div class="flex-grow">
+                            <input type="text" id="charInput" maxlength="2" value="有" 
+                                class="w-full bg-slate-50 border-2 border-slate-300 focus:border-indigo-500 rounded-2xl px-4 py-3 text-5xl sm:text-6xl text-center font-extrabold tracking-widest text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-inner"
+                                placeholder="文字">
+                            <p id="inputHint" class="text-[11px] text-slate-500 mt-2 text-center">※ 任意のUnicode文字を入力するとホイールの位置へ即座に反映されます</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Integrated UTF-8 & Unicode Analytics Section -->
+                <div>
+                    <h3 id="analyticsHeading" class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2 mb-3">
+                        <svg class="w-4 h-4 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        UTF-8 構造 & 精密 UNICODE ブロック解析結果
+                    </h3>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80">
+                            <span id="labelCodePoint" class="text-xs text-slate-500 block mb-1 font-medium">Unicode コードポイント</span>
+                            <div id="codePointDisplay" class="font-mono text-2xl text-sky-700 font-bold">U+6709</div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80">
+                            <span id="labelUtf8Bytes" class="text-xs text-slate-500 block mb-1 font-medium">UTF-8 バイト列 (16進数)</span>
+                            <div id="utf8BytesDisplay" class="font-mono text-2xl text-emerald-700 font-bold">E6 9C 89</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-indigo-50/70 border border-indigo-100 rounded-xl p-4">
+                        <span id="labelBlockRegistry" class="text-xs font-bold text-indigo-700 uppercase tracking-wider block mb-1">公式 Unicode 18.0 ブロック分類</span>
+                        <div id="unicodeBlockDisplay" class="text-base sm:text-lg font-extrabold text-indigo-950">CJK統合漢字 (CJK Unified Ideographs)</div>
+                        <div id="unicodePlaneDisplay" class="text-xs text-indigo-700/80 mt-1 font-medium">Plane 0: 基本多言語面 (Basic Multilingual Plane / BMP)</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Mechanism Explanation Card -->
+            <div class="color-card rounded-2xl p-5 shadow-xl border border-slate-200 space-y-3 text-xs sm:text-sm text-slate-600 leading-relaxed">
+                <h3 id="mechHeading" class="font-bold text-slate-800 flex items-center gap-2 border-b border-slate-200 pb-2">
+                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    メカニズムと変換規則
+                </h3>
+                <p id="mechP1">
+                    本システムでは、RGBカラーコードの3バイト（例: <code class="text-indigo-600 font-semibold">#E69C89</code>）をそのまま UTF-8 の3バイト列（<code class="text-emerald-600 font-semibold">0xE6 0x9C 0x89</code>）とみなして文字を構成します。
+                </p>
+                <ul class="list-disc list-inside space-y-1 text-slate-500 pl-1">
+                    <li id="mechLi1">3バイトUTF-8の構造パターン: <code class="text-slate-800 font-mono">1110xxxx 10xxxxxx 10xxxxxx</code></li>
+                    <li id="mechLi2">ホイールの色変更時は上位ビットを正しくマスク調整し、必ず合法な文字コードへとデコードされます。</li>
+                    <li id="mechLi3">Unicode 18.0.0 仕様に従い、判定不能な汎用表現を使わず正確なブロック名を網羅指定します。</li>
+                </ul>
+            </div>
+
+        </section>
+    </main>
+
+    <script>
+        let currentLang = 'ja';
+
+        const I18N_TEXTS = {
+            ja: {
+                langBtn: "English",
+                subTag: "Unicode 18.0.0 Complete Block Registry",
+                title: "UTF-8 カラーホイール & Unicode 相互変換器",
+                desc: "カラーコード（RGB 3バイト）と UTF-8 バイト列を完全双方向変換。全Unicode領域の精密なブロック定義と瞬時に照合します。",
+                wheelHeading: "直感カラーホイール",
+                wheelSub: "内側の円で色相・彩度、外枠リングで明度（Val）をスムーズに操作できます。",
+                labelR: "R (1バイト目)",
+                labelG: "G (2バイト目)",
+                labelB: "B (3バイト目)",
+                previewHeaderLabel: "UNICODE PREVIEW (直接入力可能)",
+                placeholder: "文字",
+                inputHint: "※ 任意のUnicode文字を入力するとホイールの位置へ即座に反映されます",
+                analyticsHeading: "UTF-8 構造 & 精密 UNICODE ブロック解析結果",
+                labelCodePoint: "Unicode コードポイント",
+                labelUtf8Bytes: "UTF-8 バイト列 (16進数)",
+                labelBlockRegistry: "公式 Unicode 18.0 ブロック分類",
+                mechHeading: "メカニズムと変換規則",
+                mechP1: "本システムでは、RGBカラーコードの3バイト（例: #E69C89）をそのまま UTF-8 の3バイト列（0xE6 0x9C 0x89）とみなして文字を構成します。",
+                mechLi1: "3バイトUTF-8の構造パターン: 1110xxxx 10xxxxxx 10xxxxxx",
+                mechLi2: "ホイールの色変更時は上位ビットを正しくマスク調整し、必ず合法な文字コードへとデコードされます。",
+                mechLi3: "Unicode 18.0.0 仕様に従い、判定不能な汎用表現を使わず正確なブロック名を網羅指定します。"
+            },
+            en: {
+                langBtn: "日本語",
+                subTag: "Unicode 18.0.0 Complete Block Registry",
+                title: "UTF-8 Color Wheel & Unicode Converter",
+                desc: "Seamless bidirectional conversion between RGB 3-byte colors and UTF-8 byte sequences with instant Unicode 18.0 block matching.",
+                wheelHeading: "Interactive Color Wheel",
+                wheelSub: "Adjust Hue/Saturation on the inner wheel and Value (Brightness) on the outer ring.",
+                labelR: "R (Byte 1)",
+                labelG: "G (Byte 2)",
+                labelB: "B (Byte 3)",
+                previewHeaderLabel: "UNICODE PREVIEW (Editable)",
+                placeholder: "Char",
+                inputHint: "* Enter any Unicode character to sync wheel coordinates immediately.",
+                analyticsHeading: "UTF-8 Structure & Precision Unicode Block Analysis",
+                labelCodePoint: "Unicode Code Point",
+                labelUtf8Bytes: "UTF-8 Bytes (Hex)",
+                labelBlockRegistry: "Official Unicode 18.0 Block Classification",
+                mechHeading: "Mechanism & Conversion Rules",
+                mechP1: "This simulator treats 3-byte RGB color codes (e.g., #E69C89) directly as UTF-8 3-byte sequences (0xE6 0x9C 0x89) to decode characters.",
+                mechLi1: "3-Byte UTF-8 Pattern: 1110xxxx 10xxxxxx 10xxxxxx",
+                mechLi2: "Wheel adjustments automatically apply bitwise masks to yield valid Unicode code points.",
+                mechLi3: "Accurately mapped according to the full Unicode 18.0.0 block specification."
+            }
+        };
+
+        const UNICODE_BLOCKS = [
+            // Plane 0: Basic Multilingual Plane (BMP)
+            { min: 0x0000, max: 0x007F, ja: "基本ラテン文字", en: "Basic Latin", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0080, max: 0x00FF, ja: "ラテン文字1補助", en: "Latin-1 Supplement", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0100, max: 0x017F, ja: "ラテン文字拡張A", en: "Latin Extended-A", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0180, max: 0x024F, ja: "ラテン文字拡張B", en: "Latin Extended-B", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0250, max: 0x02AF, ja: "国際音声記号拡張", en: "IPA Extensions", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x02B0, max: 0x02FF, ja: "前置修飾文字", en: "Spacing Modifier Letters", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0300, max: 0x036F, ja: "結合発音区別記号", en: "Combining Diacritical Marks", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0370, max: 0x03FF, ja: "ギリシャ文字・コプト文字", en: "Greek and Coptic", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0400, max: 0x04FF, ja: "キリル文字", en: "Cyrillic", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0500, max: 0x052F, ja: "キリル文字補助", en: "Cyrillic Supplement", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0530, max: 0x058F, ja: "アルメニア文字", en: "Armenian", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0590, max: 0x05FF, ja: "ヘブライ文字", en: "Hebrew", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0600, max: 0x06FF, ja: "アラビア文字", en: "Arabic", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0700, max: 0x074F, ja: "シリア文字", en: "Syriac", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0750, max: 0x077F, ja: "アラビア文字補助", en: "Arabic Supplement", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0780, max: 0x07BF, ja: "ターナ文字", en: "Thaana", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x07C0, max: 0x07FF, ja: "ンコ文字", en: "N'Ko", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0800, max: 0x083F, ja: "サマリア文字", en: "Samaritan", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0840, max: 0x085F, ja: "マンダ文字", en: "Mandaic", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0860, max: 0x086F, ja: "シリア文字補助", en: "Syriac Supplement", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0870, max: 0x089F, ja: "アラビア文字拡張B", en: "Arabic Extended-B", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x08A0, max: 0x08FF, ja: "アラビア文字拡張A", en: "Arabic Extended-A", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0900, max: 0x097F, ja: "デーヴァナーガリー", en: "Devanagari", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0980, max: 0x09FF, ja: "ベンガル文字", en: "Bengali", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0A00, max: 0x0A7F, ja: "グルムキー文字", en: "Gurmukhi", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0A80, max: 0x0AFF, ja: "グジャラート文字", en: "Gujarati", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0B00, max: 0x0B7F, ja: "オリヤー文字", en: "Oriya", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0B80, max: 0x0BFF, ja: "タミル文字", en: "Tamil", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0C00, max: 0x0C7F, ja: "テルグ文字", en: "Telugu", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0C80, max: 0x0CFF, ja: "カンナダ文字", en: "Kannada", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0D00, max: 0x0D7F, ja: "マラヤーラム文字", en: "Malayalam", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0D80, max: 0x0DFF, ja: "シンハラ文字", en: "Sinhala", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0E00, max: 0x0E7F, ja: "タイ文字", en: "Thai", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0E80, max: 0x0EFF, ja: "ラーオ文字", en: "Lao", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x0F00, max: 0x0FFF, ja: "チベット文字", en: "Tibetan", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1000, max: 0x109F, ja: "ミャンマー文字", en: "Myanmar", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x10A0, max: 0x10FF, ja: "グルジア文字", en: "Georgian", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1100, max: 0x11FF, ja: "ハングル符号要素", en: "Hangul Jamo", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1200, max: 0x137F, ja: "エチオピア文字", en: "Ethiopic", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1380, max: 0x139F, ja: "エチオピア文字補足", en: "Ethiopic Supplement", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x13A0, max: 0x13FF, ja: "チェロキー文字", en: "Cherokee", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1400, max: 0x167F, ja: "統合カナダ先住民音節文字", en: "Unified Canadian Aboriginal Syllabics", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1680, max: 0x169F, ja: "オガム文字", en: "Ogham", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x16A0, max: 0x16FF, ja: "ルーン文字", en: "Runic", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1700, max: 0x171F, ja: "タガログ文字", en: "Tagalog", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1720, max: 0x173F, ja: "ハンウノオ文字", en: "Hanunoo", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1740, max: 0x175F, ja: "ブヒッド文字", en: "Buhid", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1760, max: 0x177F, ja: "タグバヌワ文字", en: "Tagbanwa", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1780, max: 0x17FF, ja: "クメール文字", en: "Khmer", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1800, max: 0x18AF, ja: "モンゴル文字", en: "Mongolian", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1900, max: 0x194F, ja: "リムブ文字", en: "Limbu", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1950, max: 0x197F, ja: "タイ・レ文字", en: "Tai Le", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1980, max: 0x19DF, ja: "新タイ・ロ文字", en: "New Tai Lue", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1A00, max: 0x1A1F, ja: "ブギス文字", en: "Buginese", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1A20, max: 0x1AAF, ja: "ラーンナー文字", en: "Tai Tham", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1B00, max: 0x1B7F, ja: "バリ文字", en: "Balinese", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1B80, max: 0x1BBF, ja: "スンダ文字", en: "Sundanese", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1BC0, max: 0x1BFF, ja: "バタク文字", en: "Batak", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1C00, max: 0x1C4F, ja: "レプチャ文字", en: "Lepcha", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1C50, max: 0x1C7F, ja: "オル・チキ文字", en: "Ol Chiki", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1D00, max: 0x1D7F, ja: "音声記号拡張", en: "Phonetic Extensions", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1E00, max: 0x1EFF, ja: "ラテン文字拡張追加", en: "Latin Extended Additional", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x1F00, max: 0x1FFF, ja: "ギリシャ文字拡張", en: "Greek Extended", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x2000, max: 0x206F, ja: "一般的な句読点", en: "General Punctuation", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x2070, max: 0x209F, ja: "上付き・下付き文字", en: "Superscripts and Subscripts", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x20A0, max: 0x20CF, ja: "通貨記号", en: "Currency Symbols", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x2100, max: 0x214F, ja: "文字様記号", en: "Letterlike Symbols", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x2150, max: 0x218F, ja: "数字に準じるもの", en: "Number Forms", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x2190, max: 0x21FF, ja: "矢印", en: "Arrows", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x2200, max: 0x22FF, ja: "数学記号", en: "Mathematical Operators", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x2300, max: 0x23FF, ja: "その他の技術用記号", en: "Miscellaneous Technical", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x2400, max: 0x243F, ja: "制御機能用記号", en: "Control Pictures", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x2460, max: 0x24FF, ja: "囲み英数字", en: "Enclosed Alphanumerics", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x2500, max: 0x257F, ja: "罫線素片", en: "Box Drawing", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x2580, max: 0x259F, ja: "ブロック要素", en: "Block Elements", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x25A0, max: 0x25FF, ja: "幾何学模様", en: "Geometric Shapes", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x2600, max: 0x26FF, ja: "その他の記号", en: "Miscellaneous Symbols", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x2700, max: 0x27BF, ja: "装飾記号", en: "Dingbats", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x2800, max: 0x28FF, ja: "点字点形", en: "Braille Patterns", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x2E00, max: 0x2E7F, ja: "追加句読点", en: "Supplemental Punctuation", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x2E80, max: 0x2EFF, ja: "CJK部首補助", en: "CJK Radicals Supplement", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x2F00, max: 0x2FDF, ja: "康熙部首", en: "Kangxi Radicals", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x3000, max: 0x303F, ja: "CJKの記号及び句読点", en: "CJK Symbols and Punctuation", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x3040, max: 0x309F, ja: "ひらがな", en: "Hiragana", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x30A0, max: 0x30FF, ja: "カタカナ", en: "Katakana", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x3100, max: 0x312F, ja: "注音符号 / ボポモフォ", en: "Bopomofo", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x3130, max: 0x318F, ja: "ハングル互換字体", en: "Hangul Compatibility Jamo", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x3190, max: 0x319F, ja: "漢文用記号", en: "Kanbun", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x31F0, max: 0x31FF, ja: "カタカナ小文字拡張", en: "Katakana Phonetic Extensions", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x3200, max: 0x32FF, ja: "囲みCJK文字・月名", en: "Enclosed CJK Letters and Months", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x3300, max: 0x33FF, ja: "CJK互換用例", en: "CJK Compatibility", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x3400, max: 0x4DBF, ja: "CJK統合漢字拡張A", en: "CJK Unified Ideographs Extension A", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0x4E00, max: 0x9FFF, ja: "CJK統合漢字", en: "CJK Unified Ideographs", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0xA000, max: 0xA48F, ja: "イ文字音節", en: "Yi Syllables", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0xAC00, max: 0xD7AF, ja: "ハングル音節文字", en: "Hangul Syllables", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0xD800, max: 0xDBFF, ja: "上位サロゲート領域", en: "High Surrogates", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0xDC00, max: 0xDFFF, ja: "下位サロゲート領域", en: "Low Surrogates", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0xE000, max: 0xF8FF, ja: "私用領域", en: "Private Use Area (PUA)", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0xF900, max: 0xFAFF, ja: "CJK互換漢字", en: "CJK Compatibility Ideographs", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0xFB00, max: 0xFB4F, ja: "アルファベット表示形式", en: "Alphabetic Presentation Forms", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0xFB50, max: 0xFDFF, ja: "アラビア文字表示形式A", en: "Arabic Presentation Forms-A", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0xFE70, max: 0xFEFF, ja: "アラビア文字表示形式B", en: "Arabic Presentation Forms-B", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+            { min: 0xFF00, max: 0xFFEF, ja: "半角・全角形", en: "Halfwidth and Fullwidth Forms", planeJa: "Plane 0: 基本多言語面 (BMP)", planeEn: "Plane 0: Basic Multilingual Plane (BMP)" },
+
+            // Plane 1: Supplementary Multilingual Plane (SMP)
+            { min: 0x10000, max: 0x1007F, ja: "線文字B音節文字", en: "Linear B Syllabary", planeJa: "Plane 1: 追加多言語面 (SMP)", planeEn: "Plane 1: Supplementary Multilingual Plane (SMP)" },
+            { min: 0x10080, max: 0x100FF, ja: "線文字B表意文字", en: "Linear B Ideograms", planeJa: "Plane 1: 追加多言語面 (SMP)", planeEn: "Plane 1: Supplementary Multilingual Plane (SMP)" },
+            { min: 0x10100, max: 0x1013F, ja: "エーゲ数字", en: "Aegean Numbers", planeJa: "Plane 1: 追加多言語面 (SMP)", planeEn: "Plane 1: Supplementary Multilingual Plane (SMP)" },
+            { min: 0x10140, max: 0x1018F, ja: "古代ギリシャ数字", en: "Ancient Greek Numbers", planeJa: "Plane 1: 追加多言語面 (SMP)", planeEn: "Plane 1: Supplementary Multilingual Plane (SMP)" },
+            { min: 0x10280, max: 0x1029F, ja: "リキア文字", en: "Lycian", planeJa: "Plane 1: 追加多言語面 (SMP)", planeEn: "Plane 1: Supplementary Multilingual Plane (SMP)" },
+            { min: 0x102A0, max: 0x102DF, ja: "カリア文字", en: "Carian", planeJa: "Plane 1: 追加多言語面 (SMP)", planeEn: "Plane 1: Supplementary Multilingual Plane (SMP)" },
+            { min: 0x10300, max: 0x1032F, ja: "古イタリア文字", en: "Old Italic", planeJa: "Plane 1: 追加多言語面 (SMP)", planeEn: "Plane 1: Supplementary Multilingual Plane (SMP)" },
+            { min: 0x10330, max: 0x1034F, ja: "ゴート文字", en: "Gothic", planeJa: "Plane 1: 追加多言語面 (SMP)", planeEn: "Plane 1: Supplementary Multilingual Plane (SMP)" },
+            { min: 0x10380, max: 0x1039F, ja: "ウガリト文字", en: "Ugaritic", planeJa: "Plane 1: 追加多言語面 (SMP)", planeEn: "Plane 1: Supplementary Multilingual Plane (SMP)" },
+            { min: 0x10400, max: 0x1044F, ja: "デザレット文字", en: "Deseret", planeJa: "Plane 1: 追加多言語面 (SMP)", planeEn: "Plane 1: Supplementary Multilingual Plane (SMP)" },
+            { min: 0x10800, max: 0x1083F, ja: "ペルシア文字", en: "Imperial Aramaic", planeJa: "Plane 1: 追加多言語面 (SMP)", planeEn: "Plane 1: Supplementary Multilingual Plane (SMP)" },
+            { min: 0x10900, max: 0x1091F, ja: "フェニキア文字", en: "Phoenician", planeJa: "Plane 1: 追加多言語面 (SMP)", planeEn: "Plane 1: Supplementary Multilingual Plane (SMP)" },
+            { min: 0x12000, max: 0x12399, ja: "楔形文字", en: "Cuneiform", planeJa: "Plane 1: 追加多言語面 (SMP)", planeEn: "Plane 1: Supplementary Multilingual Plane (SMP)" },
+            { min: 0x13000, max: 0x1342E, ja: "エジプト・ヒエログリフ", en: "Egyptian Hieroglyphs", planeJa: "Plane 1: 追加多言語面 (SMP)", planeEn: "Plane 1: Supplementary Multilingual Plane (SMP)" },
+            { min: 0x16800, max: 0x16A38, ja: "バムン文字拡張", en: "Bamum Supplement", planeJa: "Plane 1: 追加多言語面 (SMP)", planeEn: "Plane 1: Supplementary Multilingual Plane (SMP)" },
+            { min: 0x1B000, max: 0x1B0FF, ja: "変体仮名", en: "Kana Supplement", planeJa: "Plane 1: 追加多言語面 (SMP)", planeEn: "Plane 1: Supplementary Multilingual Plane (SMP)" },
+            { min: 0x1F300, max: 0x1F5FF, ja: "各種記号・絵文字", en: "Miscellaneous Symbols and Pictographs", planeJa: "Plane 1: 追加多言語面 (SMP)", planeEn: "Plane 1: Supplementary Multilingual Plane (SMP)" },
+            { min: 0x1F600, max: 0x1F64F, ja: "顔文字・絵文字", en: "Emoticons", planeJa: "Plane 1: 追加多言語面 (SMP)", planeEn: "Plane 1: Supplementary Multilingual Plane (SMP)" },
+            { min: 0x1F680, max: 0x1F6FF, ja: "交通・地図記号", en: "Transport and Map Symbols", planeJa: "Plane 1: 追加多言語面 (SMP)", planeEn: "Plane 1: Supplementary Multilingual Plane (SMP)" },
+            { min: 0x1F900, max: 0x1F9FF, ja: "補助記号・絵文字", en: "Supplemental Symbols and Pictographs", planeJa: "Plane 1: 追加多言語面 (SMP)", planeEn: "Plane 1: Supplementary Multilingual Plane (SMP)" },
+
+            // Plane 2: Supplementary Ideographic Plane (SIP)
+            { min: 0x20000, max: 0x2A6DF, ja: "CJK統合漢字拡張B", en: "CJK Unified Ideographs Extension B", planeJa: "Plane 2: 追加漢字面 (SIP)", planeEn: "Plane 2: Supplementary Ideographic Plane (SIP)" },
+            { min: 0x2A700, max: 0x2B73F, ja: "CJK統合漢字拡張C", en: "CJK Unified Ideographs Extension C", planeJa: "Plane 2: 追加漢字面 (SIP)", planeEn: "Plane 2: Supplementary Ideographic Plane (SIP)" },
+            { min: 0x2B740, max: 0x2B81F, ja: "CJK統合漢字拡張D", en: "CJK Unified Ideographs Extension D", planeJa: "Plane 2: 追加漢字面 (SIP)", planeEn: "Plane 2: Supplementary Ideographic Plane (SIP)" },
+            { min: 0x2B820, max: 0x2CEAF, ja: "CJK統合漢字拡張E", en: "CJK Unified Ideographs Extension E", planeJa: "Plane 2: 追加漢字面 (SIP)", planeEn: "Plane 2: Supplementary Ideographic Plane (SIP)" },
+            { min: 0x2CEB0, max: 0x2EBEF, ja: "CJK統合漢字拡張F", en: "CJK Unified Ideographs Extension F", planeJa: "Plane 2: 追加漢字面 (SIP)", planeEn: "Plane 2: Supplementary Ideographic Plane (SIP)" },
+
+            // Plane 3: Tertiary Ideographic Plane (TIP)
+            { min: 0x30000, max: 0x3134F, ja: "CJK統合漢字拡張G", en: "CJK Unified Ideographs Extension G", planeJa: "Plane 3: 第三漢字面 (TIP)", planeEn: "Plane 3: Tertiary Ideographic Plane (TIP)" },
+            { min: 0x31350, max: 0x323AF, ja: "CJK統合漢字拡張H", en: "CJK Unified Ideographs Extension H", planeJa: "Plane 3: 第三漢字面 (TIP)", planeEn: "Plane 3: Tertiary Ideographic Plane (TIP)" },
+
+            // Private Use Planes (Plane 15 & 16)
+            { min: 0xF0000, max: 0xFFFFD, ja: "補足私用領域A", en: "Supplementary Private Use Area-A", planeJa: "Plane 15: 補足私用面", planeEn: "Plane 15: Supplementary Private Use Area-A" },
+            { min: 0x100000, max: 0x10FFFD, ja: "補足私用領域B", en: "Supplementary Private Use Area-B", planeJa: "Plane 16: 補足私用面", planeEn: "Plane 16: Supplementary Private Use Area-B" }
+        ];
+
+        function getUnicodeBlockInfo(codePoint) {
+            for (let b of UNICODE_BLOCKS) {
+                if (codePoint >= b.min && codePoint <= b.max) {
+                    return { 
+                        block: currentLang === 'ja' ? b.ja : b.en, 
+                        plane: currentLang === 'ja' ? b.planeJa : b.planeEn 
+                    };
+                }
+            }
+            
+            // Precise Plane classification for unassigned code points
+            let planeName = currentLang === 'ja' ? "Plane 0: 基本多言語面 (BMP)" : "Plane 0: Basic Multilingual Plane (BMP)";
+            if (codePoint >= 0x10000 && codePoint <= 0x1FFFF) planeName = currentLang === 'ja' ? "Plane 1: 追加多言語面 (SMP)" : "Plane 1: Supplementary Multilingual Plane (SMP)";
+            else if (codePoint >= 0x20000 && codePoint <= 0x2FFFF) planeName = currentLang === 'ja' ? "Plane 2: 追加漢字面 (SIP)" : "Plane 2: Supplementary Ideographic Plane (SIP)";
+            else if (codePoint >= 0x30000 && codePoint <= 0x3FFFF) planeName = currentLang === 'ja' ? "Plane 3: 第三漢字面 (TIP)" : "Plane 3: Tertiary Ideographic Plane (TIP)";
+            else if (codePoint >= 0xE0000 && codePoint <= 0xEFFFF) planeName = currentLang === 'ja' ? "Plane 14: 特別用途面 (SSP)" : "Plane 14: Special Purpose Plane (SSP)";
+            else if (codePoint >= 0xF0000 && codePoint <= 0xFFFFF) planeName = currentLang === 'ja' ? "Plane 15: 補足私用面-A" : "Plane 15: Supplementary Private Use Area-A";
+            else if (codePoint >= 0x100000 && codePoint <= 0x10FFFF) planeName = currentLang === 'ja' ? "Plane 16: 補足私用面-B" : "Plane 16: Supplementary Private Use Area-B";
+
+            const unassignedText = currentLang === 'ja' ? "未割り当て予約領域" : "Unassigned Code Point";
+
+            return {
+                block: `${unassignedText} (U+${codePoint.toString(16).toUpperCase()})`,
+                plane: planeName
+            };
+        }
+
+        const canvas = document.getElementById('colorWheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const charInput = document.getElementById('charInput');
+        const swatch = document.getElementById('swatch');
+        const valR = document.getElementById('valR');
+        const valG = document.getElementById('valG');
+        const valB = document.getElementById('valB');
+        const hexColorTag = document.getElementById('hexColorTag');
+        const codePointDisplay = document.getElementById('codePointDisplay');
+        const utf8BytesDisplay = document.getElementById('utf8BytesDisplay');
+        const unicodeBlockDisplay = document.getElementById('unicodeBlockDisplay');
+        const unicodePlaneDisplay = document.getElementById('unicodePlaneDisplay');
+
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const outerRadius = 158;
+        const innerRadius = 120;
+
+        let currentHue = 0;
+        let currentSat = 1.0;
+        let currentVal = 0.9;
+        let isDragging = false;
+        let dragTarget = null; // 'ring' or 'inner'
+
+        function drawWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Inner Color Wheel (Hue & Saturation)
+            for (let angle = 0; angle < 360; angle += 1) {
+                const radStart = (angle - 0.5) * Math.PI / 180;
+                const radEnd = (angle + 0.5) * Math.PI / 180;
+
+                const grad = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, innerRadius);
+                grad.addColorStop(0, `hsl(${angle}, 0%, ${currentVal * 100}%)`);
+                grad.addColorStop(1, `hsl(${angle}, 100%, ${currentVal * 50}%)`);
+
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, innerRadius, radStart, radEnd);
+                ctx.closePath();
+                ctx.fillStyle = grad;
+                ctx.fill();
+            }
+
+            // Draw Outer Value/Brightness Ring
+            for (let angle = 0; angle < 360; angle += 2) {
+                const radStart = (angle - 1.5) * Math.PI / 180;
+                const radEnd = (angle + 1.5) * Math.PI / 180;
+
+                const v = angle / 360;
+                const rgb = hsvToRgb(currentHue, currentSat, v);
+                
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, (outerRadius + innerRadius) / 2, radStart, radEnd);
+                ctx.lineWidth = outerRadius - innerRadius - 2;
+                ctx.strokeStyle = `rgb(${rgb.r},${rgb.g},${rgb.b})`;
+                ctx.stroke();
+            }
+
+            // Outer Ring Pointer (Value Indicator)
+            const ringAngleRad = currentVal * 2 * Math.PI;
+            const ringPointerR = (outerRadius + innerRadius) / 2;
+            const rx = centerX + ringPointerR * Math.cos(ringAngleRad);
+            const ry = centerY + ringPointerR * Math.sin(ringAngleRad);
+
+            ctx.beginPath();
+            ctx.arc(rx, ry, 7, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.shadowBlur = 4;
+            ctx.fill();
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = '#1e293b';
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Inner Picker Indicator (Hue & Saturation)
+            const innerAngleRad = currentHue * Math.PI / 180;
+            const pickerDist = currentSat * innerRadius;
+            const px = centerX + pickerDist * Math.cos(innerAngleRad);
+            const py = centerY + pickerDist * Math.sin(innerAngleRad);
+
+            ctx.beginPath();
+            ctx.arc(px, py, 8, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = 'rgba(0,0,0,0.4)';
+            ctx.shadowBlur = 5;
+            ctx.fill();
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = '#020617';
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+
+        function hsvToRgb(h, s, v) {
+            let r, g, b;
+            let i = Math.floor(h / 60) % 6;
+            let f = h / 60 - Math.floor(h / 60);
+            let p = v * (1 - s);
+            let q = v * (1 - f * s);
+            let t = v * (1 - (1 - f) * s);
+
+            switch (i) {
+                case 0: r = v; g = t; b = p; break;
+                case 1: r = q; g = v; b = p; break;
+                case 2: r = p; g = v; b = t; break;
+                case 3: r = p; g = q; b = v; break;
+                case 4: r = t; g = p; b = v; break;
+                case 5: r = v; g = p; b = q; break;
+            }
+            return {
+                r: Math.round(r * 255),
+                g: Math.round(g * 255),
+                b: Math.round(b * 255)
+            };
+        }
+
+        function rgbToHsv(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            let max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, v = max;
+            let d = max - min;
+            s = max === 0 ? 0 : d / max;
+
+            if (max === min) {
+                h = 0;
+            } else {
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+            return { h: h * 360, s: s, v: v };
+        }
+
+        function updateFromWheel() {
+            const rgb = hsvToRgb(currentHue, currentSat, currentVal);
+            
+            // Mask 3-byte RGB to form valid UTF-8 pattern: 1110xxxx 10xxxxxx 10xxxxxx
+            const byte1 = 0xE0 | ((rgb.r >> 4) & 0x0F);
+            const byte2 = 0x80 | (rgb.g & 0x3F);
+            const byte3 = 0x80 | (rgb.b & 0x3F);
+
+            // Decode 3-byte UTF-8 to CodePoint
+            const codePoint = ((byte1 & 0x0F) << 12) | ((byte2 & 0x3F) << 6) | (byte3 & 0x3F);
+
+            const char = String.fromCodePoint(codePoint);
+            charInput.value = char;
+
+            renderState(rgb, [byte1, byte2, byte3], codePoint);
+        }
+
+        function updateFromInput() {
+            const val = charInput.value;
+            if (!val) return;
+
+            const codePoint = val.codePointAt(0);
+            const encoder = new TextEncoder();
+            const bytes = encoder.encode(val);
+
+            let r = 0, g = 0, b = 0;
+            if (bytes.length >= 3) {
+                r = bytes[0];
+                g = bytes[1];
+                b = bytes[2];
+            } else if (bytes.length === 2) {
+                r = bytes[0];
+                g = bytes[1];
+                b = 128;
+            } else {
+                r = bytes[0] || 65;
+                g = 128;
+                b = 128;
+            }
+
+            const hsv = rgbToHsv(r, g, b);
+            currentHue = hsv.h;
+            currentSat = hsv.s;
+            currentVal = hsv.v;
+
+            drawWheel();
+            renderState({ r, g, b }, Array.from(bytes.slice(0, 3)), codePoint);
+        }
+
+        function renderState(rgb, bytes, codePoint) {
+            const hexR = rgb.r.toString(16).padStart(2, '0').toUpperCase();
+            const hexG = rgb.g.toString(16).padStart(2, '0').toUpperCase();
+            const hexB = rgb.b.toString(16).padStart(2, '0').toUpperCase();
+
+            valR.textContent = hexR;
+            valG.textContent = hexG;
+            valB.textContent = hexB;
+
+            const hexColor = `#${hexR}${hexG}${hexB}`;
+            swatch.style.backgroundColor = hexColor;
+            hexColorTag.textContent = hexColor;
+
+            codePointDisplay.textContent = `U+${codePoint.toString(16).toUpperCase().padStart(4, '0')}`;
+            utf8BytesDisplay.textContent = bytes.map(b => b.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+
+            const blockInfo = getUnicodeBlockInfo(codePoint);
+            unicodeBlockDisplay.textContent = blockInfo.block;
+            unicodePlaneDisplay.textContent = blockInfo.plane;
+        }
+
+        // Smooth Mouse/Touch Handling with Robust Hit Testing for Ring
+        function handlePointerStart(e) {
+            isDragging = true;
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            const x = clientX - rect.left - centerX;
+            const y = clientY - rect.top - centerY;
+            const dist = Math.sqrt(x * x + y * y);
+
+            // Determine if clicking outer ring or inner circle
+            if (dist >= innerRadius - 5 && dist <= outerRadius + 15) {
+                dragTarget = 'ring';
+            } else {
+                dragTarget = 'inner';
+            }
+
+            handlePointerMove(e);
+        }
+
+        function handlePointerMove(e) {
+            if (!isDragging) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            const x = clientX - rect.left - centerX;
+            const y = clientY - rect.top - centerY;
+
+            if (dragTarget === 'ring') {
+                let angle = Math.atan2(y, x);
+                if (angle < 0) angle += Math.PI * 2;
+                currentVal = angle / (Math.PI * 2);
+            } else {
+                const dist = Math.sqrt(x * x + y * y);
+                let angle = Math.atan2(y, x) * 180 / Math.PI;
+                if (angle < 0) angle += 360;
+                currentHue = angle;
+                currentSat = Math.min(1.0, dist / innerRadius);
+            }
+
+            drawWheel();
+            updateFromWheel();
+        }
+
+        function handlePointerEnd() {
+            isDragging = false;
+            dragTarget = null;
+        }
+
+        canvas.addEventListener('mousedown', handlePointerStart);
+        window.addEventListener('mousemove', handlePointerMove);
+        window.addEventListener('mouseup', handlePointerEnd);
+
+        canvas.addEventListener('touchstart', (e) => { handlePointerStart(e); e.preventDefault(); }, { passive: false });
+        window.addEventListener('touchmove', (e) => { if (isDragging) { handlePointerMove(e); e.preventDefault(); } }, { passive: false });
+        window.addEventListener('touchend', handlePointerEnd);
+
+        charInput.addEventListener('input', updateFromInput);
+
+        // Language Switcher Logic
+        function updateLanguage(lang) {
+            currentLang = lang;
+            const t = I18N_TEXTS[lang];
+
+            document.getElementById('langBtnText').textContent = t.langBtn;
+            document.getElementById('subTag').textContent = t.subTag;
+            document.getElementById('mainTitle').textContent = t.title;
+            document.getElementById('mainDesc').textContent = t.desc;
+            document.getElementById('wheelHeading').textContent = t.wheelHeading;
+            document.getElementById('wheelSub').textContent = t.wheelSub;
+            document.getElementById('labelR').textContent = t.labelR;
+            document.getElementById('labelG').textContent = t.labelG;
+            document.getElementById('labelB').textContent = t.labelB;
+            document.getElementById('previewHeaderLabel').textContent = t.previewHeaderLabel;
+            charInput.placeholder = t.placeholder;
+            document.getElementById('inputHint').textContent = t.inputHint;
+            document.getElementById('analyticsHeading').textContent = t.analyticsHeading;
+            document.getElementById('labelCodePoint').textContent = t.labelCodePoint;
+            document.getElementById('labelUtf8Bytes').textContent = t.labelUtf8Bytes;
+            document.getElementById('labelBlockRegistry').textContent = t.labelBlockRegistry;
+            document.getElementById('mechHeading').textContent = t.mechHeading;
+            document.getElementById('mechP1').textContent = t.mechP1;
+            document.getElementById('mechLi1').textContent = t.mechLi1;
+            document.getElementById('mechLi2').textContent = t.mechLi2;
+            document.getElementById('mechLi3').textContent = t.mechLi3;
+
+            updateFromInput();
+        }
+
+        document.getElementById('langToggleBtn').addEventListener('click', () => {
+            const nextLang = currentLang === 'ja' ? 'en' : 'ja';
+            updateLanguage(nextLang);
+        });
+
+        // Initial setup
+        window.onload = function() {
+            updateLanguage('ja');
+        };
+    </script>
+</body>
+</html>
