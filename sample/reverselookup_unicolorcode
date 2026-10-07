@@ -46,7 +46,7 @@
             Unicode 18.0.0 Complete Block Registry
         </div>
         <h1 id="mainTitle" class="text-2xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-sky-600 to-pink-600 bg-clip-text text-transparent text-center">
-            UTF-8 カラーホイール & Unicode 相互変換器
+            逆引きUnicolorcode
         </h1>
         <p id="mainDesc" class="mt-2 text-slate-600 text-sm sm:text-base max-w-2xl mx-auto text-center">
             カラーコード（RGB 3バイト）と UTF-8 バイト列を完全双方向変換。全Unicode領域の精密なブロック定義と瞬時に照合します。
@@ -169,9 +169,9 @@
             ja: {
                 langBtn: "English",
                 subTag: "Unicode 18.0.0 Complete Block Registry",
-                title: "UTF-8 カラーホイール & Unicode 相互変換器",
+                title: "逆引きUnicolorcode",
                 desc: "カラーコード（RGB 3バイト）と UTF-8 バイト列を完全双方向変換。全Unicode領域の精密なブロック定義と瞬時に照合します。",
-                wheelHeading: "直感カラーホイール",
+                wheelHeading: "カラーホイール",
                 wheelSub: "内側の円で色相・彩度、外枠リングで明度（Val）をスムーズに操作できます。",
                 labelR: "R (1バイト目)",
                 labelG: "G (2バイト目)",
