@@ -1,128 +1,3 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>逆引きUnicolorcode</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', 'Noto Sans JP', sans-serif;
-            background-color: #f8fafc;
-            color: #0f172a;
-        }
-        .color-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(241, 245, 249, 0.8);
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(148, 163, 184, 0.5);
-            border-radius: 3px;
-        }
-        canvas {
-            touch-action: none;
-        }
-    </style>
-</head>
-<body class="min-h-screen bg-slate-50 text-slate-800 p-3 sm:p-6 lg:p-8">
-    <header class="max-w-7xl mx-auto mb-6 sm:mb-8 relative flex flex-col items-center">
-        <!-- Language Switcher Button -->
-        <div class="absolute right-0 top-0">
-            <button id="langToggleBtn" class="px-4 py-1.5 bg-white border border-slate-300 hover:border-slate-400 text-slate-700 hover:text-slate-900 rounded-full text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
-                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
-                <span id="langBtnText">English</span>
-            </button>
-        </div>
-
-        <div id="subTag" class="inline-block px-3 py-1 mb-2 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-600 text-xs font-semibold tracking-wider uppercase">
-            Unicode 18.0.0 Complete Block Registry
-        </div>
-        <h1 id="mainTitle" class="text-2xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-sky-600 to-pink-600 bg-clip-text text-transparent text-center">
-            逆引きUnicolorcode
-        </h1>
-        <p id="mainDesc" class="mt-2 text-slate-600 text-sm sm:text-base max-w-2xl mx-auto text-center">
-            カラーコード（RGB 3バイト）と UTF-8 バイト列を完全双方向変換。全Unicode領域の精密なブロック定義と瞬時に照合します。
-        </p>
-    </header>
-
-    <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        <!-- Left Side: Interactive Color Wheel Canvas -->
-        <section class="lg:col-span-5 color-card rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col items-center border border-slate-200">
-            <h2 id="wheelHeading" class="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2 self-start">
-                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>
-                直感カラーホイール
-            </h2>
-            <p id="wheelSub" class="text-xs text-slate-500 mb-4 self-start">
-                内側の円で色相・彩度、外枠リングで明度（Val）をスムーズに操作できます。
-            </p>
-
-            <div class="relative w-full max-w-[340px] aspect-square flex items-center justify-center">
-                <canvas id="colorWheelCanvas" width="340" height="340" class="cursor-crosshair rounded-full shadow-md"></canvas>
-            </div>
-
-            <div class="w-full mt-6 grid grid-cols-3 gap-2 text-center text-xs">
-                <div class="bg-slate-100 p-2.5 rounded-xl border border-slate-200">
-                    <span id="labelR" class="text-slate-500 block text-[10px]">R (1バイト目)</span>
-                    <span id="valR" class="font-mono text-indigo-600 font-bold text-sm">E6</span>
-                </div>
-                <div class="bg-slate-100 p-2.5 rounded-xl border border-slate-200">
-                    <span id="labelG" class="text-slate-500 block text-[10px]">G (2バイト目)</span>
-                    <span id="valG" class="font-mono text-emerald-600 font-bold text-sm">9C</span>
-                </div>
-                <div class="bg-slate-100 p-2.5 rounded-xl border border-slate-200">
-                    <span id="labelB" class="text-slate-500 block text-[10px]">B (3バイト目)</span>
-                    <span id="valB" class="font-mono text-sky-600 font-bold text-sm">89</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- Right Side: Unified Unicode Preview & Analytics Card -->
-        <section class="lg:col-span-7 space-y-6">
-            
-            <div class="color-card rounded-2xl p-6 shadow-xl border border-slate-200 space-y-6">
-                
-                <!-- Large Unicode Character Preview Header Area -->
-                <div class="border-b border-slate-200 pb-5">
-                    <div class="flex items-center justify-between mb-3">
-                        <label for="charInput" id="previewHeaderLabel" class="text-xs font-bold text-indigo-600 tracking-wider uppercase flex items-center gap-1.5">
-                            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                            UNICODE PREVIEW (直接入力可能)
-                        </label>
-                        <span class="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200" id="hexColorTag">#E69C89</span>
-                    </div>
-
-                    <!-- Enlarged Swatch and Big Input Display -->
-                    <div class="flex items-center gap-5">
-                        <!-- Dynamic Color Swatch Display -->
-                        <div id="swatch" class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl shadow-md border-2 border-slate-200 flex-shrink-0 transition-colors duration-150"></div>
-                        
-                        <!-- Text Box for Dynamic Character Input (Enlarged) -->
-                        <div class="flex-grow">
-                            <input type="text" id="charInput" maxlength="2" value="有" 
-                                class="w-full bg-slate-50 border-2 border-slate-300 focus:border-indigo-500 rounded-2xl px-4 py-3 text-5xl sm:text-6xl text-center font-extrabold tracking-widest text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-inner"
-                                placeholder="文字">
-                            <p id="inputHint" class="text-[11px] text-slate-500 mt-2 text-center">※ 任意のUnicode文字を入力するとホイールの位置へ即座に反映されます</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Integrated UTF-8 & Unicode Analytics Section -->
-                <div>
-                    <h3 id="analyticsHeading" class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2 mb-3">
-                        <svg class="w-4 h-4 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                        UTF-8 構造 & 精密 UNICODE ブロック解析結果
-                    </h3>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80">
                             <span id="labelCodePoint" class="text-xs text-slate-500 block mb-1 font-medium">Unicode コードポイント</span>
                             <div id="codePointDisplay" class="font-mono text-2xl text-sky-700 font-bold">U+6709</div>
@@ -135,7 +10,7 @@
                     </div>
 
                     <div class="bg-indigo-50/70 border border-indigo-100 rounded-xl p-4">
-                        <span id="labelBlockRegistry" class="text-xs font-bold text-indigo-700 uppercase tracking-wider block mb-1">公式 Unicode 18.0 ブロック分類</span>
+                        <span id="labelBlockRegistry" class="text-xs font-bold text-indigo-700 uppercase tracking-wider block mb-1"></span>
                         <div id="unicodeBlockDisplay" class="text-base sm:text-lg font-extrabold text-indigo-950">CJK統合漢字 (CJK Unified Ideographs)</div>
                         <div id="unicodePlaneDisplay" class="text-xs text-indigo-700/80 mt-1 font-medium">Plane 0: 基本多言語面 (Basic Multilingual Plane / BMP)</div>
                     </div>
@@ -176,10 +51,10 @@
                 labelR: "R (1バイト目)",
                 labelG: "G (2バイト目)",
                 labelB: "B (3バイト目)",
-                previewHeaderLabel: "UNICODE PREVIEW (直接入力可能)",
+                previewHeaderLabel: "プレヴュー",
                 placeholder: "文字",
                 inputHint: "※ 任意のUnicode文字を入力するとホイールの位置へ即座に反映されます",
-                analyticsHeading: "UTF-8 構造 & 精密 UNICODE ブロック解析結果",
+                analyticsHeading: "",
                 labelCodePoint: "Unicode コードポイント",
                 labelUtf8Bytes: "UTF-8 バイト列 (16進数)",
                 labelBlockRegistry: "公式 Unicode 18.0 ブロック分類",
@@ -199,7 +74,7 @@
                 labelR: "R (Byte 1)",
                 labelG: "G (Byte 2)",
                 labelB: "B (Byte 3)",
-                previewHeaderLabel: "UNICODE PREVIEW (Editable)",
+                previewHeaderLabel: "Preview",
                 placeholder: "Char",
                 inputHint: "* Enter any Unicode character to sync wheel coordinates immediately.",
                 analyticsHeading: "UTF-8 Structure & Precision Unicode Block Analysis",
