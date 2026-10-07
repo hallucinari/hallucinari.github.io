@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カラーホイール & Unicode 相互変換・文字種インスペクター</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+        
+        body {
+            font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        #colorWheelCanvas {
+            touch-action: none;
+            cursor: crosshair;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 50;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .guide-card {
+            transition: all 0.2s ease-out;
+        }
+        .guide-card:hover {
+            transform: translateY(-2px);
+            border-color: #cbd5e1;
+        }
+
+        /* Interactive input glow */
+        .char-input-glow:focus-within {
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+            border-color: #6366f1;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-4 md:p-8">
+
+    <!-- App Header -->
+    <header class="max-w-6xl mx-auto w-full mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                <span class="w-3.5 h-8 bg-indigo-600 rounded-full inline-block shadow-sm"></span>
+                <span data-i18n="appTitle">カラーホイール &amp; Unicode 相互変換ツール</span>
+            </h1>
+            <p class="text-xs md:text-sm text-slate-500 mt-1 font-medium" data-i18n="appSubtitle">
+                色彩（RGB）と文字コード（Unicode）を相互変換。文字を入力して色を抽出したり、直感的なカラーピックから世界の文字体系・絵文字を探索できます。
+            </p>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <!-- Language Switch Button -->
+            <button id="langToggleBtn" class="flex items-center gap-2 bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 text-slate-700 font-semibold text-xs px-4 py-2.5 rounded-2xl shadow-sm transition-all active:scale-95">
+                <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/></svg>
+                <span id="currentLangLabel">English</span>
+            </button>
+
+            <div class="hidden sm:flex items-center gap-2 text-xs font-bold px-3.5 py-2.5 bg-indigo-50 text-indigo-700 rounded-2xl border border-indigo-100">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span data-i18n="statusActive">双方向リアルタイム同期中</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="max-w-6xl mx-auto w-full space-y-8">
+        
+        <!-- Upper Grid: Interactive Wheel + Unicode Inspector -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- Left Side: Color Wheel & Controls -->
+            <div class="lg:col-span-6 glass-card rounded-3xl p-6 md:p-8 flex flex-col items-center">
+                
+                <div class="w-full flex justify-between items-center mb-3">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="wheelSectionTitle">カラーホイール操作盤</span>
+                    <span class="text-xs font-medium text-slate-500" data-i18n="wheelSubHint">中央で色相・彩度 / 外枠で明るさ</span>
+                </div>
+
+                <!-- Interactive Wheel Canvas -->
+                <div class="relative w-full max-w-[340px] aspect-square flex items-center justify-center my-2">
+                    <canvas id="colorWheelCanvas" width="340" height="340" class="w-full h-full rounded-full"></canvas>
+                </div>
+
+                <!-- Hex Display & Direct Input Bar -->
+                <div class="w-full mt-6 bg-white border border-slate-200 rounded-2xl p-2.5 flex items-center justify-between gap-3 shadow-sm">
+                    <div class="flex items-center gap-3 pl-1">
+                        <div id="activeColorSwatch" class="w-8 h-8 rounded-full border border-black/10 shadow-inner transition-colors duration-150" style="background-color: #F54927;"></div>
+                        <div class="flex items-center gap-1 font-mono font-bold text-lg text-slate-800">
+                            <span class="text-slate-400">#</span>
+                            <input id="hexInput" type="text" value="F54927" maxlength="6" class="w-24 uppercase outline-none bg-transparent focus:ring-2 focus:ring-indigo-500/20 rounded px-1">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button id="copyHexBtn" title="Hexコードをコピー" class="p-2 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 rounded-xl transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        </button>
+                        <div class="h-5 w-px bg-slate-200"></div>
+                        <span class="text-xs font-semibold text-slate-500 px-2.5 py-1 bg-slate-100 rounded-lg">HEX</span>
+                    </div>
+                </div>
+
+                <!-- Preset / Action Buttons -->
+                <div class="w-full grid grid-cols-2 gap-3 mt-4">
+                    <button id="randomPaletteBtn" class="w-full py-3 px-4 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold text-sm rounded-2xl transition-all shadow-sm active:scale-98 flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <span data-i18n="randomPalette">ランダム配色生成</span>
+                    </button>
+                    <button id="exportColorsBtn" class="w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm rounded-2xl transition-all shadow-sm active:scale-98 flex items-center justify-center gap-2">
+                        <span data-i18n="exportColors">カラー情報を共有</span>
+                        <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Side: Bidirectional Character Input & Unicode Inspector -->
+            <div class="lg:col-span-6 flex flex-col gap-6">
+                
+                <!-- Character Input / Display Box -->
+                <div class="glass-card rounded-3xl p-6 md:p-8 flex flex-col items-center justify-center text-center relative">
+                    <div class="w-full flex justify-between items-center mb-3">
+                        <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full" data-i18n="inputBadge">双方向 リアルタイム入力</span>
+                        <span class="text-xs font-medium text-slate-400" data-i18n="inputHint">直接文字入力 / コード入力対応</span>
+                    </div>
+                    
+                    <!-- Direct Character Input Box -->
+                    <div class="w-full my-2 flex flex-col items-center">
+                        <div class="relative w-36 h-36 md:w-44 md:h-44 rounded-3xl bg-white border-2 border-slate-200 shadow-inner flex items-center justify-center char-input-glow transition-all duration-200 group">
+                            <input id="directCharInput" type="text" value="あ" placeholder="文字を入力" maxlength="4" class="w-full h-full text-center text-6xl md:text-8xl font-bold bg-transparent outline-none text-slate-900 selection:bg-indigo-100">
+                            <span class="absolute bottom-2 text-[10px] font-bold text-slate-400 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" data-i18n="typePrompt">タップ・クリックして入力</span>
+                        </div>
+                    </div>
+
+                    <!-- Code Point and Script Name -->
+                    <div class="mt-3 w-full space-y-1.5">
+                        <div id="codePointDisplay" class="text-2xl md:text-3xl font-mono font-black text-slate-900 tracking-wider">
+                            U+03042
+                        </div>
+                        
+                        <div class="flex flex-col items-center justify-center gap-1.5">
+                            <span id="charBlockName" class="text-sm font-bold text-indigo-900 bg-indigo-50 border border-indigo-200/80 px-4 py-1.5 rounded-full shadow-sm">
+                                ひらがな (Hiragana)
+                            </span>
+                            <span id="charSubCategory" class="text-xs text-slate-500 font-medium">
+                                区画範囲: U+3040 - U+309F &bull; 日本語の表音文字
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Script & Technical Specifications -->
+                <div class="glass-card rounded-3xl p-6 md:p-8 space-y-4">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider" data-i18n="mappingHeader">文字データ &amp; 色彩変換スペック</h3>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-slate-50/80 border border-slate-200/60 p-3.5 rounded-2xl">
+                            <span class="text-xs text-slate-500 block mb-0.5" data-i18n="rgbModel">RGBモデル</span>
+                            <span id="rgbValueDisplay" class="font-mono font-bold text-slate-800 text-sm">rgb(245, 73, 39)</span>
+                        </div>
+                        <div class="bg-slate-50/80 border border-slate-200/60 p-3.5 rounded-2xl">
+                            <span class="text-xs text-slate-500 block mb-0.5" data-i18n="hslModel">HSLモデル</span>
+                            <span id="hslValueDisplay" class="font-mono font-bold text-slate-800 text-sm">hsl(10, 91%, 56%)</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 pt-1">
+                        <div class="flex justify-between items-center text-sm py-2 border-b border-slate-100">
+                            <span class="text-slate-500 font-medium" data-i18n="decimalCodePoint">10進数コードポイント</span>
+                            <span id="decimalDisplay" class="font-mono font-bold text-slate-800">12354</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm py-2 border-b border-slate-100">
+                            <span class="text-slate-500 font-medium" data-i18n="utf8HexBytes">UTF-8 バイト列 (HEX)</span>
+                            <span id="utf8BytesDisplay" class="font-mono font-bold text-indigo-600">E3 81 82</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm py-2">
+                            <span class="text-slate-500 font-medium" data-i18n="characterStatus">文字の種類・状態</span>
+                            <span id="statusBadge" class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">正常な表示可能文字</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Educational Section: Modern Guide & Explanations -->
+        <section class="glass-card rounded-3xl p-6 md:p-10 space-y-8">
+            <div class="border-b border-slate-200/80 pb-5">
+                <h2 class="text-xl md:text-2xl font-black text-slate-900 flex items-center gap-2.5">
+                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                    <span data-i18n="guideTitle">カラーホイールの使い方と変換の仕組み</span>
+                </h2>
+                <p class="text-xs md:text-sm text-slate-500 mt-1 font-medium" data-i18n="guideSubtitle">
+                    操作方法、色空間の構造、そして色彩（RGB）とUnicodeコードポイントがどのように対応しているかを分かりやすく解説します。
+                </p>
+            </div>
+
+            <!-- 4 Detailed Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Card 1: Central Wheel & Handle -->
+                <div class="guide-card bg-slate-50/80 border border-slate-200/70 rounded-2xl p-5 space-y-2">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-xs shadow-sm">01</div>
+                        <h3 class="font-bold text-slate-800 text-base" data-i18n="guide1Title">中央ホイール：色相（Hue）と彩度（Saturation）</h3>
+                    </div>
+                    <p class="text-xs md:text-sm text-slate-600 leading-relaxed" data-i18n="guide1Body">
+                        中央の円形ホイール上で白いツマミをドラッグすると、色を選べます。<strong>円の回転角度で「色みの種類（色相）」</strong>を選び、<strong>中心からの距離で「色の鮮やかさ（彩度）」</strong>を直感的に調整できます。
+                    </p>
+                </div>
+
+                <!-- Card 2: Outer Ring -->
+                <div class="guide-card bg-slate-50/80 border border-slate-200/70 rounded-2xl p-5 space-y-2">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-xs shadow-sm">02</div>
+                        <h3 class="font-bold text-slate-800 text-base" data-i18n="guide2Title">外側のリング：明度（Brightness）</h3>
+                    </div>
+                    <p class="text-xs md:text-sm text-slate-600 leading-relaxed" data-i18n="guide2Body">
+                        ホイールを囲む一番外側のリングにあるスライダーを回すと、<strong>「色の明るさ（明度）」</strong>を自由に変更できます。黒っぽいくすんだ色から、明るく鮮やかな色まで滑らかに制御できます。
+                    </p>
+                </div>
+
+                <!-- Card 3: Reverse Interactive Input -->
+                <div class="guide-card bg-slate-50/80 border border-slate-200/70 rounded-2xl p-5 space-y-2">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-xs shadow-sm">03</div>
+                        <h3 class="font-bold text-slate-800 text-base" data-i18n="guide3Title">文字入力からの逆引き検索</h3>
+                    </div>
+                    <p class="text-xs md:text-sm text-slate-600 leading-relaxed" data-i18n="guide3Body">
+                        右側の「UNICODE PREVIEW」欄に好きな文字（ひらがな、漢字、アルファベット、絵文字 😊 など）を直接打ち込むと、その文字が持つ固有の文字コードから色を自動計算し、<strong>カラーホイールの位置が瞬時に移動</strong>します。
+                    </p>
+                </div>
+
+                <!-- Card 4: Detailed Unicode Mapping Scheme -->
+                <div class="guide-card bg-slate-50/80 border border-slate-200/70 rounded-2xl p-5 space-y-2">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-xs shadow-sm">04</div>
+                        <h3 class="font-bold text-slate-800 text-base" data-i18n="guide4Title">RGB値とUnicodeの変換アルゴリズム</h3>
+                    </div>
+                    <p class="text-xs md:text-sm text-slate-600 leading-relaxed" data-i18n="guide4Body">
+                        24ビットカラー（赤・緑・青が各8ビット）のRGB数値 <code>(R, G, B)</code> をビット演算で1つの大きな数に結合します。この数値がUnicodeコードポイント（<code>U+000000 〜 U+FFFFFF</code>）にダイレクトに対応し、世界中の全文字・記号の区画を正確に特定します。
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="max-w-6xl mx-auto w-full text-center text-xs text-slate-400 py-6 border-t border-slate-200/60 mt-8 font-medium">
+        <span data-i18n="footerText">カラーホイール &amp; Unicode 相互変換・文字種インスペクター &bull; UTF-8エンコーダー &amp; HTML5 Canvas 搭載</span>
+    </footer>
+
+    <!-- Toast Notification Element -->
+    <div id="toast" class="toast bg-slate-900 text-white text-sm font-medium px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-2.5">
+        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        <span id="toastMsg">コピーしました</span>
+    </div>
+
+    <script>
+        // Fluent Internationalization Dictionary (Japanese First)
+        const i18n = {
+            ja: {
+                appTitle: "カラーホイール & Unicode 相互変換ツール",
+                appSubtitle: "色彩（RGB）と文字コード（Unicode）を相互変換。文字を入力して色を抽出したり、直感的なカラーピックから世界の文字体系・絵文字を探索できます。",
+                statusActive: "双方向リアルタイム同期中",
+                wheelSectionTitle: "カラーホイール操作盤",
+                wheelSubHint: "中央で色相・彩度 / 外枠で明るさ",
+                randomPalette: "ランダム配色生成",
+                exportColors: "カラー情報を共有",
+                inputBadge: "双方向 リアルタイム入力",
+                inputHint: "直接文字入力 / コード入力対応",
+                typePrompt: "タップ・クリックして入力",
+                mappingHeader: "文字データ & 色彩変換スペック",
+                rgbModel: "RGBモデル",
+                hslModel: "HSLモデル",
+                decimalCodePoint: "10進数コードポイント",
+                utf8HexBytes: "UTF-8 バイト列 (HEX)",
+                characterStatus: "文字の種類・状態",
+                validStatus: "正常な表示可能文字",
+                invalidStatus: "サロゲート領域 / 特殊文字",
+                unassignedStatus: "未割り当て領域",
+                guideTitle: "カラーホイールの使い方と変換の仕組み",
+                guideSubtitle: "操作方法、色空間の構造、そして色彩（RGB）とUnicodeコードポイントがどのように対応しているかを分かりやすく解説します。",
+                guide1Title: "中央ホイール：色相（Hue）と彩度（Saturation）",
+                guide1Body: "中央の円形ホイール上で白いツマミをドラッグすると、色を選べます。<strong>円の回転角度で「色みの種類（色相）」</strong>を選び、<strong>中心からの距離で「色の鮮やかさ（彩度）」</strong>を直感的に調整できます。",
+                guide2Title: "外側のリング：明度（Brightness）",
+                guide2Body: "ホイールを囲む一番外側のリングにあるスライダーを回すと、<strong>「色の明るさ（明度）」</strong>を自由に変更できます。黒っぽいくすんだ色から、明るく鮮やかな色まで滑らかに制御できます。",
+                guide3Title: "文字入力からの逆引き検索",
+                guide3Body: "右側の「UNICODE PREVIEW」欄に好きな文字（ひらがな、漢字、アルファベット、絵文字 😊 など）を直接打ち込むと、その文字が持つ固有の文字コードから色を自動計算し、<strong>カラーホイールの位置が瞬時に移動</strong>します。",
+                guide4Title: "RGB値とUnicodeの変換アルゴリズム",
+                guide4Body: "24ビットカラー（赤・緑・青が各8ビット）のRGB数値 <code>(R, G, B)</code> をビット演算で1つの大きな数に結合します。この数値がUnicodeコードポイント（<code>U+000000 〜 U+FFFFFF</code>）にダイレクトに対応し、世界中の全文字・記号の区画を正確に特定します。",
+                footerText: "カラーホイール & Unicode 相互変換・文字種インスペクター • UTF-8エンコーダー & HTML5 Canvas 搭載",
+                copiedToast: "HEXコードをコピーしました！",
+                paletteCopiedToast: "カラー情報をクリップボードにコピーしました！",
+                randomToast: "ランダムな色とUnicode文字を取得しました！"
+            },
+            en: {
+                appTitle: "Color Wheel & Unicode Inspector",
+                appSubtitle: "Bidirectional mapping between RGB colors and Unicode characters. Type any character to find its color, or pick colors on the wheel to discover character sets.",
+                statusActive: "Bidirectional Sync Active",
+                wheelSectionTitle: "Color Wheel Panel",
+                wheelSubHint: "Inner Wheel: Hue & Saturation / Outer Ring: Brightness",
+                randomPalette: "Random Palette",
+                exportColors: "Export Colors",
+                inputBadge: "Bidirectional Input",
+                inputHint: "Type character directly",
+                typePrompt: "Click or tap to type",
+                mappingHeader: "Character & Color Specifications",
+                rgbModel: "RGB Model",
+                hslModel: "HSL Model",
+                decimalCodePoint: "Decimal Code Point",
+                utf8HexBytes: "UTF-8 Bytes (Hex)",
+                characterStatus: "Character Status",
+                validStatus: "Valid Printable Character",
+                invalidStatus: "Surrogate / Special Code",
+                unassignedStatus: "Unassigned Code Point",
+                guideTitle: "Color Wheel Usage & Mapping Guide",
+                guideSubtitle: "Learn how to use the wheel, control lightness, and understand how RGB colors connect directly to Unicode code points.",
+                guide1Title: "Inner Wheel: Hue & Saturation",
+                guide1Body: "Drag the white handle inside the central circle to select colors. <strong>Angle corresponds to Hue (color type)</strong>, while <strong>distance from center controls Saturation (vibrancy)</strong>.",
+                guide2Title: "Outer Ring: Brightness / Lightness",
+                guide2Body: "Rotate the slider along the outer circle ring to adjust <strong>Value / Brightness</strong>, seamlessly transitioning from deep dark shades to brilliant light tones.",
+                guide3Title: "Direct Character Input",
+                guide3Body: "Type or paste any character (Hiragana, Kanji, Latin, Greek, Emoji 😊, etc.) directly into the character box on the right. The wheel will <strong>instantly calculate and jump to its exact RGB color</strong>.",
+                guide4Title: "RGB to Unicode Encoding Scheme",
+                guide4Body: "The 24-bit RGB value <code>(R, G, B)</code> is packed into a single integer via bitwise logic. This code directly aligns with Unicode Code Points (<code>U+000000 to U+FFFFFF</code>), identifying every precise script family worldwide.",
+                footerText: "Color Wheel & Unicode Inspector • Built with HTML5 Canvas & UTF-8 Byte Encoder",
+                copiedToast: "HEX code copied to clipboard!",
+                paletteCopiedToast: "Color palette exported to clipboard!",
+                randomToast: "Generated random palette and character!"
+            }
+        };
+
+        // Complete Unicode Block Database Covering Entire Range (U+0000 - U+10FFFF)
+        const unicodeBlocks = [
+            { start: 0x0000, end: 0x007F, ja: "基本ラテン文字 (ASCII)", en: "Basic Latin (ASCII)", desc_ja: "半角英数字・標準記号", desc_en: "Standard Latin letters & ASCII" },
+            { start: 0x0080, end: 0x00FF, ja: "ラテン1補助 (ラテン文字)", en: "Latin-1 Supplement", desc_ja: "西ヨーロッパ諸言語の文字", desc_en: "Western European characters" },
+            { start: 0x0100, end: 0x017F, ja: "ラテン文字拡張A", en: "Latin Extended-A", desc_ja: "中央ヨーロッパ等の拡張文字", desc_en: "Central European Latin" },
+            { start: 0x0180, end: 0x024F, ja: "ラテン文字拡張B", en: "Latin Extended-B", desc_ja: "アフリカ・小言語のラテン文字", desc_en: "African & minor Latin scripts" },
+            { start: 0x0250, end: 0x02AF, ja: "IPA国際音声記号", en: "IPA Extensions", desc_ja: "発音記号・音声学用記号", desc_en: "Phonetic alphabet symbols" },
+            { start: 0x02B0, end: 0x02FF, ja: "前置装飾文字", en: "Spacing Modifier Letters", desc_ja: "音調記号・修飾記号", desc_en: "Tone & modifier letters" },
+            { start: 0x0300, end: 0x036F, ja: "結合ダイアクリティカルマーク", en: "Combining Diacritical Marks", desc_ja: "文字の上に付加するアクセント記号", desc_en: "Combining accents" },
+            { start: 0x0370, end: 0x03FF, ja: "ギリシャ文字 & コプト文字", en: "Greek and Coptic", desc_ja: "ギリシャ語・コプト語の文字", desc_en: "Greek alphabet & Coptic" },
+            { start: 0x0400, end: 0x04FF, ja: "キリル文字 (Cyrillic)", en: "Cyrillic", desc_ja: "ロシア語・ウクライナ語・スラブ系言語文字", desc_en: "Russian, Ukrainian & Slavic scripts" },
+            { start: 0x0500, end: 0x052F, ja: "キリル文字補助", en: "Cyrillic Supplement", desc_ja: "マイナー言語用キリル拡張", desc_en: "Extended Cyrillic characters" },
+            { start: 0x0530, end: 0x058F, ja: "アルメニア文字", en: "Armenian", desc_ja: "アルメニア語の固有文字", desc_en: "Armenian language script" },
+            { start: 0x0590, end: 0x05FF, ja: "ヘブライ文字", en: "Hebrew", desc_ja: "ヘブライ語・イディッシュ語文字", desc_en: "Hebrew & Yiddish script" },
+            { start: 0x0600, end: 0x06FF, ja: "アラビア文字", en: "Arabic", desc_ja: "アラビア語・ペルシア語・ウルドゥー語文字", desc_en: "Arabic, Persian & Urdu" },
+            { start: 0x0700, end: 0x074F, ja: "シリア文字", en: "Syriac", desc_ja: "シリア語の伝統文字", desc_en: "Syriac language script" },
+            { start: 0x0750, end: 0x077F, ja: "アラビア文字補助", en: "Arabic Supplement", desc_ja: "アフリカ諸言語用アラビア拡張", desc_en: "African Arabic extensions" },
+            { start: 0x0780, end: 0x07BF, ja: "ターナ文字", en: "Thaana", desc_ja: "モルディブの固有言語 (ディベヒ語)", desc_en: "Maldivian Dhivehi script" },
+            { start: 0x07C0, end: 0x07FF, ja: "ンコ文字 (N'Ko)", en: "N'Ko", desc_ja: "西アフリカ・マンデ諸語の固有文字", desc_en: "West African Mande script" },
+            { start: 0x0800, end: 0x083F, ja: "サマリア文字", en: "Samaritan", desc_ja: "サマリア五書用古代文字", desc_en: "Samaritan religious script" },
+            { start: 0x0840, end: 0x085F, ja: "マンダ文字", en: "Mandaic", desc_ja: "マンダ教の聖典用文字", desc_en: "Mandaean Aramaic script" },
+            { start: 0x08A0, end: 0x08FF, ja: "アラビア文字拡張A", en: "Arabic Extended-A", desc_ja: "コーラン表記用特殊記号", desc_en: "Quranic Arabic additions" },
+            { start: 0x0900, end: 0x097F, ja: "デーヴァナーガリー", en: "Devanagari", desc_ja: "ヒンディー語・サンスクリット語文字", desc_en: "Hindi & Sanskrit script" },
+            { start: 0x0980, end: 0x09FF, ja: "ベンガル文字", en: "Bengali", desc_ja: "ベンガル語・アッサム語文字", desc_en: "Bengali & Assamese script" },
+            { start: 0x0A00, end: 0x0A7F, ja: "グルムキー文字", en: "Gurmukhi", desc_ja: "パンジャブ語の表記文字", desc_en: "Punjabi language script" },
+            { start: 0x0A80, end: 0x0AFF, ja: "グジャラート文字", en: "Gujarati", desc_ja: "インド・グジャラート州の言語文字", desc_en: "Gujarati language script" },
+            { start: 0x0B00, end: 0x0B7F, ja: "オリヤー文字", en: "Oriya", desc_ja: "インド・オディシャ州の言語文字", desc_en: "Odia language script" },
+            { start: 0x0B80, end: 0x0BFF, ja: "タミル文字", en: "Tamil", desc_ja: "タミル語 (インド・スリランカ)", desc_en: "Tamil language script" },
+            { start: 0x0C00, end: 0x0C7F, ja: "テルグ文字", en: "Telugu", desc_ja: "インド・アンドラプラデシュ州の文字", desc_en: "Telugu language script" },
+            { start: 0x0C80, end: 0x0CFF, ja: "カンナダ文字", en: "Kannada", desc_ja: "インド・カルナータカ州の文字", desc_en: "Kannada language script" },
+            { start: 0x0D00, end: 0x0D7F, ja: "マラヤーラム文字", en: "Malayalam", desc_ja: "インド・ケーララ州の文字", desc_en: "Malayalam language script" },
+            { start: 0x0D80, end: 0x0DFF, ja: "シンハラ文字", en: "Sinhala", desc_ja: "スリランカの公用語文字", desc_en: "Sri Lankan Sinhala script" },
+            { start: 0x0E00, end: 0x0E7F, ja: "タイ文字", en: "Thai", desc_ja: "タイ王国の公用語文字", desc_en: "Thai language script" },
+            { start: 0x0E80, end: 0x0EFF, ja: "ラーオ文字", en: "Lao", desc_ja: "ラオスの公用語文字", desc_en: "Lao language script" },
+            { start: 0x0F00, end: 0x0FFF, ja: "チベット文字", en: "Tibetan", desc_ja: "チベット語・ゾンカ語文字", desc_en: "Tibetan & Dzongkha script" },
+            { start: 0x1000, end: 0x109F, ja: "ミャンマー文字", en: "Myanmar", desc_ja: "ビルマ語 (ミャンマー) 文字", desc_en: "Burmese language script" },
+            { start: 0x10A0, end: 0x10FF, ja: "グルジア文字 (ジョージア)", en: "Georgian", desc_ja: "ジョージア語の固有文字", desc_en: "Georgian language script" },
+            { start: 0x1100, end: 0x11FF, ja: "ハングル初声・中声・終声", en: "Hangul Jamo", desc_ja: "韓国語・朝鮮語の構成要素 (チャモ)", desc_en: "Korean alphabet components" },
+            { start: 0x1200, end: 0x137F, ja: "エチオピア文字", en: "Ethiopic", desc_ja: "アムハラ語等のエチオピア音節文字", desc_en: "Amharic & Ethiopic script" },
+            { start: 0x13A0, end: 0x13FF, ja: "チェロキー文字", en: "Cherokee", desc_ja: "北米先住民チェロキー族の音節文字", desc_en: "Cherokee Native American script" },
+            { start: 0x1400, end: 0x167F, ja: "カナダ先住民統合音節文字", en: "Unified Canadian Aboriginal Syllabics", desc_ja: "イヌクティトゥット語等の音節文字", desc_en: "Inuktitut & Canadian syllabics" },
+            { start: 0x1680, end: 0x169F, ja: "オガム文字", en: "Ogham", desc_ja: "古代アイルランドの樹木文字", desc_en: "Ancient Irish Ogham script" },
+            { start: 0x16A0, end: 0x16FF, ja: "ルーン文字", en: "Runic", desc_ja: "古代ゲルマン・北欧の神秘文字", desc_en: "Ancient Norse Runic script" },
+            { start: 0x1700, end: 0x171F, ja: "タガログ文字 (バイバイイン)", en: "Tagalog", desc_ja: "フィリピン伝統の古文字", desc_en: "Traditional Philippine script" },
+            { start: 0x1780, end: 0x17FF, ja: "クメール文字", en: "Khmer", desc_ja: "カンボジアの公用語文字", desc_en: "Cambodian Khmer script" },
+            { start: 0x1800, end: 0x18AF, ja: "モンゴル文字", en: "Mongolian", desc_ja: "縦書きの伝統モンゴル文字", desc_en: "Traditional Mongolian script" },
+            { start: 0x1D00, end: 0x1D7F, ja: "音標拡張", en: "Phonetic Extensions", desc_ja: "言語学・音声学用追加記号", desc_en: "Linguistic phonetic additions" },
+            { start: 0x1E00, end: 0x1EFF, ja: "ラテン文字拡張追加", en: "Latin Extended Additional", desc_ja: "ベトナム語等のアクセント付きラテン文字", desc_en: "Vietnamese & complex Latin" },
+            { start: 0x1F00, end: 0x1FFF, ja: "ギリシャ文字拡張", en: "Greek Extended", desc_ja: "古代ギリシャ語・詩文用記号", desc_en: "Polytonic Classical Greek" },
+            { start: 0x2000, end: 0x206F, ja: "一般句読点", en: "General Punctuation", desc_ja: "スペース・ダッシュ・引用符", desc_en: "Punctuation & quotes" },
+            { start: 0x2070, end: 0x209F, ja: "上付き・下付き文字", en: "Superscripts and Subscripts", desc_ja: "数式用上付き・下付き数字", desc_en: "Math superscripts & subscripts" },
+            { start: 0x20A0, end: 0x20CF, ja: "通貨記号", en: "Currency Symbols", desc_ja: "円(¥)、ドル($)、ユーロ(€)等の通貨", desc_en: "World currency symbols" },
+            { start: 0x2100, end: 0x214F, en: "Letterlike Symbols", ja: "文字様記号", desc_ja: "単位記号 (℃, ℉, №, ™等)", desc_en: "Units & trademark symbols" },
+            { start: 0x2150, end: 0x218F, ja: "数詞 (ローマ数字)", en: "Number Forms", desc_ja: "分数記号・ローマ数字 (Ⅰ, Ⅱ, Ⅲ)", desc_en: "Fractions & Roman numerals" },
+            { start: 0x2190, end: 0x21FF, ja: "矢印記号", en: "Arrows", desc_ja: "方向を示す各種矢印 (←, →, ↑, ↓)", desc_en: "Directional arrow symbols" },
+            { start: 0x2200, end: 0x22FF, ja: "数学演算記号", en: "Mathematical Operators", desc_ja: "ルート(√)、積分(∫)、無限(∞)等", desc_en: "Math & logic symbols" },
+            { start: 0x2300, end: 0x23FF, ja: "技術用雑記号", en: "Miscellaneous Technical", desc_ja: "キーボード・電気回路・工学記号", desc_en: "Engineering & UI symbols" },
+            { start: 0x2400, end: 0x243F, ja: "制御機能用記号", en: "Control Pictures", desc_ja: "通信制御コードの視覚記号", desc_en: "Visual control codes" },
+            { start: 0x2460, end: 0x24FF, ja: "囲み英数字", en: "Enclosed Alphanumerics", desc_ja: "丸数字 (①, ②) や囲み文字", desc_en: "Circled numbers & letters" },
+            { start: 0x2500, end: 0x257F, ja: "罫線素片", en: "Box Drawing", desc_ja: "表組み・画面枠線用記号", desc_en: "Box & border drawing elements" },
+            { start: 0x2580, end: 0x259F, ja: "ブロック要素", en: "Block Elements", desc_ja: "ドット絵・バーグラフ用四角素片", desc_en: "Solid block graphics" },
+            { start: 0x25A0, end: 0x25FF, ja: "幾何学模様", en: "Geometric Shapes", desc_ja: "図形 (■, △, ○, ★等)", desc_en: "Geometric shapes & stars" },
+            { start: 0x2600, end: 0x26FF, ja: "その他の記号", en: "Miscellaneous Symbols", desc_ja: "天候(☀, ☁)、トランプ(♠, ♥)等", desc_en: "Weather, suits & icons" },
+            { start: 0x2700, end: 0x27BF, ja: "装飾記号 (Dingbats)", en: "Dingbats", desc_ja: "チェックマーク(✓)、ハサミ(✂)等", desc_en: "Checkmarks, scissors & icons" },
+            { start: 0x2800, end: 0x28FF, ja: "点字パターン", en: "Braille Patterns", desc_ja: "6点・8点点字コード", desc_en: "Braille cell patterns" },
+            { start: 0x2F00, end: 0x2FDF, ja: "康煕部首", en: "Kangxi Radicals", desc_ja: "漢字辞書の部首 (214部首)", desc_en: "214 traditional Chinese radicals" },
+            { start: 0x3000, end: 0x303F, ja: "CJKの記号と句読点", en: "CJK Symbols and Punctuation", desc_ja: "読点(、)、句点(。)、鍵かっこ(「」)", desc_en: "East Asian punctuation & brackets" },
+            { start: 0x3040, end: 0x309F, ja: "ひらがな (Hiragana)", en: "Hiragana", desc_ja: "日本語の表音文字 (あ〜ん)", desc_en: "Japanese Hiragana syllabary" },
+            { start: 0x30A0, end: 0x30FF, ja: "カタカナ (Katakana)", en: "Katakana", desc_ja: "日本語の表音文字 (ア〜ン)", desc_en: "Japanese Katakana syllabary" },
+            { start: 0x3100, end: 0x312F, ja: "注音符号 (ボポモフォ)", en: "Bopomofo", desc_ja: "台湾の中国語発音記号", desc_en: "Taiwanese Mandarin Bopomofo" },
+            { start: 0x3190, end: 0x319F, ja: "漢文訓読記号", en: "Kanbun", desc_ja: "返り点 (レ点、一二点等)", desc_en: "Japanese Kanbun reading marks" },
+            { start: 0x3200, end: 0x32FF, ja: "囲みCJK文字・月", en: "Enclosed CJK Letters and Months", desc_ja: "丸株(株)、(株)、平成・令和等", desc_en: "Enclosed Kanji & date tokens" },
+            { start: 0x3300, end: 0x33FF, ja: "CJK互換用例", en: "CJK Compatibility", desc_ja: "単位合字 (㌢, ㌘, ㍑等)", desc_en: "Combined unit abbreviations" },
+            { start: 0x3400, end: 0x4DBF, ja: "CJK統合漢字拡張A", en: "CJK Unified Ideographs Extension A", desc_ja: "希少な漢字・人名地名漢字", desc_en: "Rare East Asian ideographs" },
+            { start: 0x4E00, end: 0x9FFF, ja: "CJK統合漢字 (常用・本漢字)", en: "CJK Unified Ideographs", desc_ja: "日本語・中国語・韓国語の主要漢字", desc_en: "Primary Chinese/Japanese Kanji" },
+            { start: 0xAC00, end: 0xD7AF, ja: "ハングル音節文字", en: "Hangul Syllables", desc_ja: "現代韓国語・朝鮮語の完成字", desc_en: "Modern Korean syllabic blocks" },
+            { start: 0xD800, end: 0xDBFF, ja: "上位サロゲート", en: "High Surrogates", desc_ja: "UTF-16用ペア結合コード", desc_en: "UTF-16 High Surrogates" },
+            { start: 0xDC00, end: 0xDFFF, ja: "下位サロゲート", en: "Low Surrogates", desc_ja: "UTF-16用ペア結合コード", desc_en: "UTF-16 Low Surrogates" },
+            { start: 0xE000, end: 0xF8FF, ja: "私用領域 (外字領域)", en: "Private Use Area", desc_ja: "ユーザー定義・フォント独自文字", desc_en: "Font specific & custom icons" },
+            { start: 0xF900, end: 0xFAFF, ja: "CJK互換漢字", en: "CJK Compatibility Ideographs", desc_ja: "異体字・伝統的表記用漢字", desc_en: "Variant CJK kanji forms" },
+            { start: 0xFF00, end: 0xFFEF, ja: "半角・全角形", en: "Halfwidth and Fullwidth Forms", desc_ja: "全角英数字・半角カタカナ", desc_en: "Fullwidth ASCII & Halfwidth Kana" },
+            { start: 0x10000, end: 0x1007F, ja: "線文字B 音節文字 (Linear B)", en: "Linear B Syllabary", desc_ja: "古代ミケーネ・ギリシャの粘土板文字", desc_en: "Ancient Mycenaean Greek script" },
+            { start: 0x10080, end: 0x100FF, ja: "線文字B 表意文字", en: "Linear B Ideograms", desc_ja: "古代ギリシャの交易品象形文字", desc_en: "Ancient Greek trade ideograms" },
+            { start: 0x10140, end: 0x1018F, ja: "古代ギリシャ数字", en: "Ancient Greek Numbers", desc_ja: "アッティカ数字・古代進法", desc_en: "Classical Attic numerals" },
+            { start: 0x10300, end: 0x1032F, ja: "古イタリア文字", en: "Old Italic", desc_ja: "エトルリア語・古代ローマ以前の文字", desc_en: "Etruscan & early Italic alphabets" },
+            { start: 0x10330, end: 0x1034F, ja: "ゴート文字", en: "Gothic", desc_ja: "古代東ゲルマン語の文字", desc_en: "East Germanic Gothic alphabet" },
+            { start: 0x10900, end: 0x1091F, ja: "フェニキア文字", en: "Phoenician", desc_ja: "アルファベットの始祖となった古代文字", desc_en: "Ancestor of modern alphabets" },
+            { start: 0x12000, end: 0x123FF, ja: "楔形文字 (Cuneiform)", en: "Cuneiform", desc_ja: "古代メソポタミア・シュメール文字", desc_en: "Ancient Mesopotamian Sumerian" },
+            { start: 0x13000, end: 0x1342F, ja: "ヒエログリフ (象形文字)", en: "Egyptian Hieroglyphic", desc_ja: "古代エジプトの神聖文字", desc_en: "Ancient Egyptian pictorial script" },
+            { start: 0x1D100, end: 0x1D1FF, ja: "西洋楽譜記号", en: "Musical Symbols", desc_ja: "ト音記号・音符・休符等", desc_en: "Western musical notation" },
+            { start: 0x1D400, end: 0x1D7FF, ja: "数学用英数字記号", en: "Mathematical Alphanumeric Symbols", desc_ja: "太字・斜体・花文字等の数学記号", desc_en: "Math bold, italic & script letters" },
+            { start: 0x1F000, end: 0x1F02F, ja: "麻雀牌記号", en: "Mahjong Tiles", desc_ja: "萬子・筒子・索子・字牌記号", desc_en: "Mahjong tile icons" },
+            { start: 0x1F0A0, end: 0x1F0FF, ja: "トランプ札記号", en: "Playing Cards", desc_ja: "スペード・ハート・ダイヤ・クラブ", desc_en: "Playing card deck symbols" },
+            { start: 0x1F300, end: 0x1F5FF, ja: "各種記号・絵文字", en: "Miscellaneous Symbols and Pictographs", desc_ja: "食べ物・動物・施設・オブジェクト絵文字", desc_en: "Food, animals & object emoji" },
+            { start: 0x1F600, end: 0x1F64F, ja: "感情絵文字 (Emoticons)", en: "Emoticons / Smileys", desc_ja: "顔文字・表情絵文字 (😀, 😂, 😭等)", desc_en: "Smiley faces & facial emoji" },
+            { start: 0x1F680, end: 0x1F6FF, ja: "交通・建物・地図絵文字", en: "Transport and Map Symbols", desc_ja: "乗り物・建物・地図記号 (🚀, 🚗等)", desc_en: "Vehicles, buildings & maps" },
+            { start: 0x1F900, end: 0x1F9FF, ja: "補助記号・追加絵文字", en: "Supplemental Symbols and Pictographs", desc_ja: "最新の人物・ロボット・感情絵文字", desc_en: "Modern people, fantasy & gestures" },
+            { start: 0x20000, end: 0x2A6DF, ja: "CJK統合漢字拡張B", en: "CJK Unified Ideographs Extension B", desc_ja: "超希少漢字・古典文献漢字", desc_en: "Ultra-rare classical CJK Kanji" }
+        ];
+
+        // State Management
+        let currentLang = 'ja';
+        const state = {
+            hue: 10,
+            saturation: 0.91,
+            value: 0.96,
+            hex: 'F54927',
+            nodes: [
+                { angle: 0.17, dist: 0.85 },
+                { angle: 0.25, dist: 0.65 },
+                { angle: 0.95, dist: 0.78 }
+            ]
+        };
+
+        // DOM Element Cache
+        const canvas = document.getElementById('colorWheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const hexInput = document.getElementById('hexInput');
+        const activeColorSwatch = document.getElementById('activeColorSwatch');
+        const copyHexBtn = document.getElementById('copyHexBtn');
+        const randomPaletteBtn = document.getElementById('randomPaletteBtn');
+        const exportColorsBtn = document.getElementById('exportColorsBtn');
+        const langToggleBtn = document.getElementById('langToggleBtn');
+        const currentLangLabel = document.getElementById('currentLangLabel');
+
+        // Bidirectional Input Element
+        const directCharInput = document.getElementById('directCharInput');
+
+        // Inspection Displays
+        const codePointDisplay = document.getElementById('codePointDisplay');
+        const charBlockName = document.getElementById('charBlockName');
+        const charSubCategory = document.getElementById('charSubCategory');
+        const rgbValueDisplay = document.getElementById('rgbValueDisplay');
+        const hslValueDisplay = document.getElementById('hslValueDisplay');
+        const decimalDisplay = document.getElementById('decimalDisplay');
+        const utf8BytesDisplay = document.getElementById('utf8BytesDisplay');
+        const statusBadge = document.getElementById('statusBadge');
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toastMsg');
+
+        // Canvas Dimensions
+        const size = 340;
+        const center = size / 2;
+        const outerRadius = size / 2 - 10;
+        const innerRadius = outerRadius - 18;
+        const wheelRadius = innerRadius - 12;
+
+        let isDraggingWheel = false;
+        let isDraggingRing = false;
+
+        // Language Switcher Function
+        function setLanguage(lang) {
+            currentLang = lang;
+            currentLangLabel.textContent = lang === 'ja' ? 'English' : '日本語';
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[lang] && i18n[lang][key]) {
+                    if (key.startsWith('guide') && key.endsWith('Body')) {
+                        el.innerHTML = i18n[lang][key];
+                    } else {
+                        el.textContent = i18n[lang][key];
+                    }
+                }
+            });
+
+            updateUnicodeInspection(state.hex, false);
+        }
+
+        langToggleBtn.addEventListener('click', () => {
+            setLanguage(currentLang === 'ja' ? 'en' : 'ja');
+        });
+
+        // Block Lookup Strategy
+        function getUnicodeBlockInfo(codePoint) {
+            for (let i = 0; i < unicodeBlocks.length; i++) {
+                const b = unicodeBlocks[i];
+                if (codePoint >= b.start && codePoint <= b.end) {
+                    return {
+                        name: currentLang === 'ja' ? b.ja : b.en,
+                        desc: currentLang === 'ja' ? b.desc_ja : b.desc_en,
+                        range: `U+${b.start.toString(16).toUpperCase().padStart(4, '0')} - U+${b.end.toString(16).toUpperCase().padStart(4, '0')}`
+                    };
+                }
+            }
+            return {
+                name: currentLang === 'ja' ? "未定義・特殊コード領域" : "Unassigned / Special Code Area",
+                desc: currentLang === 'ja' ? "予約済み領域または未知の文字" : "Reserved area or undefined character",
+                range: "U+----"
+            };
+        }
+
+        // Color Wheel Renderer
+        function drawColorWheel() {
+            ctx.clearRect(0, 0, size, size);
+
+            // Inner Hue/Saturation Disc
+            const imgData = ctx.createImageData(size, size);
+            const data = imgData.data;
+
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    const dx = x - center;
+                    const dy = y - center;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist <= wheelRadius) {
+                        const angle = (Math.atan2(dy, dx) + Math.PI * 2) % (Math.PI * 2);
+                        const hue = (angle / (Math.PI * 2)) * 360;
+                        const sat = dist / wheelRadius;
+
+                        const [r, g, b] = hsvToRgb(hue, sat, state.value);
+                        const idx = (y * size + x) * 4;
+                        data[idx] = r;
+                        data[idx + 1] = g;
+                        data[idx + 2] = b;
+                        data[idx + 3] = 255;
+                    }
+                }
+            }
+            ctx.putImageData(imgData, 0, 0);
+
+            // Outer Lightness Ring
+            for (let i = 0; i < 360; i++) {
+                const startAngle = (i - 1) * Math.PI / 180;
+                const endAngle = (i + 1) * Math.PI / 180;
+                ctx.beginPath();
+                ctx.arc(center, center, (outerRadius + innerRadius) / 2, startAngle, endAngle);
+                const [r, g, b] = hsvToRgb(state.hue, state.saturation, i / 360);
+                ctx.strokeStyle = `rgb(${r}, ${g}, ${b})`;
+                ctx.lineWidth = outerRadius - innerRadius;
+                ctx.stroke();
+            }
+
+            // Lightness Ring Handle
+            const ringAngle = state.value * Math.PI * 2;
+            const ringHandleX = center + Math.cos(ringAngle) * ((outerRadius + innerRadius) / 2);
+            const ringHandleY = center + Math.sin(ringAngle) * ((outerRadius + innerRadius) / 2);
+
+            ctx.beginPath();
+            ctx.arc(ringHandleX, ringHandleY, 7, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.strokeStyle = '#0f172a';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            // Central Wheel Handle
+            const mainAngle = (state.hue / 360) * Math.PI * 2;
+            const mainDist = state.saturation * wheelRadius;
+            const mainX = center + Math.cos(mainAngle) * mainDist;
+            const mainY = center + Math.sin(mainAngle) * mainDist;
+
+            ctx.beginPath();
+            ctx.arc(mainX, mainY, 11, 0, Math.PI * 2);
+            ctx.fillStyle = `#${state.hex}`;
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 3.5;
+            ctx.stroke();
+
+            // Decorative Auxiliary Nodes
+            state.nodes.forEach(node => {
+                const nAngle = node.angle * Math.PI * 2;
+                const nDist = node.dist * wheelRadius;
+                const nx = center + Math.cos(nAngle) * nDist;
+                const ny = center + Math.sin(nAngle) * nDist;
+
+                ctx.beginPath();
+                ctx.arc(nx, ny, 6, 0, Math.PI * 2);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+            });
+        }
+
+        // Color Space Math
+        function hsvToRgb(h, s, v) {
+            let r, g, b;
+            const i = Math.floor((h / 60) % 6);
+            const f = (h / 60) - Math.floor(h / 60);
+            const p = v * (1 - s);
+            const q = v * (1 - f * s);
+            const t = v * (1 - (1 - f) * s);
+
+            switch (i) {
+                case 0: r = v; g = t; b = p; break;
+                case 1: r = q; g = v; b = p; break;
+                case 2: r = p; g = v; b = t; break;
+                case 3: r = p; g = q; b = v; break;
+                case 4: r = t; g = p; b = v; break;
+                case 5: r = v; g = p; b = q; break;
+            }
+            return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+        }
+
+        function rgbToHsv(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, v = max;
+            const d = max - min;
+            s = max === 0 ? 0 : d / max;
+
+            if (max === min) {
+                h = 0;
+            } else {
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+            return { h: h * 360, s, v };
+        }
+
+        function rgbToHex(r, g, b) {
+            return [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('').toUpperCase();
+        }
+
+        function hexToRgb(hex) {
+            const cleanHex = hex.replace(/[^0-9A-Fa-f]/g, '').padStart(6, '0').slice(-6);
+            const num = parseInt(cleanHex, 16);
+            return {
+                r: (num >> 16) & 255,
+                g: (num >> 8) & 255,
+                b: num & 255
+            };
+        }
+
+        // Live Unicode Inspector Update
+        function updateUnicodeInspection(hex, updateInputBox = true) {
+            const num = parseInt(hex, 16);
+            const { r, g, b } = hexToRgb(hex);
+
+            const hsv = rgbToHsv(r, g, b);
+            const h = Math.round(hsv.h);
+            const s = Math.round(hsv.s * 100);
+            const l = Math.round((2 - hsv.s) * hsv.v / 2 * 100);
+
+            rgbValueDisplay.textContent = `rgb(${r}, ${g}, ${b})`;
+            hslValueDisplay.textContent = `hsl(${h}, ${s}%, ${l}%)`;
+            decimalDisplay.textContent = num.toLocaleString();
+
+            const codePointHex = hex.toUpperCase().padStart(5, '0');
+            codePointDisplay.textContent = `U+${codePointHex}`;
+
+            let charStr = '';
+            let isValid = true;
+
+            try {
+                if (num >= 0xD800 && num <= 0xDFFF) {
+                    isValid = false;
+                    charStr = '';
+                } else if (num > 0x10FFFF) {
+                    const wrappedNum = num % 0x10FFFF;
+                    charStr = String.fromCodePoint(wrappedNum);
+                } else {
+                    charStr = String.fromCodePoint(num);
+                }
+            } catch (e) {
+                isValid = false;
+                charStr = '';
+            }
+
+            if (updateInputBox) {
+                directCharInput.value = charStr;
+            }
+
+            // UTF-8 Bytes
+            try {
+                const encoder = new TextEncoder();
+                const bytes = encoder.encode(charStr);
+                const hexBytes = Array.from(bytes).map(b => b.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+                utf8BytesDisplay.textContent = hexBytes || '--';
+            } catch (e) {
+                utf8BytesDisplay.textContent = '--';
+            }
+
+            // Block & Description Metadata
+            const blockInfo = getUnicodeBlockInfo(num);
+            charBlockName.textContent = blockInfo.name;
+            charSubCategory.textContent = `${blockInfo.range} • ${blockInfo.desc}`;
+
+            // Status Badge
+            if (!isValid) {
+                statusBadge.textContent = i18n[currentLang].invalidStatus;
+                statusBadge.className = 'text-xs font-semibold text-amber-700 bg-amber-50 px-3 py-1 rounded-lg border border-amber-100';
+            } else {
+                statusBadge.textContent = i18n[currentLang].validStatus;
+                statusBadge.className = 'text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100';
+            }
+        }
+
+        function updateFromState(updateInput = true) {
+            const [r, g, b] = hsvToRgb(state.hue, state.saturation, state.value);
+            state.hex = rgbToHex(r, g, b);
+
+            activeColorSwatch.style.backgroundColor = `#${state.hex}`;
+            hexInput.value = state.hex;
+
+            drawColorWheel();
+            updateUnicodeInspection(state.hex, updateInput);
+        }
+
+        // Pointer Handling for Canvas Interaction
+        function handlePointer(clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (clientX - rect.left) * (size / rect.width);
+            const y = (clientY - rect.top) * (size / rect.height);
+
+            const dx = x - center;
+            const dy = y - center;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (isDraggingRing || (dist >= innerRadius && dist <= outerRadius && !isDraggingWheel)) {
+                isDraggingRing = true;
+                const angle = (Math.atan2(dy, dx) + Math.PI * 2) % (Math.PI * 2);
+                state.value = angle / (Math.PI * 2);
+                updateFromState(true);
+            } else if (isDraggingWheel || dist <= wheelRadius) {
+                isDraggingWheel = true;
+                const angle = (Math.atan2(dy, dx) + Math.PI * 2) % (Math.PI * 2);
+                state.hue = (angle / (Math.PI * 2)) * 360;
+                state.saturation = Math.min(1, dist / wheelRadius);
+                updateFromState(true);
+            }
+        }
+
+        canvas.addEventListener('pointerdown', (e) => {
+            canvas.setPointerCapture(e.pointerId);
+            handlePointer(e.clientX, e.clientY);
+        });
+
+        canvas.addEventListener('pointermove', (e) => {
+            if (isDraggingWheel || isDraggingRing) {
+                handlePointer(e.clientX, e.clientY);
+            }
+        });
+
+        const stopDrag = () => {
+            isDraggingWheel = false;
+            isDraggingRing = false;
+        };
+
+        canvas.addEventListener('pointerup', stopDrag);
+        canvas.addEventListener('pointercancel', stopDrag);
+
+        // Reverse Search: Character Input Handler
+        directCharInput.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (!val || val.length === 0) return;
+
+            // Extract code point from typed character (handles surrogate pairs like Emoji)
+            const codePoint = val.codePointAt(0);
+            if (!codePoint && codePoint !== 0) return;
+
+            // Format code point into 24-bit RGB Hex
+            const hex = (codePoint & 0xFFFFFF).toString(16).padStart(6, '0').toUpperCase();
+            
+            const { r, g, b } = hexToRgb(hex);
+            const hsv = rgbToHsv(r, g, b);
+
+            state.hue = hsv.h;
+            state.saturation = hsv.s;
+            state.value = hsv.v === 0 ? 0.8 : hsv.v; // Keep visible brightness if 0
+
+            updateFromState(false);
+        });
+
+        // Hex Input Event
+        hexInput.addEventListener('input', (e) => {
+            let val = e.target.value.replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
+            if (val.length === 6) {
+                const { r, g, b } = hexToRgb(val);
+                const hsv = rgbToHsv(r, g, b);
+                state.hue = hsv.h;
+                state.saturation = hsv.s;
+                state.value = hsv.v;
+                updateFromState(true);
+            }
+        });
+
+        // Copy Hex Action
+        copyHexBtn.addEventListener('click', () => {
+            const textToCopy = `#${state.hex}`;
+            const tempInput = document.createElement('input');
+            tempInput.value = textToCopy;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            showToast(i18n[currentLang].copiedToast);
+        });
+
+        // Random Palette Generator
+        randomPaletteBtn.addEventListener('click', () => {
+            state.hue = Math.floor(Math.random() * 360);
+            state.saturation = 0.4 + Math.random() * 0.6;
+            state.value = 0.6 + Math.random() * 0.4;
+
+            state.nodes = [
+                { angle: Math.random(), dist: 0.4 + Math.random() * 0.5 },
+                { angle: Math.random(), dist: 0.4 + Math.random() * 0.5 },
+                { angle: Math.random(), dist: 0.4 + Math.random() * 0.5 }
+            ];
+
+            updateFromState(true);
+            showToast(i18n[currentLang].randomToast);
+        });
+
+        // Export Colors
+        exportColorsBtn.addEventListener('click', () => {
+            const hexList = [state.hex];
+            state.nodes.forEach(n => {
+                const [r, g, b] = hsvToRgb(n.angle * 360, n.dist, state.value);
+                hexList.push(rgbToHex(r, g, b));
+            });
+
+            const summary = `Color to Unicode Export:\n` + hexList.map(h => `#${h} -> U+${h}`).join('\n');
+
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = summary;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
+            showToast(i18n[currentLang].paletteCopiedToast);
+        });
+
+        function showToast(message) {
+            toastMsg.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2600);
+        }
+
+        // Initialize App
+        setLanguage('ja');
+        updateFromState(true);
+    </script>
+</body>
+</html>
